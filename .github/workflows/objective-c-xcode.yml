@@ -22,7 +22,7 @@ jobs:
           echo Using default scheme: $default
       - name: Build
         env:
-          scheme: ${{ 'default' }}
+          PROJECT_PATH: karto4ki/karto4ki.xcodeproj
         run: |
           if [ $scheme = default ]; then scheme=$(cat default); fi
           if [ "`ls -A | grep -i \\.xcworkspace\$`" ]; then filetype_parameter="workspace" && file_to_build="`ls -A | grep -i \\.xcworkspace\$`"; else filetype_parameter="project" && file_to_build="`ls -A | grep -i \\.xcodeproj\$`"; fi
