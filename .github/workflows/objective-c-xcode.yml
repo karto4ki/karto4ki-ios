@@ -13,7 +13,8 @@ jobs:
     env:
       PROJECT_PATH: karto4ki/karto4ki.xcodeproj
       SCHEME: karto4ki
-      DESTINATION: "platform=iOS Simulator,name=Any iOS Simulator Device"
+      DESTINATION: "platform=iOS Simulator,name=iPhone 16,OS=18.6"
+
 
     steps:
       - name: Checkout
