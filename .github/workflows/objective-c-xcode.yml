@@ -1,4 +1,4 @@
-name: Xcode - Build and Analyze
+name: iOS - Build & Test
 
 on:
   push:
@@ -8,24 +8,35 @@ on:
 
 jobs:
   build:
-    name: Build and analyse default scheme using xcodebuild command
     runs-on: macos-latest
+
+    env:
+      PROJECT_PATH: karto4ki/karto4ki.xcodeproj
+      SCHEME: karto4ki
+      DESTINATION: "platform=iOS Simulator,name=iPhone 15,OS=latest"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set Default Scheme
+
+      - name: Show Xcode files (debug)
         run: |
-          scheme_list=$(xcodebuild -list -json | tr -d "\n")
-          default=$(echo $scheme_list | ruby -e "require 'json'; puts JSON.parse(STDIN.gets)['project']['targets'][0]")
-          echo $default | cat >default
-          echo Using default scheme: $default
+          find . -maxdepth 4 -name "*.xcodeproj" -o -name "*.xcworkspace" -o -name "Package.swift"
+
       - name: Build
-        env:
-          PROJECT_PATH: karto4ki/karto4ki.xcodeproj
-          SCHEME: karto4ki
         run: |
-          if [ $scheme = default ]; then scheme=$(cat default); fi
-          if [ "`ls -A | grep -i \\.xcworkspace\$`" ]; then filetype_parameter="workspace" && file_to_build="`ls -A | grep -i \\.xcworkspace\$`"; else filetype_parameter="project" && file_to_build="`ls -A | grep -i \\.xcodeproj\$`"; fi
-          file_to_build=`echo $file_to_build | awk '{$1=$1;print}'`
-          xcodebuild clean build analyze -scheme "$scheme" -"$filetype_parameter" "$file_to_build" | xcpretty && exit ${PIPESTATUS[0]}
+          set -o pipefail
+          xcodebuild clean build \
+            -project "$PROJECT_PATH" \
+            -scheme "$SCHEME" \
+            -destination "$DESTINATION" \
+          | xcpretty
+
+      - name: Test
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project "$PROJECT_PATH" \
+            -scheme "$SCHEME" \
+            -destination "$DESTINATION" \
+          | xcpretty
