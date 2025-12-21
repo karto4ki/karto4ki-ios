@@ -11,24 +11,11 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        let background = UIImage(named: "background")
-        let backgroundView = UIImageView(image: background)
-        backgroundView.contentMode = .scaleToFill
         
-        view.addSubview(backgroundView)
-        backgroundView.pinTop(to: view.topAnchor)
-        backgroundView.pinLeft(to: view.leadingAnchor)
-        backgroundView.pinBottom(to: view.bottomAnchor)
-        backgroundView.pinRight(to: view.trailingAnchor)
+        let background = BackgroundView()
+        view.addSubview(background)
+        background.pin(to: view)
         
-
-        for family in UIFont.familyNames.sorted() {
-            print("Family: \(family)")
-            for name in UIFont.fontNames(forFamilyName: family) {
-                print("   \(name)")
-            }
-        }
-
         // Do any additional setup after loading the view.
     }
 
