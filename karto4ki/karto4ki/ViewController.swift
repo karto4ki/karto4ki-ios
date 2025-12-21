@@ -11,6 +11,11 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let background = BackgroundView()
+        view.addSubview(background)
+        background.pin(to: view)
+        
         // Do any additional setup after loading the view.
     }
 
