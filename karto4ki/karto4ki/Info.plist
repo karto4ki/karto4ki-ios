@@ -5,6 +5,7 @@
 	<key>UIAppFonts</key>
 	<array>
 		<string>Musinka.ttf</string>
+		<string>futuralt_bold.ttf</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>

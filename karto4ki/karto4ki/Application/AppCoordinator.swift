@@ -22,13 +22,7 @@ final class AppCoordinator {
     }
     
     func startRegistration() {
-        window.rootViewController = ViewController()
+        window.rootViewController = SignInViewController()
         window.makeKeyAndVisible()
-        showSignIn()
-    }
-    
-    func showSignIn() {
-        let signInVC = ViewController()
-        navigatorController.pushViewController(signInVC, animated: true)
     }
 }
