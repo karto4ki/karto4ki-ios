@@ -12,6 +12,9 @@ class SignInViewController: UIViewController {
     private let translucentBackgroundView: UIView = UIView()
     private let appleIDButton: UIButton = UIButton(type: .system)
     private let gmailButton: UIButton = UIButton()
+    private let orLabel: UILabel = UILabel()
+    private let rLine: UIView = UIView()
+    private let lLine: UIView = UIView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,6 +31,8 @@ class SignInViewController: UIViewController {
         configureTranslucentBackground()
         configureAppleIdButton()
         configureGmailButton()
+        configureOrLabel()
+        configureLines()
     }
 
     private func configureBackground() {
@@ -81,6 +86,30 @@ class SignInViewController: UIViewController {
         gmailButton.pinLeft(to: view.leadingAnchor, 40)
         gmailButton.pinRight(to: view.trailingAnchor, 40)
         gmailButton.setHeight(50)
+    }
+    
+    private func configureOrLabel() {
+        orLabel.text = "или"
+        orLabel.font = Fonts.futuraM17
+        orLabel.textColor = Colors.grayCFCFCF
+        view.addSubview(orLabel)
+        orLabel.pinBottom(to: gmailButton.topAnchor, 10)
+        orLabel.pinCenterX(to: view.centerXAnchor)
+    }
+    
+    private func configureLines() {
+        rLine.backgroundColor = Colors.grayCFCFCF
+        lLine.backgroundColor = Colors.grayCFCFCF
+        view.addSubview(rLine)
+        view.addSubview(lLine)
+        rLine.setHeight(1)
+        lLine.setHeight(1)
+        rLine.pinRight(to: view.trailingAnchor, 40)
+        rLine.pinLeft(to: orLabel.trailingAnchor, 10)
+        rLine.pinCenterY(to: orLabel.centerYAnchor)
+        lLine.pinRight(to: orLabel.leadingAnchor, 10)
+        lLine.pinLeft(to: view.leadingAnchor, 40)
+        lLine.pinCenterY(to: orLabel.centerYAnchor)
     }
 }
 
