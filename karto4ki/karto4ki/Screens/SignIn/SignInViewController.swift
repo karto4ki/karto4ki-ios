@@ -7,7 +7,7 @@
 
 import UIKit
 
-class SignInViewController: UIViewController {
+class SignInViewController: UIViewController, UITextFieldDelegate {
 
     private let translucentBackgroundView: UIView = UIView()
     private let appleIDButton: UIButton = UIButton(type: .system)
@@ -16,9 +16,13 @@ class SignInViewController: UIViewController {
     private let rLine: UIView = UIView()
     private let lLine: UIView = UIView()
     private let getCodeButton: UIButton = UIButton(type: .system)
+    private let textField: UITextField = UITextField()
+    private var translucentBottomConstraint: NSLayoutConstraint = NSLayoutConstraint()
+    private var appleIdBottomConstraint: NSLayoutConstraint = NSLayoutConstraint()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        keyboardNotifications()
         configureUI()
     }
     
@@ -26,7 +30,7 @@ class SignInViewController: UIViewController {
         super.viewDidLayoutSubviews()
         translucentBackgroundView.roundCorners([.topLeft, .topRight], radius: 60)
     }
-    
+
     private func configureUI() {
         configureBackground()
         configureTranslucentBackground()
@@ -35,6 +39,8 @@ class SignInViewController: UIViewController {
         configureOrLabel()
         configureLines()
         configureGetCodeButton()
+        configureEmailTextField()
+        translucentBackgroundView.pinTop(to: textField.topAnchor, -30)
     }
 
     private func configureBackground() {
@@ -47,10 +53,10 @@ class SignInViewController: UIViewController {
     private func configureTranslucentBackground() {
         translucentBackgroundView.backgroundColor = UIColor.white.withAlphaComponent(0.6)
         view.addSubview(translucentBackgroundView)
-        translucentBackgroundView.pinBottom(to: view.bottomAnchor)
         translucentBackgroundView.pinLeft(to: view.leadingAnchor)
         translucentBackgroundView.pinRight(to: view.trailingAnchor)
-        translucentBackgroundView.pinTop(to: view.centerYAnchor)
+        translucentBottomConstraint = translucentBackgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        NSLayoutConstraint.activate([translucentBottomConstraint])
     }
     
     private func configureAppleIdButton() {
@@ -63,10 +69,11 @@ class SignInViewController: UIViewController {
         config.attributedTitle = AttributedString("Продолжить с Apple ID", attributes: container)
         appleIDButton.configuration = config
         view.addSubview(appleIDButton)
-        appleIDButton.pinBottom(to: view.safeAreaLayoutGuide.bottomAnchor, 5)
         appleIDButton.pinLeft(to: view.leadingAnchor, 40)
         appleIDButton.pinRight(to: view.trailingAnchor, 40)
         appleIDButton.setHeight(50)
+        appleIdBottomConstraint = appleIDButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 5)
+        NSLayoutConstraint.activate([appleIdBottomConstraint])
     }
     
     private func configureGmailButton() {
@@ -95,7 +102,7 @@ class SignInViewController: UIViewController {
         orLabel.font = Fonts.futuraM17
         orLabel.textColor = Colors.grayCFCFCF
         view.addSubview(orLabel)
-        orLabel.pinBottom(to: gmailButton.topAnchor, 10)
+        orLabel.pinBottom(to: gmailButton.topAnchor, 15)
         orLabel.pinCenterX(to: view.centerXAnchor)
     }
     
@@ -122,8 +129,91 @@ class SignInViewController: UIViewController {
         getCodeButton.titleLabel?.font = Fonts.futuraB17
         view.addSubview(getCodeButton)
         getCodeButton.setHeight(50)
-        getCodeButton.pinBottom(to: orLabel.topAnchor, 10)
+        getCodeButton.pinBottom(to: orLabel.topAnchor, 15)
         getCodeButton.pinCenterX(to: view.centerXAnchor)
     }
+    
+    private func configureEmailTextField() {
+        textField.delegate = self
+        textField.font = Fonts.futuraM17
+        textField.attributedPlaceholder = NSAttributedString(string: "email", attributes: [NSAttributedString.Key.foregroundColor: Colors.grayD9D9D9])
+        textField.textColor = Colors.gray848484
+        textField.borderStyle = .none
+        textField.backgroundColor = .white
+        textField.autocapitalizationType = .none
+        textField.autocorrectionType = .no
+        textField.layer.cornerRadius = 25
+        view.addSubview(textField)
+        textField.pinBottom(to: getCodeButton.topAnchor, 20)
+        textField.pinLeft(to: view.leadingAnchor, 40)
+        textField.pinRight(to: view.trailingAnchor, 40)
+        textField.setHeight(50)
+        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 20, height: 0))
+        textField.leftView = paddingView
+        textField.leftViewMode = .always
+        textField.rightView = paddingView
+        textField.rightViewMode = .always
+        dismissKeyboard()
+    }
+    
+    private func dismissKeyboard() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc
+    private func hideKeyboard() {
+        view.endEditing(true)
+    }
+    
+    private func keyboardNotifications() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillShow),
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillHide),
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
+    }
+    
+    @objc
+    private func keyboardWillShow(_ notification: Notification) {
+        guard
+            let userInfo = notification.userInfo,
+            let frame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+            let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
+        else { return }
+
+        translucentBottomConstraint.constant = -frame.height
+        appleIdBottomConstraint.constant = -frame.height
+        
+        UIView.animate(withDuration: duration) {
+            self.view.layoutIfNeeded()
+        }
+    }
+    
+    @objc
+    private func keyboardWillHide(_ notification: Notification) {
+        guard
+            let userInfo = notification.userInfo,
+            let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
+        else { return }
+
+        translucentBottomConstraint.constant = 0
+        appleIdBottomConstraint.constant = 0
+
+        UIView.animate(withDuration: duration) {
+            self.view.layoutIfNeeded()
+        }
+    }
+    
+    
 }
 

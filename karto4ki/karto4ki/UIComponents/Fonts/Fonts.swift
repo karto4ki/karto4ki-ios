@@ -9,5 +9,5 @@ import UIKit
 
 enum Fonts {
     static let futuraB17 = UIFont(name: "futuralt-bold", size: 17) ?? UIFont.systemFont(ofSize: 17, weight: .bold)
-    static let futuraM17 = UIFont(name: "futura_mediumcyrusbyme", size: 17) ?? UIFont.systemFont(ofSize: 17, weight: .medium)
+    static let futuraM17 = UIFont(name: "Futura-MediumCYRusbyme", size: 22) ?? UIFont.systemFont(ofSize: 22, weight: .medium)
 }
