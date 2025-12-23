@@ -15,6 +15,7 @@ class SignInViewController: UIViewController {
     private let orLabel: UILabel = UILabel()
     private let rLine: UIView = UIView()
     private let lLine: UIView = UIView()
+    private let getCodeButton: UIButton = UIButton(type: .system)
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,6 +34,7 @@ class SignInViewController: UIViewController {
         configureGmailButton()
         configureOrLabel()
         configureLines()
+        configureGetCodeButton()
     }
 
     private func configureBackground() {
@@ -110,6 +112,18 @@ class SignInViewController: UIViewController {
         lLine.pinRight(to: orLabel.leadingAnchor, 10)
         lLine.pinLeft(to: view.leadingAnchor, 40)
         lLine.pinCenterY(to: orLabel.centerYAnchor)
+    }
+    
+    private func configureGetCodeButton() {
+        getCodeButton.setTitle("     Получить код     ", for: .normal)
+        getCodeButton.setTitleColor(.white, for: .normal)
+        getCodeButton.backgroundColor = Colors.lilicD9D7FF
+        getCodeButton.layer.cornerRadius = 25
+        getCodeButton.titleLabel?.font = Fonts.futuraB17
+        view.addSubview(getCodeButton)
+        getCodeButton.setHeight(50)
+        getCodeButton.pinBottom(to: orLabel.topAnchor, 10)
+        getCodeButton.pinCenterX(to: view.centerXAnchor)
     }
 }
 

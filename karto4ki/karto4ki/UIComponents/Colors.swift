@@ -9,4 +9,5 @@ import UIKit
 
 enum Colors {
     static let grayCFCFCF = UIColor(red: 0.81, green: 0.81, blue: 0.81, alpha: 1.00)
+    static let lilicD9D7FF = UIColor(red: 0.85, green: 0.84, blue: 1.00, alpha: 1.00)
 }
