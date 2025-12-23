@@ -19,6 +19,8 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
     private let textField: UITextField = UITextField()
     private var translucentBottomConstraint: NSLayoutConstraint = NSLayoutConstraint()
     private var appleIdBottomConstraint: NSLayoutConstraint = NSLayoutConstraint()
+    private let emailSmallLabel: UILabel = UILabel()
+    private let emailBigLabel: UILabel = UILabel()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,7 +42,9 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         configureLines()
         configureGetCodeButton()
         configureEmailTextField()
-        translucentBackgroundView.pinTop(to: textField.topAnchor, -30)
+        configureEmailSmallLabel()
+        configureEmailBigLabel()
+        translucentBackgroundView.pinTop(to: emailBigLabel.topAnchor, -30)
     }
 
     private func configureBackground() {
@@ -72,7 +76,7 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         appleIDButton.pinLeft(to: view.leadingAnchor, 40)
         appleIDButton.pinRight(to: view.trailingAnchor, 40)
         appleIDButton.setHeight(50)
-        appleIdBottomConstraint = appleIDButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 5)
+        appleIdBottomConstraint = appleIDButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -5)
         NSLayoutConstraint.activate([appleIdBottomConstraint])
     }
     
@@ -154,6 +158,24 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         textField.rightView = paddingView
         textField.rightViewMode = .always
         dismissKeyboard()
+    }
+    
+    private func configureEmailSmallLabel() {
+        emailSmallLabel.text = "для создания или входа в аккаунт"
+        emailSmallLabel.font = Fonts.futuraB14
+        emailSmallLabel.textColor = Colors.lilicBAB6FD
+        view.addSubview(emailSmallLabel)
+        emailSmallLabel.pinBottom(to: textField.topAnchor, 15)
+        emailSmallLabel.pinCenterX(to: view.centerXAnchor)
+    }
+    
+    private func configureEmailBigLabel() {
+        emailBigLabel.text = "Введите почту"
+        emailBigLabel.font = Fonts.futuraB22
+        emailBigLabel.textColor = Colors.lilicA59FFF
+        view.addSubview(emailBigLabel)
+        emailBigLabel.pinBottom(to: emailSmallLabel.topAnchor, 8)
+        emailBigLabel.pinCenterX(to: view.centerXAnchor)
     }
     
     private func dismissKeyboard() {
