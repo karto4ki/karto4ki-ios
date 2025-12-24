@@ -175,11 +175,11 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         formStack.axis = .vertical
         formStack.alignment = .fill
         formStack.distribution = .fill
-        formStack.spacing = 15
+        formStack.spacing = 12
 
         formStack.pinLeft(to: translucentBackgroundView.leadingAnchor, 40)
         formStack.pinRight(to: translucentBackgroundView.trailingAnchor, 40)
-        formStack.pinBottom(to: translucentBackgroundView.safeAreaLayoutGuide.bottomAnchor, 20)
+        formStack.pinBottom(to: translucentBackgroundView.safeAreaLayoutGuide.bottomAnchor, 15)
 
         orRow.addSubview(orLabel)
         orRow.addSubview(lLine)
