@@ -22,7 +22,7 @@ final class AppCoordinator {
     }
     
     func startRegistration() {
-        window.rootViewController = SignInViewController()
+        window.rootViewController = SignInAssembly.build()
         window.makeKeyAndVisible()
     }
 }

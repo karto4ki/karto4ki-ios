@@ -9,6 +9,7 @@ import UIKit
 
 class SignInViewController: UIViewController, UITextFieldDelegate {
 
+    private let interactor: SignInBusinessLogic
     private let translucentBackgroundView: UIView = UIView()
     private let appleIDButton: UIButton = UIButton(type: .system)
     private let gmailButton: UIButton = UIButton()
@@ -24,7 +25,16 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
 
     private let formStack = UIStackView()
     private let orRow = UIView()
-
+    
+    init(interactor: SignInBusinessLogic) {
+        self.interactor = interactor
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         keyboardNotifications()
