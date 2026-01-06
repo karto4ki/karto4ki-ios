@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		6B627267C0F574AE7657BD22 /* Pods_karto4ki_karto4kiUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51ACCAFFE54FB27AC5D77D98 /* Pods_karto4ki_karto4kiUITests.framework */; };
+		71BF459215396473325D2ED7 /* Pods_karto4ki.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F130E11B9C01CB7D394F3FF0 /* Pods_karto4ki.framework */; };
+		9E37C8F3F0047265A79F374A /* Pods_karto4kiTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE876CCD3FC4357CD7627710 /* Pods_karto4kiTests.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		E17D94772EF75A690095DF91 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,9 +30,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0F192BB861B651B85501A200 /* Pods-karto4ki-karto4kiUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-karto4ki-karto4kiUITests.debug.xcconfig"; path = "Target Support Files/Pods-karto4ki-karto4kiUITests/Pods-karto4ki-karto4kiUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		1778CD93F2BAF0935403AEA9 /* Pods-karto4kiTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-karto4kiTests.debug.xcconfig"; path = "Target Support Files/Pods-karto4kiTests/Pods-karto4kiTests.debug.xcconfig"; sourceTree = "<group>"; };
+		4D65E121303020786FFBBBBE /* Pods-karto4ki.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-karto4ki.release.xcconfig"; path = "Target Support Files/Pods-karto4ki/Pods-karto4ki.release.xcconfig"; sourceTree = "<group>"; };
+		51ACCAFFE54FB27AC5D77D98 /* Pods_karto4ki_karto4kiUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_karto4ki_karto4kiUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		7C0EE5358D14A2724053BAA5 /* Pods-karto4ki-karto4kiUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-karto4ki-karto4kiUITests.release.xcconfig"; path = "Target Support Files/Pods-karto4ki-karto4kiUITests/Pods-karto4ki-karto4kiUITests.release.xcconfig"; sourceTree = "<group>"; };
+		A9D9B19F5932A277B416BB1B /* Pods-karto4ki.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-karto4ki.debug.xcconfig"; path = "Target Support Files/Pods-karto4ki/Pods-karto4ki.debug.xcconfig"; sourceTree = "<group>"; };
+		B2D772D57EF2AE4F5072B7B4 /* Pods-karto4kiTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-karto4kiTests.release.xcconfig"; path = "Target Support Files/Pods-karto4kiTests/Pods-karto4kiTests.release.xcconfig"; sourceTree = "<group>"; };
 		E17D945D2EF75A670095DF91 /* karto4ki.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = karto4ki.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E17D94762EF75A690095DF91 /* karto4kiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = karto4kiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E17D94802EF75A690095DF91 /* karto4kiUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = karto4kiUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F130E11B9C01CB7D394F3FF0 /* Pods_karto4ki.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_karto4ki.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FE876CCD3FC4357CD7627710 /* Pods_karto4kiTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_karto4kiTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -65,6 +80,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				71BF459215396473325D2ED7 /* Pods_karto4ki.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,6 +88,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E37C8F3F0047265A79F374A /* Pods_karto4kiTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,12 +96,36 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6B627267C0F574AE7657BD22 /* Pods_karto4ki_karto4kiUITests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		AED4DC6DF7A2878A187487E7 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				A9D9B19F5932A277B416BB1B /* Pods-karto4ki.debug.xcconfig */,
+				4D65E121303020786FFBBBBE /* Pods-karto4ki.release.xcconfig */,
+				0F192BB861B651B85501A200 /* Pods-karto4ki-karto4kiUITests.debug.xcconfig */,
+				7C0EE5358D14A2724053BAA5 /* Pods-karto4ki-karto4kiUITests.release.xcconfig */,
+				1778CD93F2BAF0935403AEA9 /* Pods-karto4kiTests.debug.xcconfig */,
+				B2D772D57EF2AE4F5072B7B4 /* Pods-karto4kiTests.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		D6B6A680BA81D904F30F0F96 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F130E11B9C01CB7D394F3FF0 /* Pods_karto4ki.framework */,
+				51ACCAFFE54FB27AC5D77D98 /* Pods_karto4ki_karto4kiUITests.framework */,
+				FE876CCD3FC4357CD7627710 /* Pods_karto4kiTests.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		E17D94542EF75A670095DF91 = {
 			isa = PBXGroup;
 			children = (
@@ -92,6 +133,8 @@
 				E17D94792EF75A690095DF91 /* karto4kiTests */,
 				E17D94832EF75A690095DF91 /* karto4kiUITests */,
 				E17D945E2EF75A670095DF91 /* Products */,
+				AED4DC6DF7A2878A187487E7 /* Pods */,
+				D6B6A680BA81D904F30F0F96 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -112,6 +155,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E17D94892EF75A690095DF91 /* Build configuration list for PBXNativeTarget "karto4ki" */;
 			buildPhases = (
+				75F2E6EC6E813BBE92B3288E /* [CP] Check Pods Manifest.lock */,
 				E17D94592EF75A670095DF91 /* Sources */,
 				E17D945A2EF75A670095DF91 /* Frameworks */,
 				E17D945B2EF75A670095DF91 /* Resources */,
@@ -124,8 +168,6 @@
 				E17D945F2EF75A670095DF91 /* karto4ki */,
 			);
 			name = karto4ki;
-			packageProductDependencies = (
-			);
 			productName = karto4ki;
 			productReference = E17D945D2EF75A670095DF91 /* karto4ki.app */;
 			productType = "com.apple.product-type.application";
@@ -134,9 +176,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E17D948E2EF75A690095DF91 /* Build configuration list for PBXNativeTarget "karto4kiTests" */;
 			buildPhases = (
+				314B0D08C6B2774A73FDFE7A /* [CP] Check Pods Manifest.lock */,
 				E17D94722EF75A690095DF91 /* Sources */,
 				E17D94732EF75A690095DF91 /* Frameworks */,
 				E17D94742EF75A690095DF91 /* Resources */,
+				077CC33BC76D03B746D85FB1 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -147,8 +191,6 @@
 				E17D94792EF75A690095DF91 /* karto4kiTests */,
 			);
 			name = karto4kiTests;
-			packageProductDependencies = (
-			);
 			productName = karto4kiTests;
 			productReference = E17D94762EF75A690095DF91 /* karto4kiTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -157,6 +199,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E17D94912EF75A690095DF91 /* Build configuration list for PBXNativeTarget "karto4kiUITests" */;
 			buildPhases = (
+				FE3F497802942B7EE3DBD817 /* [CP] Check Pods Manifest.lock */,
 				E17D947C2EF75A690095DF91 /* Sources */,
 				E17D947D2EF75A690095DF91 /* Frameworks */,
 				E17D947E2EF75A690095DF91 /* Resources */,
@@ -170,8 +213,6 @@
 				E17D94832EF75A690095DF91 /* karto4kiUITests */,
 			);
 			name = karto4kiUITests;
-			packageProductDependencies = (
-			);
 			productName = karto4kiUITests;
 			productReference = E17D94802EF75A690095DF91 /* karto4kiUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -244,6 +285,92 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		077CC33BC76D03B746D85FB1 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-karto4kiTests/Pods-karto4kiTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-karto4kiTests/Pods-karto4kiTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-karto4kiTests/Pods-karto4kiTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		314B0D08C6B2774A73FDFE7A /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-karto4kiTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		75F2E6EC6E813BBE92B3288E /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-karto4ki-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		FE3F497802942B7EE3DBD817 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-karto4ki-karto4kiUITests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		E17D94592EF75A670095DF91 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -284,25 +411,26 @@
 /* Begin XCBuildConfiguration section */
 		E17D948A2EF75A690095DF91 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A9D9B19F5932A277B416BB1B /* Pods-karto4ki.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = F46Y9QM766;
+				DEVELOPMENT_TEAM = FUD5CPHJR9;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = karto4ki/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "карто4ки";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = lzkgmr.karto4ki;
+				PRODUCT_BUNDLE_IDENTIFIER = su.brf.apps.karto4ki;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -312,25 +440,26 @@
 		};
 		E17D948B2EF75A690095DF91 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4D65E121303020786FFBBBBE /* Pods-karto4ki.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = F46Y9QM766;
+				DEVELOPMENT_TEAM = FUD5CPHJR9;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = karto4ki/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "карто4ки";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = lzkgmr.karto4ki;
+				PRODUCT_BUNDLE_IDENTIFIER = su.brf.apps.karto4ki;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -459,6 +588,7 @@
 		};
 		E17D948F2EF75A690095DF91 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1778CD93F2BAF0935403AEA9 /* Pods-karto4kiTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -478,6 +608,7 @@
 		};
 		E17D94902EF75A690095DF91 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B2D772D57EF2AE4F5072B7B4 /* Pods-karto4kiTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -497,6 +628,7 @@
 		};
 		E17D94922EF75A690095DF91 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0F192BB861B651B85501A200 /* Pods-karto4ki-karto4kiUITests.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -514,6 +646,7 @@
 		};
 		E17D94932EF75A690095DF91 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7C0EE5358D14A2724053BAA5 /* Pods-karto4ki-karto4kiUITests.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

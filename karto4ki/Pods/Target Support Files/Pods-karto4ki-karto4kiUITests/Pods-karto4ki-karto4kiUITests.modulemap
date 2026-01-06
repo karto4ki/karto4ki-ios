@@ -1,0 +1,6 @@
+framework module Pods_karto4ki_karto4kiUITests {
+  umbrella header "Pods-karto4ki-karto4kiUITests-umbrella.h"
+
+  export *
+  module * { export * }
+}
