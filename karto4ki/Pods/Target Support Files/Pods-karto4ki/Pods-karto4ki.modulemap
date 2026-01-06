@@ -1,0 +1,6 @@
+framework module Pods_karto4ki {
+  umbrella header "Pods-karto4ki-umbrella.h"
+
+  export *
+  module * { export * }
+}
