@@ -19,7 +19,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             print("Window is nil")
             return
         }
-        
+        guard
+          let clientID = Bundle.main.object(forInfoDictionaryKey: "GOOGLE_CLIENT_ID") as? String
+        else {
+          fatalError("Missing GOOGLE_CLIENT_ID")
+        }
         setAppearance()
         
         AppCoordinator.shared.setWindow(window)

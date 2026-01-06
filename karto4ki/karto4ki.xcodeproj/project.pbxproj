@@ -469,6 +469,8 @@
 		};
 		E17D948C2EF75A690095DF91 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = E17D945F2EF75A670095DF91 /* karto4ki */;
+			baseConfigurationReferenceRelativePath = Base.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -532,6 +534,8 @@
 		};
 		E17D948D2EF75A690095DF91 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = E17D945F2EF75A670095DF91 /* karto4ki */;
+			baseConfigurationReferenceRelativePath = Base.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
