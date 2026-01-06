@@ -19,18 +19,23 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             print("Window is nil")
             return
         }
-        let fontFamilies = UIFont.familyNames
-        print("Доступные семейства шрифтов: \(fontFamilies)")
-
         
-        for familyName in fontFamilies {
-            let fontNames = UIFont.fontNames(forFamilyName: familyName)
-            print("  Семейство: \(familyName), Шрифты: \(fontNames)")
-        }
-
+        setAppearance()
         
         AppCoordinator.shared.setWindow(window)
         AppCoordinator.shared.startRegistration()
+    }
+    
+    private func setAppearance() {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .clear
+        appearance.shadowColor = .clear
+        appearance.backButtonAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.clear]
+        
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        UINavigationBar.appearance().tintColor = .white
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

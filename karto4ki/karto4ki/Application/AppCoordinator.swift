@@ -10,11 +10,11 @@ import UIKit
 final class AppCoordinator {
     
     static let shared = AppCoordinator()
-    private let navigatorController: UINavigationController
+    private let navigationController: UINavigationController
     private var window = UIWindow()
     
     private init() {
-        self.navigatorController = UINavigationController()
+        self.navigationController = UINavigationController()
     }
     
     func setWindow(_ window: UIWindow) {
@@ -22,7 +22,14 @@ final class AppCoordinator {
     }
     
     func startRegistration() {
-        window.rootViewController = SignInAssembly.build()
+        let signInVC = SignInAssembly.build()
+        navigationController.setViewControllers([signInVC], animated: false)
+        window.rootViewController = navigationController
         window.makeKeyAndVisible()
+    }
+    
+    func showVerifyCodeScreen() {
+        let codeVC = CodeAssembly.build()
+        navigationController.pushViewController(codeVC, animated: true)
     }
 }

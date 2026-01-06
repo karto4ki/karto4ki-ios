@@ -63,7 +63,7 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func configureBackground() {
-        let background = BackgroundView()
+        let background = BackgroundView(with: "background-8")
         view.addSubview(background)
         background.pin(to: view)
         view.sendSubviewToBack(background)
@@ -90,7 +90,7 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
 
     private func configureAppleIdButton() {
         var config = UIButton.Configuration.filled()
-        config.baseBackgroundColor = .black
+        config.baseBackgroundColor = .black.withAlphaComponent(0.8)
         config.baseForegroundColor = .white
         config.background.cornerRadius = 25
         var container = AttributeContainer()
@@ -104,15 +104,15 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         var config = UIButton.Configuration.filled()
         config.image = UIImage(named: "google")
         config.imagePlacement = .trailing
-        config.baseBackgroundColor = .white
-        config.baseForegroundColor = .systemBlue
+        config.baseBackgroundColor = .white.withAlphaComponent(0.6)
+        config.baseForegroundColor = Colors.lilicBAB6FD
         config.background.cornerRadius = 25
         var container = AttributeContainer()
         container.font = Fonts.futuraB17
         config.attributedTitle = AttributedString("Продолжить с Google", attributes: container)
         gmailButton.configuration = config
         gmailButton.layer.borderWidth = 1
-        gmailButton.layer.borderColor = UIColor.systemBlue.cgColor
+        gmailButton.layer.borderColor = Colors.lilicBAB6FD.cgColor
         gmailButton.layer.cornerRadius = 25
         gmailButton.setHeight(50)
     }
@@ -137,6 +137,12 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         getCodeButton.layer.cornerRadius = 25
         getCodeButton.titleLabel?.font = Fonts.futuraB17
         getCodeButton.setHeight(50)
+        getCodeButton.addTarget(self, action: #selector(getCode), for: .touchUpInside)
+    }
+    
+    @objc
+    private func getCode() {
+        interactor.getCode()
     }
 
     private func configureEmailTextField() {
@@ -174,7 +180,7 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
     private func configureEmailBigLabel() {
         emailBigLabel.text = "Введите почту"
         emailBigLabel.font = Fonts.futuraB22
-        emailBigLabel.textColor = Colors.lilicA59FFF
+        emailBigLabel.textColor = Colors.lilicBAB6FD
         emailBigLabel.textAlignment = .center
         emailBigLabel.setContentCompressionResistancePriority(.required, for: .vertical)
     }
