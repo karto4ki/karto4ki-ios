@@ -11,7 +11,7 @@ jobs:
     runs-on: macos-latest
 
     env:
-      PROJECT_PATH: karto4ki/karto4ki.xcodeproj
+      PROJECT_PATH: karto4ki/karto4ki.xcworkspace
       SCHEME: karto4ki
       DESTINATION: "platform=iOS Simulator,name=iPhone 16,OS=18.6"
 
