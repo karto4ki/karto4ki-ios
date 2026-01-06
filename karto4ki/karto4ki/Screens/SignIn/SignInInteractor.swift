@@ -13,4 +13,9 @@ final class SignInInteractor: SignInBusinessLogic {
     init(presenter: SignInPresentationLogic) {
         self.presenter = presenter
     }
+    
+    func getCode() {
+        // TODO: getting code
+        AppCoordinator.shared.showVerifyCodeScreen()
+    }
 }

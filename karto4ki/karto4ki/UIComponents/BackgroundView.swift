@@ -9,18 +9,18 @@ import UIKit
 
 final class BackgroundView: UIView {
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        configure()
+    init(with name: String) {
+        super.init(frame: .zero)
+        configure(name)
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        configure()
+        configure("background")
     }
     
-    private func configure() {
-        let background = UIImage(named: "background")
+    private func configure(_ name: String) {
+        let background = UIImage(named: name)
         let backgroundView = UIImageView(image: background)
         backgroundView.contentMode = .scaleToFill
         addSubview(backgroundView)

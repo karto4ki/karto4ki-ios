@@ -8,7 +8,7 @@
 import Foundation
 
 protocol SignInBusinessLogic {
-    
+    func getCode()
 }
 
 protocol SignInPresentationLogic {
