@@ -39,7 +39,7 @@ final class AppCoordinator {
     
     func showRegistration() {
         let signInVC = SignInAssembly.build()
-        navigationController.setViewControllers([signInVC], animated: false)
+        navigationController.setViewControllers([signInVC], animated: true)
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
     }

@@ -220,6 +220,9 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         formStack.addArrangedSubview(orRow)
         formStack.addArrangedSubview(gmailButton)
         formStack.addArrangedSubview(appleIDButton)
+        
+        formStack.setCustomSpacing(3, after: emailBigLabel)
+        formStack.setCustomSpacing(20, after: emailSmallLabel)
     }
 
     private func dismissKeyboard() {
