@@ -27,7 +27,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         setAppearance()
         
         AppCoordinator.shared.setWindow(window)
-        AppCoordinator.shared.startRegistration()
+        AppCoordinator.shared.start()
     }
     
     private func setAppearance() {
