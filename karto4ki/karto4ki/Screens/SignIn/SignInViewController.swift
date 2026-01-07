@@ -7,7 +7,7 @@
 
 import UIKit
 
-class SignInViewController: UIViewController, UITextFieldDelegate {
+class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate {
 
     private let interactor: SignInBusinessLogic
     private let translucentBackgroundView: UIView = UIView()
@@ -25,16 +25,16 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
 
     private let formStack = UIStackView()
     private let orRow = UIView()
-    
+
     init(interactor: SignInBusinessLogic) {
         self.interactor = interactor
         super.init(nibName: nil, bundle: nil)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         keyboardNotifications()
@@ -139,7 +139,7 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         getCodeButton.setHeight(50)
         getCodeButton.addTarget(self, action: #selector(getCode), for: .touchUpInside)
     }
-    
+
     @objc
     private func getCode() {
         interactor.getCode()
@@ -220,7 +220,7 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         formStack.addArrangedSubview(orRow)
         formStack.addArrangedSubview(gmailButton)
         formStack.addArrangedSubview(appleIDButton)
-        
+
         formStack.setCustomSpacing(3, after: emailBigLabel)
         formStack.setCustomSpacing(20, after: emailSmallLabel)
     }
@@ -228,7 +228,12 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
     private func dismissKeyboard() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
         tapGesture.cancelsTouchesInView = false
+        tapGesture.delegate = self
         view.addGestureRecognizer(tapGesture)
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        touch.view is UIControl ? false : true
     }
 
     @objc
