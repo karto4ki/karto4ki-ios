@@ -10,6 +10,7 @@
 		6B627267C0F574AE7657BD22 /* Pods_karto4ki_karto4kiUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51ACCAFFE54FB27AC5D77D98 /* Pods_karto4ki_karto4kiUITests.framework */; };
 		71BF459215396473325D2ED7 /* Pods_karto4ki.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F130E11B9C01CB7D394F3FF0 /* Pods_karto4ki.framework */; };
 		9E37C8F3F0047265A79F374A /* Pods_karto4kiTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE876CCD3FC4357CD7627710 /* Pods_karto4kiTests.framework */; };
+		E1A1E53A2F0DC11D004DCB0C /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = E1A1E5392F0DC11D004DCB0C /* Lottie */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,6 +82,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				71BF459215396473325D2ED7 /* Pods_karto4ki.framework in Frameworks */,
+				E1A1E53A2F0DC11D004DCB0C /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -249,6 +251,9 @@
 			);
 			mainGroup = E17D94542EF75A670095DF91;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				E1A1E5382F0DC11D004DCB0C /* XCRemoteSwiftPackageReference "lottie-ios" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E17D945E2EF75A670095DF91 /* Products */;
 			projectDirPath = "";
@@ -706,6 +711,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E1A1E5382F0DC11D004DCB0C /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E1A1E5392F0DC11D004DCB0C /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1A1E5382F0DC11D004DCB0C /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E17D94552EF75A670095DF91 /* Project object */;
 }

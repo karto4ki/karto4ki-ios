@@ -12,6 +12,7 @@ final class AppCoordinator {
     static let shared = AppCoordinator()
     private let navigationController: UINavigationController
     private var window = UIWindow()
+    private let userDefaults = UserDefaultsService()
     
     private init() {
         self.navigationController = UINavigationController()
@@ -21,7 +22,22 @@ final class AppCoordinator {
         self.window = window
     }
     
-    func startRegistration() {
+    func start() {
+        if userDefaults.isOnboardingCompleted() {
+            showRegistration()
+        } else {
+            showOnboarding()
+        }
+    }
+    
+    func showOnboarding() {
+        let vc = OnboardingAssembly.build()
+        navigationController.setViewControllers([vc], animated: false)
+        window.rootViewController = navigationController
+        window.makeKeyAndVisible()
+    }
+    
+    func showRegistration() {
         let signInVC = SignInAssembly.build()
         navigationController.setViewControllers([signInVC], animated: false)
         window.rootViewController = navigationController
