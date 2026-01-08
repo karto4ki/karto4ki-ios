@@ -9,6 +9,8 @@ import Foundation
 
 protocol SignInBusinessLogic {
     func getCode()
+    func signInWithApple(userId: String, email: String?, fullName: PersonNameComponents?, identityToken: String?, authorizationCode: String?)
+    func appleSignInFailed(_ error: Error)
 }
 
 protocol SignInPresentationLogic {

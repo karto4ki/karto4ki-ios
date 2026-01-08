@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import AuthenticationServices
 
 class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate {
 
@@ -98,6 +99,7 @@ class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureReco
         config.attributedTitle = AttributedString("Продолжить с Apple ID", attributes: container)
         appleIDButton.configuration = config
         appleIDButton.setHeight(50)
+        appleIDButton.addTarget(self, action: #selector(signInWithAppleTapped), for: .touchUpInside)
     }
 
     private func configureGmailButton() {
@@ -285,4 +287,50 @@ class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureReco
             self.view.layoutIfNeeded()
         }
     }
+}
+
+extension SignInViewController: ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
+    
+    @objc
+    private func signInWithAppleTapped() {
+        let provider = ASAuthorizationAppleIDProvider()
+        let request = provider.createRequest()
+        request.requestedScopes = [.fullName, .email]
+
+        let controller = ASAuthorizationController(authorizationRequests: [request])
+        controller.delegate = self
+        controller.presentationContextProvider = self
+        controller.performRequests()
+    }
+    
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        view.window ?? UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow } ?? UIWindow()
+    }
+    
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else { return }
+
+        let userId = credential.user
+        let email = credential.email
+        let fullName = credential.fullName
+
+        let identityToken = credential.identityToken.flatMap { String(data: $0, encoding: .utf8) }
+        let authCode = credential.authorizationCode.flatMap { String(data: $0, encoding: .utf8) }
+
+        interactor.signInWithApple(
+            userId: userId,
+            email: email,
+            fullName: fullName,
+            identityToken: identityToken,
+            authorizationCode: authCode
+        )
+    }
+
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        interactor.appleSignInFailed(error)
+    }
+
 }
