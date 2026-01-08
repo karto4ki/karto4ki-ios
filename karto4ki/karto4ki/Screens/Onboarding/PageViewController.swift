@@ -45,6 +45,7 @@ final class PageViewController: UIViewController {
         titleLabel.font = .boldSystemFont(ofSize: 24)
         titleLabel.numberOfLines = 0
         titleLabel.textAlignment = .center
+        titleLabel.textColor = .white
 
         let descriptionLabel = UILabel()
         descriptionLabel.text = descriptionText
