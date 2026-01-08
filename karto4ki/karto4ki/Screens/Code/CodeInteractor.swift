@@ -13,6 +13,5 @@ final class CodeInteractor: CodeBusinessLogic {
     }
     
     func sendVerificationRequest() {
-        // todo
     }
 }
