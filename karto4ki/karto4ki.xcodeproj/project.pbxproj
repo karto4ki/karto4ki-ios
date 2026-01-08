@@ -11,6 +11,8 @@
 		71BF459215396473325D2ED7 /* Pods_karto4ki.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F130E11B9C01CB7D394F3FF0 /* Pods_karto4ki.framework */; };
 		9E37C8F3F0047265A79F374A /* Pods_karto4kiTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE876CCD3FC4357CD7627710 /* Pods_karto4kiTests.framework */; };
 		E1A1E53A2F0DC11D004DCB0C /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = E1A1E5392F0DC11D004DCB0C /* Lottie */; };
+		E1E947C22F0FBFC1002B526C /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = E1E947C12F0FBFC1002B526C /* GoogleSignIn */; };
+		E1E947C42F0FBFC1002B526C /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = E1E947C32F0FBFC1002B526C /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -83,6 +85,8 @@
 			files = (
 				71BF459215396473325D2ED7 /* Pods_karto4ki.framework in Frameworks */,
 				E1A1E53A2F0DC11D004DCB0C /* Lottie in Frameworks */,
+				E1E947C22F0FBFC1002B526C /* GoogleSignIn in Frameworks */,
+				E1E947C42F0FBFC1002B526C /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -253,6 +257,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				E1A1E5382F0DC11D004DCB0C /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				E1E947C02F0FBFC1002B526C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E17D945E2EF75A670095DF91 /* Products */;
@@ -723,6 +728,14 @@
 				minimumVersion = 4.6.0;
 			};
 		};
+		E1E947C02F0FBFC1002B526C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.1.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -730,6 +743,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E1A1E5382F0DC11D004DCB0C /* XCRemoteSwiftPackageReference "lottie-ios" */;
 			productName = Lottie;
+		};
+		E1E947C12F0FBFC1002B526C /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1E947C02F0FBFC1002B526C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		E1E947C32F0FBFC1002B526C /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1E947C02F0FBFC1002B526C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

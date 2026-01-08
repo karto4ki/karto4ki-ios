@@ -11,6 +11,8 @@ protocol SignInBusinessLogic {
     func getCode()
     func signInWithApple(userId: String, email: String?, fullName: PersonNameComponents?, identityToken: String?, authorizationCode: String?)
     func appleSignInFailed(_ error: Error)
+    func signInWithGoogle(idToken: String?, accessToken: String)
+    func googleSignInFailed(_ error: Error)
 }
 
 protocol SignInPresentationLogic {

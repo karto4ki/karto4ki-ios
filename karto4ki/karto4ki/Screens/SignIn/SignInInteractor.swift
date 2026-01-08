@@ -22,5 +22,8 @@ final class SignInInteractor: SignInBusinessLogic {
     // TODO: sign in with apple
     func signInWithApple(userId: String, email: String?, fullName: PersonNameComponents?, identityToken: String?, authorizationCode: String?) {}
     func appleSignInFailed(_ error: Error){}
+    func signInWithGoogle(idToken: String?, accessToken: String) {}
+    func googleSignInFailed(_ error: Error) {}
+
 
 }
