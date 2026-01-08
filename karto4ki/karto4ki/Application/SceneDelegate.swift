@@ -19,7 +19,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             print("Window is nil")
             return
         }
-        UserDefaults.standard.set(false, forKey: "onboardingCompleted")
         setAppearance()
         
         AppCoordinator.shared.setWindow(window)
