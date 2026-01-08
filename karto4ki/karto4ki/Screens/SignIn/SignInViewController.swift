@@ -7,6 +7,7 @@
 
 import UIKit
 import AuthenticationServices
+import GoogleSignIn
 
 class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate {
 
@@ -117,6 +118,7 @@ class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureReco
         gmailButton.layer.borderColor = Colors.lilicBAB6FD.cgColor
         gmailButton.layer.cornerRadius = 25
         gmailButton.setHeight(50)
+        gmailButton.addTarget(self, action: #selector(signInWithGoogleTapped), for: .touchUpInside)
     }
 
     private func configureOrLabel() {
@@ -331,6 +333,32 @@ extension SignInViewController: ASAuthorizationControllerDelegate, ASAuthorizati
 
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
         interactor.appleSignInFailed(error)
+    }
+}
+
+extension SignInViewController {
+    
+    @objc
+    private func signInWithGoogleTapped() {
+        guard let presentingVC = view.window?.rootViewController ?? self as UIViewController? else { return }
+
+        GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
+            if let error = error {
+                self.interactor.googleSignInFailed(error)
+                return
+            }
+
+            guard let result = result else { return }
+
+            let user = result.user
+            let idToken = user.idToken?.tokenString
+            let accessToken = user.accessToken.tokenString
+
+            self.interactor.signInWithGoogle(
+                idToken: idToken,
+                accessToken: accessToken
+            )
+        }
     }
 
 }
