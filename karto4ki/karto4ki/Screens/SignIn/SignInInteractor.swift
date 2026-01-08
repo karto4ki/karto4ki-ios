@@ -18,4 +18,9 @@ final class SignInInteractor: SignInBusinessLogic {
         // TODO: getting code
         AppCoordinator.shared.showVerifyCodeScreen()
     }
+    
+    // TODO: sign in with apple
+    func signInWithApple(userId: String, email: String?, fullName: PersonNameComponents?, identityToken: String?, authorizationCode: String?) {}
+    func appleSignInFailed(_ error: Error){}
+
 }
