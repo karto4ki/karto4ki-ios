@@ -13,5 +13,6 @@ final class CodeInteractor: CodeBusinessLogic {
     }
     
     func sendVerificationRequest() {
+        AppCoordinator.shared.showRegistration()
     }
 }
