@@ -10,9 +10,11 @@ import UIKit
 final class CodeStackView: UIView {
     private var stackView: UIStackView = UIStackView()
     private var textFields: [UITextField] = []
+    private var interactor: CodeBusinessLogic?
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(interactor: CodeBusinessLogic) {
+        super.init(frame: .zero)
+        self.interactor = interactor
         configure()
     }
     
@@ -181,6 +183,7 @@ extension CodeStackView: UITextFieldDelegate {
     }
     
     private func sendRequestToInteractor() {
+        interactor?.sendVerificationRequest()
     }
 }
 

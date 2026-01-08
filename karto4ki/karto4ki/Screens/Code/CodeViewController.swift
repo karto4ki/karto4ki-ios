@@ -7,6 +7,15 @@
 
 import UIKit
 
+//
+//  CodeViewController.swift
+//  karto4ki
+//
+//  Created by лизо4ка куруnok on 02.01.2026.
+//
+
+import UIKit
+
 final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, KeyboardAvoiding {
 
     private enum Constants {
@@ -22,6 +31,7 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         static let resendButtonWidth: CGFloat = 230
         static let resendButtonBigWidth: CGFloat = 280
         static let resendButtonShortCount: Int = 11
+        static let bottomPadding: CGFloat = 10
     }
 
     let interactor: CodeBusinessLogic
@@ -33,13 +43,14 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
     private var remainingTime: TimeInterval = 0
     private let bigLabel: UILabel = UILabel()
     private var smallLabel: UILabel = UILabel()
-    private var digitsStackView: CodeStackView = CodeStackView()
+    private lazy var digitsStackView: CodeStackView = CodeStackView(interactor: interactor)
     private var timerLabel: UILabel = UILabel()
     private var resendButton: UIButton = UIButton(type: .system)
 
-    private let scrollView = UIScrollView()
-    private let contentView = UIView()
     private var keyboardInset: CGFloat = 0
+    private var timerBottomConstraint: NSLayoutConstraint?
+    private var buttonBottomConstraint: NSLayoutConstraint?
+    private var labelBottomConstraint: NSLayoutConstraint?
 
     let timerDuration: TimeInterval = 90.0
 
@@ -54,12 +65,12 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
         configureUI()
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tapGesture.cancelsTouchesInView = false
-        scrollView.addGestureRecognizer(tapGesture)
+        tapGesture.delegate = self
+        view.addGestureRecognizer(tapGesture)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -71,21 +82,23 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         super.viewWillDisappear(animated)
         stopKeyboardAvoiding()
     }
-    
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        touch.view is UIControl ? false : true
+    }
+
     func keyboardAdjustment(height: CGFloat,
                             duration: TimeInterval,
                             options: UIView.AnimationOptions) {
-        
+
         keyboardInset = height
+        timerBottomConstraint?.constant = -(height + Constants.bottomPadding)
+        buttonBottomConstraint?.constant = -(height + Constants.bottomPadding)
+        labelBottomConstraint?.constant = -height + 80 
 
-        UIView.animate(withDuration: duration) {
-            self.scrollView.contentInset.bottom = self.keyboardInset
-            self.scrollView.verticalScrollIndicatorInsets.bottom = self.keyboardInset
+        UIView.animate(withDuration: duration, delay: 0, options: options, animations: {
             self.view.layoutIfNeeded()
-        }
-
-        let rect = digitsStackView.convert(digitsStackView.bounds, to: scrollView).insetBy(dx: 0, dy: -24)
-        scrollView.scrollRectToVisible(rect, animated: true)
+        })
     }
 
     func hideResendButton() {
@@ -104,7 +117,6 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
 
     private func configureUI() {
         configureBackground()
-        configureScroll()
         configureBigLabel()
         configureDigitsStackView()
         configureSmallLabel()
@@ -113,41 +125,12 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         configureResendButton()
     }
 
-    private func configureScroll() {
-        view.addSubview(scrollView)
-        scrollView.addSubview(contentView)
-
-        scrollView.pinTop(to: view.topAnchor)
-        scrollView.pinBottom(to: view.bottomAnchor)
-        scrollView.pinLeft(to: view.leadingAnchor)
-        scrollView.pinRight(to: view.trailingAnchor)
-        
-        contentView.pinTop(to: scrollView.contentLayoutGuide.topAnchor)
-        contentView.pinBottom(to: scrollView.contentLayoutGuide.bottomAnchor)
-        contentView.pinLeft(to: scrollView.contentLayoutGuide.leadingAnchor)
-        contentView.pinRight(to: scrollView.contentLayoutGuide.trailingAnchor)
-
-        NSLayoutConstraint.activate([
-            contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
-            contentView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor)
-        ])
-    }
-
-    private func configureDigitsStackView() {
-        contentView.addSubview(digitsStackView)
-        digitsStackView.setHeight(50)
-        digitsStackView.pinCenterX(to: contentView)
-        digitsStackView.pinTop(to: bigLabel.bottomAnchor, 20)
-        digitsStackView.pinLeft(to: contentView.leadingAnchor, 40)
-        digitsStackView.pinRight(to: contentView.trailingAnchor, 40)
-    }
-
     private func configureCardsLogoView() {
-        contentView.addSubview(cardsLogoView)
+        view.addSubview(cardsLogoView)
         cardsLogoView.contentMode = .scaleAspectFit
-        cardsLogoView.pinLeft(to: contentView.leadingAnchor, 30)
-        cardsLogoView.pinRight(to: contentView.trailingAnchor, 30)
-        cardsLogoView.pinTop(to: contentView.safeAreaLayoutGuide.topAnchor, 15)
+        cardsLogoView.pinLeft(to: view.leadingAnchor, 30)
+        cardsLogoView.pinRight(to: view.trailingAnchor, 30)
+        cardsLogoView.pinTop(to: view.safeAreaLayoutGuide.topAnchor, 15)
         cardsLogoView.pinBottom(to: bigLabel.topAnchor, 15)
     }
 
@@ -164,9 +147,21 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         bigLabel.textColor = .white
         bigLabel.font = .systemFont(ofSize: 30, weight: .bold)
 
-        contentView.addSubview(bigLabel)
-        bigLabel.pinCenterX(to: contentView)
-        bigLabel.pinCenterY(to: contentView.centerYAnchor)
+        view.addSubview(bigLabel)
+        bigLabel.pinCenterX(to: view)
+        bigLabel.pinCenterY(to: view.centerYAnchor)
+        
+        labelBottomConstraint = bigLabel.bottomAnchor.constraint(equalTo: view.centerYAnchor)
+        labelBottomConstraint?.isActive = true
+    }
+
+    private func configureDigitsStackView() {
+        view.addSubview(digitsStackView)
+        digitsStackView.setHeight(50)
+        digitsStackView.pinCenterX(to: view)
+        digitsStackView.pinTop(to: bigLabel.bottomAnchor, 20)
+        digitsStackView.pinLeft(to: view.leadingAnchor, 40)
+        digitsStackView.pinRight(to: view.trailingAnchor, 40)
     }
 
     private func configureSmallLabel() {
@@ -176,17 +171,16 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         smallLabel.font = .systemFont(ofSize: 20, weight: .medium)
         smallLabel.numberOfLines = 0
 
-        contentView.addSubview(smallLabel)
-        smallLabel.pinCenterX(to: contentView)
-        smallLabel.pinLeft(to: contentView.leadingAnchor, 30)
-        smallLabel.pinRight(to: contentView.trailingAnchor, 30)
+        view.addSubview(smallLabel)
+        smallLabel.pinCenterX(to: view)
+        smallLabel.pinLeft(to: view.leadingAnchor, 30)
+        smallLabel.pinRight(to: view.trailingAnchor, 30)
         smallLabel.pinTop(to: digitsStackView.bottomAnchor, 15)
     }
 
     private func configureTimerLabel() {
-        contentView.addSubview(timerLabel)
-        timerLabel.pinCenterX(to: contentView)
-        timerLabel.pinBottom(to: contentView.bottomAnchor, 50)
+        view.addSubview(timerLabel)
+        timerLabel.pinCenterX(to: view)
         timerLabel.textAlignment = .center
         timerLabel.textColor = .white
         timerLabel.font = .systemFont(ofSize: 17, weight: .semibold)
@@ -194,17 +188,19 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         timerLabel.text = timeLabelText + "\n\(formatTime(Int(timerDuration)))"
         remainingTime = timerDuration
         startCountdown()
+
+        timerBottomConstraint = timerLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -Constants.bottomPadding)
+        timerBottomConstraint?.isActive = true
     }
 
     private func configureResendButton() {
-        contentView.addSubview(resendButton)
+        view.addSubview(resendButton)
         resendButton.setTitle("Отправить повторно", for: .normal)
         resendButton.setTitleColor(Colors.lilicA59FFF, for: .normal)
         resendButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .medium)
         resendButton.backgroundColor = .white.withAlphaComponent(0.5)
         resendButton.layer.cornerRadius = 25
-        resendButton.pinCenterX(to: contentView)
-        resendButton.pinBottom(to: contentView.bottomAnchor, 50)
+        resendButton.pinCenterX(to: view)
         resendButton.setHeight(Constants.resendButtonHeight)
 
         guard let label = resendButton.titleLabel, let text = label.text else { return }
@@ -214,6 +210,9 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
 
         resendButton.addTarget(self, action: #selector(resendButtonPressed), for: .touchUpInside)
         resendButton.isHidden = true
+
+        buttonBottomConstraint = resendButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -Constants.bottomPadding)
+        buttonBottomConstraint?.isActive = true
     }
 
     private func formatTime(_ totalSeconds: Int) -> String {
@@ -237,7 +236,7 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
     private func dismissKeyboard() {
         view.endEditing(true)
     }
-    
+
     @objc
     private func updateLabel() {
         remainingTime -= 1

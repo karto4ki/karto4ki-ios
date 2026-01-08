@@ -13,6 +13,6 @@ struct OnboardingInteractor: OnboardingBussinessLogic {
 
     func routingToSignIn() {
         userDefaults.putOnboardingCompleted()
-        AppCoordinator.shared.showRegistration()
+        AppCoordinator.shared.showSignIn()
     }
 }
