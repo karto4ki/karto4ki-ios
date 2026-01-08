@@ -9,7 +9,7 @@ import UIKit
 import AuthenticationServices
 import GoogleSignIn
 
-class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate {
+class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate, KeyboardAvoiding {
 
     private let interactor: SignInBusinessLogic
     private let translucentBackgroundView: UIView = UIView()
@@ -39,13 +39,35 @@ class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureReco
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        keyboardNotifications()
         configureUI()
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         translucentBackgroundView.roundCorners([.topLeft, .topRight], radius: 60)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        startKeyboardAvoiding()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        stopKeyboardAvoiding()
+    }
+
+    func keyboardAdjustment(height: CGFloat,
+                            duration: TimeInterval,
+                            options: UIView.AnimationOptions) {
+        translucentBottomConstraint.constant = -height
+
+        UIView.animate(
+            withDuration: duration,
+            delay: 0,
+            options: options,
+            animations: { self.view.layoutIfNeeded() }
+        )
     }
 
     private func configureUI() {
