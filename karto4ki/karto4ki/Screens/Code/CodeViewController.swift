@@ -97,7 +97,6 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate {
         configureDigitsStackView()
         configureSmallLabel()
         configureCardsLogoView()
-        configureErrorLabel()
         configureTimerLabel()
         configureResendButton()
     }
@@ -170,10 +169,6 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate {
         smallLabel.pinLeft(to: contentView.leadingAnchor, 30)
         smallLabel.pinRight(to: contentView.trailingAnchor, 30)
         smallLabel.pinTop(to: digitsStackView.bottomAnchor, 15)
-    }
-
-    private func configureErrorLabel() {
-        // TODO: configure ErrorLabel
     }
 
     private func configureTimerLabel() {

@@ -181,8 +181,6 @@ extension CodeStackView: UITextFieldDelegate {
     }
     
     private func sendRequestToInteractor() {
-//        let code = getCodeFromTextFields()
-//        interactor.sendVerificationRequest()
     }
 }
 
