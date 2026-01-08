@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class CodeViewController: UIViewController, UIGestureRecognizerDelegate {
+final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, KeyboardAvoiding {
 
     private enum Constants {
         static let alphaStart: CGFloat = 0
@@ -64,16 +64,28 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+        startKeyboardAvoiding()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        stopKeyboardAvoiding()
+    }
+    
+    func keyboardAdjustment(height: CGFloat,
+                            duration: TimeInterval,
+                            options: UIView.AnimationOptions) {
+        
+        keyboardInset = height
 
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+        UIView.animate(withDuration: duration) {
+            self.scrollView.contentInset.bottom = self.keyboardInset
+            self.scrollView.verticalScrollIndicatorInsets.bottom = self.keyboardInset
+            self.view.layoutIfNeeded()
+        }
+
+        let rect = digitsStackView.convert(digitsStackView.bounds, to: scrollView).insetBy(dx: 0, dy: -24)
+        scrollView.scrollRectToVisible(rect, animated: true)
     }
 
     func hideResendButton() {
@@ -225,42 +237,7 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate {
     private func dismissKeyboard() {
         view.endEditing(true)
     }
-
-    @objc
-    private func keyboardWillShow(notification: NSNotification) {
-        guard let userInfo = notification.userInfo,
-              let frame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
-              let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
-        else { return }
-
-        keyboardInset = frame.height
-        // + Constants.extraKeyboardIndent
-
-        UIView.animate(withDuration: duration) {
-            self.scrollView.contentInset.bottom = self.keyboardInset
-            self.scrollView.verticalScrollIndicatorInsets.bottom = self.keyboardInset
-            self.view.layoutIfNeeded()
-        }
-
-        let rect = digitsStackView.convert(digitsStackView.bounds, to: scrollView).insetBy(dx: 0, dy: -24)
-        scrollView.scrollRectToVisible(rect, animated: true)
-    }
-
-    @objc
-    private func keyboardWillHide(notification: NSNotification) {
-        guard let userInfo = notification.userInfo,
-              let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
-        else { return }
-
-        keyboardInset = 0
-
-        UIView.animate(withDuration: duration) {
-            self.scrollView.contentInset.bottom = 0
-            self.scrollView.verticalScrollIndicatorInsets.bottom = 0
-            self.view.layoutIfNeeded()
-        }
-    }
-
+    
     @objc
     private func updateLabel() {
         remainingTime -= 1
