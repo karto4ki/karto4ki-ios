@@ -141,20 +141,22 @@ final class RegistrationViewController: UIViewController, KeyboardAvoiding, UIGe
     }
 
     private func configureNameButton() {
-        nameButton.backgroundColor = .clear
-        nameButton.layer.backgroundColor = UIColor.white.withAlphaComponent(0.9).cgColor
-        nameButton.layer.cornerRadius = 25
+        var config = UIButton.Configuration.plain()
 
-        nameButton.titleLabel?.font = UIFont(name: "Musinka-Regular", size: 40)
-        nameButton.setTitleColor(UIColor(red: 255/255, green: 174/255, blue: 213/255, alpha: 1), for: .normal)
-        nameButton.contentHorizontalAlignment = .center
+        config.background.backgroundColor = UIColor.white.withAlphaComponent(0.9)
+        config.background.cornerRadius = 25
+        config.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16)
+
+        nameButton.configuration = config
+        nameButton.titleLabel?.numberOfLines = 3
+        nameButton.titleLabel?.lineBreakMode = .byCharWrapping
+        nameButton.titleLabel?.textAlignment = .center
         nameButton.isHidden = true
+        nameButton.addTarget(self, action: #selector(updateWithName), for: .touchUpInside)
 
         view.addSubview(nameButton)
-        nameButton.setHeight(50)
         nameButton.pinLeft(to: view.leadingAnchor, 40)
         nameButton.pinRight(to: view.trailingAnchor, 40)
-
         nameTopConstraint = nameButton.topAnchor.constraint(
             equalTo: view.safeAreaLayoutGuide.topAnchor,
             constant: baseNameTop
@@ -162,10 +164,22 @@ final class RegistrationViewController: UIViewController, KeyboardAvoiding, UIGe
         nameTopConstraint?.isActive = true
     }
 
+    private func setNameButtonTitle(_ text: String) {
+        guard var config = nameButton.configuration else { return }
+
+        var attrs = AttributeContainer()
+        attrs.font = UIFont(name: "Musinka-Regular", size: 40) ?? .systemFont(ofSize: 40)
+        attrs.foregroundColor = UIColor(red: 255/255, green: 174/255, blue: 213/255, alpha: 1)
+
+        config.attributedTitle = AttributedString("имя: \(text)", attributes: attrs)
+        nameButton.configuration = config
+        nameButton.titleLabel?.numberOfLines = 3
+    }
+
     private func updateWithNickname() {
         dismissKeyboard()
 
-        nameButton.setTitle("имя: \(name ?? "")", for: .normal)
+        setNameButtonTitle(name ?? "")
         nameButton.alpha = 0
         nameButton.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
         nameButton.isHidden = false
@@ -190,13 +204,42 @@ final class RegistrationViewController: UIViewController, KeyboardAvoiding, UIGe
 
         textField.text = ""
     }
+    
+    @objc
+    private func updateWithName() {
+        dismissKeyboard()
+        
+        UIView.transition(
+            with: enterLabel.wordLabel,
+            duration: 0.25,
+            options: .transitionCrossDissolve
+        ) {
+            self.enterLabel.wordLabel.text = "имя"
+        }
+
+        UIView.animate(
+            withDuration: 0.4,
+            delay: 0.1,
+            usingSpringWithDamping: 0.7,
+            initialSpringVelocity: 0.6
+        ) {
+            self.nameButton.alpha = 0
+            self.nameButton.transform = .identity
+        }
+
+        textField.text = ""
+    }
 }
 
 extension RegistrationViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         if self.textField == textField, let text = textField.text {
-            name = text
-            updateWithNickname()
+            if enterLabel.wordLabel.text == "имя" {
+                name = text
+                updateWithNickname()
+            } else {
+                
+            }
         }
         return true
     }
