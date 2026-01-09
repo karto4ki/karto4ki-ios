@@ -100,7 +100,7 @@ final class RegistrationConfitmViewController: UIViewController {
         attrs.font = UIFont(name: "Musinka-Regular", size: 40) ?? .systemFont(ofSize: 40)
         attrs.foregroundColor = UIColor(red: 255/255, green: 174/255, blue: 213/255, alpha: 1)
 
-        config.attributedTitle = AttributedString("username: \(username)", attributes: attrs)
+        config.attributedTitle = AttributedString("ник: \(username)", attributes: attrs)
         usernameButton.configuration = config
 
         view.addSubview(usernameButton)
@@ -110,7 +110,7 @@ final class RegistrationConfitmViewController: UIViewController {
     }
     
     private func configureContinueButton() {
-        continueButton.setTitle("подтвердить->", for: .normal)
+        continueButton.setTitle("подтвердить→", for: .normal)
         continueButton.titleLabel?.font = UIFont(name: "UraBumBumSPRegular", size: 35)
         continueButton.tintColor = .white
         view.addSubview(continueButton)
