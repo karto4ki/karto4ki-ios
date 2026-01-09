@@ -16,6 +16,7 @@ final class RegistrationConfitmViewController: UIViewController {
     private var isNameTapped: Bool = false
     private let usernameButton = UIButton(type: .system)
     private let closure: (Bool) -> Void
+    private let continueButton: UIButton = UIButton(type: .system)
     
     init(name: String, username: String, closure: @escaping (Bool) -> Void) {
         self.name = name
@@ -38,6 +39,7 @@ final class RegistrationConfitmViewController: UIViewController {
         configureHeart()
         configureNameButton()
         configureUsernameButton()
+        configureContinueButton()
     }
     
     private func configureBackground() {
@@ -105,6 +107,15 @@ final class RegistrationConfitmViewController: UIViewController {
         usernameButton.pinLeft(to: view.leadingAnchor, 40)
         usernameButton.pinRight(to: view.trailingAnchor, 40)
         usernameButton.pinTop(to: nameButton.bottomAnchor, 10)
+    }
+    
+    private func configureContinueButton() {
+        continueButton.setTitle("подтвердить->", for: .normal)
+        continueButton.titleLabel?.font = UIFont(name: "UraBumBumSPRegular", size: 35)
+        continueButton.tintColor = .white
+        view.addSubview(continueButton)
+        continueButton.pinBottom(to: view.safeAreaLayoutGuide.bottomAnchor, 40)
+        continueButton.pinCenterX(to: view.centerXAnchor)
     }
     
     @objc private func goBackName() {
