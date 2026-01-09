@@ -161,7 +161,7 @@ class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureReco
         getCodeButton.setTitleColor(.white, for: .normal)
         getCodeButton.backgroundColor = Colors.lilicD9D7FF
         getCodeButton.layer.cornerRadius = 25
-        getCodeButton.titleLabel?.font = Fonts.futuraB17
+        getCodeButton.titleLabel?.font = UIFont(name: "futuralt-bold", size: 20)
         getCodeButton.setHeight(50)
         getCodeButton.addTarget(self, action: #selector(getCode), for: .touchUpInside)
     }
