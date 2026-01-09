@@ -31,6 +31,7 @@ final class BackgroundView: UIView {
 
         let blur = UIBlurEffect(style: .light)
         let blurView = UIVisualEffectView(effect: blur)
+        blurView.alpha = 0.3
         backgroundView.addSubview(blurView)
         blurView.pinTop(to: backgroundView.topAnchor)
         blurView.pinLeft(to: backgroundView.leadingAnchor)
