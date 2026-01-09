@@ -4,17 +4,18 @@
 <dict>
 	<key>GIDClientID</key>
 	<string>$(GOOGLE_CLIENT_ID)</string>
-    <key>CFBundleURLTypes</key>
-    <array>
-      <dict>
-        <key>CFBundleURLSchemes</key>
-        <array>
-          <string>$(GOOGLE_REVERSED_CLIENT_ID)</string>
-        </array>
-      </dict>
-    </array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>$(GOOGLE_REVERSED_CLIENT_ID)</string>
+			</array>
+		</dict>
+	</array>
 	<key>UIAppFonts</key>
 	<array>
+		<string>UraBumBumSP.otf</string>
 		<string>Musinka.ttf</string>
 		<string>futuralt_bold.ttf</string>
 		<string>futura_mediumcyrusbyme.otf</string>

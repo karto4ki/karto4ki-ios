@@ -19,6 +19,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             print("Window is nil")
             return
         }
+        
+        
+        for familyName in UIFont.familyNames {
+            print("Семейство: \(familyName)")
+            for fontName in UIFont.fontNames(forFamilyName: familyName) {
+                print("  - \(fontName)")
+            }
+        }
         setAppearance()
         
         AppCoordinator.shared.setWindow(window)

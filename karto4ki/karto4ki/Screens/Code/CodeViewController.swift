@@ -83,10 +83,6 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         stopKeyboardAvoiding()
     }
 
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-        touch.view is UIControl ? false : true
-    }
-
     func keyboardAdjustment(height: CGFloat,
                             duration: TimeInterval,
                             options: UIView.AnimationOptions) {
