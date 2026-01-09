@@ -6,6 +6,7 @@
 //
 
 import UIKit
+
 final class RegistrationViewController: UIViewController, KeyboardAvoiding, UIGestureRecognizerDelegate {
 
     private let enterLabel = EnterHeartLabel(with: "имя")
@@ -13,9 +14,13 @@ final class RegistrationViewController: UIViewController, KeyboardAvoiding, UIGe
 
     private var enterTopConstraint: NSLayoutConstraint?
     private var textFieldTopConstraint: NSLayoutConstraint?
-
+    private var nameTopConstraint: NSLayoutConstraint?
+    private let baseNameTop: CGFloat = 20
     private let baseEnterTop: CGFloat = -100
     private let baseFieldTop: CGFloat = 30
+    private var name: String?
+
+    private let nameButton = UIButton(type: .system)
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,11 +37,16 @@ final class RegistrationViewController: UIViewController, KeyboardAvoiding, UIGe
         stopKeyboardAvoiding()
     }
 
-    func keyboardAdjustment(height: CGFloat, duration: TimeInterval, options: UIView.AnimationOptions) {
+    func keyboardAdjustment(height: CGFloat,
+                            duration: TimeInterval,
+                            options: UIView.AnimationOptions) {
+
         view.layoutIfNeeded()
 
         if height == 0 {
             enterTopConstraint?.constant = baseEnterTop
+            nameTopConstraint?.constant = baseNameTop
+
             UIView.animate(withDuration: duration, delay: 0, options: options) {
                 self.view.layoutIfNeeded()
             }
@@ -45,21 +55,21 @@ final class RegistrationViewController: UIViewController, KeyboardAvoiding, UIGe
 
         let keyboardTopY = view.bounds.height - height
         let tfFrame = textField.convert(textField.bounds, to: view)
-
-        // сколько textField залез под клавиатуру
         let overlap = tfFrame.maxY - keyboardTopY
 
-        // если не перекрывает — ничего не делаем
         guard overlap > 0 else { return }
 
         let padding: CGFloat = 12
-        enterTopConstraint?.constant = baseEnterTop - (overlap + padding)
+        let delta = overlap + padding
+
+        enterTopConstraint?.constant = baseEnterTop - delta
+        nameTopConstraint?.constant = baseNameTop - delta
 
         UIView.animate(withDuration: duration, delay: 0, options: options) {
             self.view.layoutIfNeeded()
         }
     }
-    
+
     @objc
     private func dismissKeyboard() {
         view.endEditing(true)
@@ -70,8 +80,9 @@ final class RegistrationViewController: UIViewController, KeyboardAvoiding, UIGe
         configureBackground()
         configureEnterLabel()
         configureTextField()
+        configureNameButton()
     }
-    
+
     private func setGesture() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tapGesture.cancelsTouchesInView = false
@@ -104,17 +115,89 @@ final class RegistrationViewController: UIViewController, KeyboardAvoiding, UIGe
         textField.layer.backgroundColor = UIColor.white.withAlphaComponent(0.5).cgColor
         textField.layer.borderColor = UIColor.white.cgColor
         textField.layer.borderWidth = 1
-        textField.layer.cornerRadius = 20
+        textField.layer.cornerRadius = 25
+        textField.autocorrectionType = .no
+        textField.font = UIFont(name: "Musinka-Regular", size: 40)
+        textField.textColor = UIColor(red: 187/255, green: 174/255, blue: 255/255, alpha: 1)
+
+        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 20, height: 0))
+        textField.leftView = paddingView
+        textField.rightView = paddingView
+        textField.rightViewMode = .always
+        textField.leftViewMode = .always
+        textField.delegate = self
+        textField.returnKeyType = .done
 
         view.addSubview(textField)
-        textField.setHeight(40)
+        textField.setHeight(50)
         textField.pinLeft(to: view.leadingAnchor, 40)
         textField.pinRight(to: view.trailingAnchor, 40)
+
         textFieldTopConstraint = textField.topAnchor.constraint(
             equalTo: enterLabel.bottomAnchor,
             constant: baseFieldTop
         )
         textFieldTopConstraint?.isActive = true
     }
+
+    private func configureNameButton() {
+        nameButton.backgroundColor = .clear
+        nameButton.layer.backgroundColor = UIColor.white.withAlphaComponent(0.9).cgColor
+        nameButton.layer.cornerRadius = 25
+
+        nameButton.titleLabel?.font = UIFont(name: "Musinka-Regular", size: 40)
+        nameButton.setTitleColor(UIColor(red: 255/255, green: 174/255, blue: 213/255, alpha: 1), for: .normal)
+        nameButton.contentHorizontalAlignment = .center
+        nameButton.isHidden = true
+
+        view.addSubview(nameButton)
+        nameButton.setHeight(50)
+        nameButton.pinLeft(to: view.leadingAnchor, 40)
+        nameButton.pinRight(to: view.trailingAnchor, 40)
+
+        nameTopConstraint = nameButton.topAnchor.constraint(
+            equalTo: view.safeAreaLayoutGuide.topAnchor,
+            constant: baseNameTop
+        )
+        nameTopConstraint?.isActive = true
+    }
+
+    private func updateWithNickname() {
+        dismissKeyboard()
+
+        nameButton.setTitle("имя: \(name ?? "")", for: .normal)
+        nameButton.alpha = 0
+        nameButton.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+        nameButton.isHidden = false
+
+        UIView.transition(
+            with: enterLabel.wordLabel,
+            duration: 0.25,
+            options: .transitionCrossDissolve
+        ) {
+            self.enterLabel.wordLabel.text = "ник"
+        }
+
+        UIView.animate(
+            withDuration: 0.4,
+            delay: 0.1,
+            usingSpringWithDamping: 0.7,
+            initialSpringVelocity: 0.6
+        ) {
+            self.nameButton.alpha = 1
+            self.nameButton.transform = .identity
+        }
+
+        textField.text = ""
+    }
 }
 
+extension RegistrationViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if self.textField == textField, let text = textField.text {
+            name = text
+            updateWithNickname()
+        }
+        return true
+    }
+}
