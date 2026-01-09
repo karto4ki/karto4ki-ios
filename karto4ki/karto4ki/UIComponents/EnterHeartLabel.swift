@@ -12,7 +12,7 @@ final class EnterHeartLabel: UIView {
     private let word: String
     private let heart = UILabel()
     private let enterLabel = UILabel()
-    private let wordLabel = UILabel()
+    let wordLabel = UILabel()
     
     init(with word: String) {
         self.word = word
