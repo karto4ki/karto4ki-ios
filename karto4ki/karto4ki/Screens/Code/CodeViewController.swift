@@ -2,15 +2,6 @@
 //  CodeViewController.swift
 //  karto4ki
 //
-//  Created by лизо4ка курунок on 02.01.2026.
-//
-
-import UIKit
-
-//
-//  CodeViewController.swift
-//  karto4ki
-//
 //  Created by лизо4ка куруnok on 02.01.2026.
 //
 
@@ -52,6 +43,10 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
     private var buttonBottomConstraint: NSLayoutConstraint?
     private var labelBottomConstraint: NSLayoutConstraint?
 
+    private var baseTimerBottomConstant: CGFloat = 0
+    private var baseButtonBottomConstant: CGFloat = 0
+    private var baseLabelBottomConstant: CGFloat = 0
+
     let timerDuration: TimeInterval = 90.0
 
     init(interactor: CodeBusinessLogic) {
@@ -83,14 +78,25 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         stopKeyboardAvoiding()
     }
 
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        touch.view is UIControl ? false : true
+    }
+
     func keyboardAdjustment(height: CGFloat,
                             duration: TimeInterval,
                             options: UIView.AnimationOptions) {
 
         keyboardInset = height
-        timerBottomConstraint?.constant = -(height + Constants.bottomPadding)
-        buttonBottomConstraint?.constant = -(height + Constants.bottomPadding)
-        labelBottomConstraint?.constant = -height + 80 
+
+        if height == 0 {
+            timerBottomConstraint?.constant = baseTimerBottomConstant
+            buttonBottomConstraint?.constant = baseButtonBottomConstant
+            labelBottomConstraint?.constant = baseLabelBottomConstant
+        } else {
+            timerBottomConstraint?.constant = -(height + Constants.bottomPadding)
+            buttonBottomConstraint?.constant = -(height + Constants.bottomPadding)
+            labelBottomConstraint?.constant = -height + 80
+        }
 
         UIView.animate(withDuration: duration, delay: 0, options: options, animations: {
             self.view.layoutIfNeeded()
@@ -146,9 +152,10 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         view.addSubview(bigLabel)
         bigLabel.pinCenterX(to: view)
         bigLabel.pinCenterY(to: view.centerYAnchor)
-        
+
         labelBottomConstraint = bigLabel.bottomAnchor.constraint(equalTo: view.centerYAnchor)
         labelBottomConstraint?.isActive = true
+        baseLabelBottomConstant = labelBottomConstraint?.constant ?? 0
     }
 
     private func configureDigitsStackView() {
@@ -187,6 +194,7 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
 
         timerBottomConstraint = timerLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -Constants.bottomPadding)
         timerBottomConstraint?.isActive = true
+        baseTimerBottomConstant = timerBottomConstraint?.constant ?? 0
     }
 
     private func configureResendButton() {
@@ -209,6 +217,7 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
 
         buttonBottomConstraint = resendButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -Constants.bottomPadding)
         buttonBottomConstraint?.isActive = true
+        baseButtonBottomConstant = buttonBottomConstraint?.constant ?? 0
     }
 
     private func formatTime(_ totalSeconds: Int) -> String {
@@ -267,3 +276,4 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         configureTimerLabel()
     }
 }
+
