@@ -19,9 +19,19 @@ final class RegistrationViewController: UIViewController, KeyboardAvoiding, UIGe
     private let baseEnterTop: CGFloat = -100
     private let baseFieldTop: CGFloat = 30
     private var name: String?
+    private let interactor: RegistrationInteractor
 
     private let nameButton = UIButton(type: .system)
 
+    init(interactor: RegistrationInteractor) {
+        self.interactor = interactor
+        super.init(nibName: .none, bundle: .none)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
@@ -229,6 +239,14 @@ final class RegistrationViewController: UIViewController, KeyboardAvoiding, UIGe
 
         textField.text = ""
     }
+    
+    private func update(isName: Bool) {
+        if isName {
+            updateWithName()
+        } else {
+            updateWithNickname()
+        }
+    }
 }
 
 extension RegistrationViewController: UITextFieldDelegate {
@@ -238,7 +256,10 @@ extension RegistrationViewController: UITextFieldDelegate {
                 name = text
                 updateWithNickname()
             } else {
-                
+                dismissKeyboard()
+                interactor.goToConfirmation(name: name ?? "", username: text, closure: { [weak self] (isName: Bool) in
+                    self?.update(isName: isName)
+                })
             }
         }
         return true

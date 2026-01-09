@@ -9,7 +9,8 @@ import Foundation
 
 struct RegistrationAssembly {
     static func build() -> RegistrationViewController {
-        let view = RegistrationViewController()
+        let interactor = RegistrationInteractor()
+        let view = RegistrationViewController(interactor: interactor)
         return view
     }
 }
