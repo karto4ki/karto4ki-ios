@@ -53,4 +53,9 @@ final class AppCoordinator {
         let regVC = RegistrationAssembly.build()
         navigationController.pushViewController(regVC, animated: true)
     }
+    
+    func showRegistrationConfirmation(name: String, username: String, closure: @escaping (Bool) -> Void) {
+        let confirmVC = RegistrationConfitmViewController(name: name, username: username, closure: closure)
+        navigationController.pushViewController(confirmVC, animated: true)
+    }
 }
