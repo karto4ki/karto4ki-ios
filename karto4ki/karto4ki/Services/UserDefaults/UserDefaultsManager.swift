@@ -1,5 +1,5 @@
 //
-//  UserDefaultsService.swift
+//  UserDefaultsManager.swift
 //  karto4ki
 //
 //  Created by лизо4ка курунок on 07.01.2026.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct UserDefaultsService {
+struct UserDefaultsManager {
     
     private let defaults = UserDefaults.standard
     
