@@ -103,8 +103,6 @@ final class Sender {
                                                    headers: [String: String]?,
                                                    body: Data?,
                                                    completion: @escaping (Result<SuccessResponse<T>, Error>) -> Void) {
-        let jsonString = String(data: data, encoding: .utf8)
-        
         switch response.statusCode {
         case 200:
             decodeResponse(data, completion: completion)
