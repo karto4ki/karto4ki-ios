@@ -22,3 +22,12 @@ enum ApiErrorTypes: String, Codable, Error {
     case wrongToken = "wrong_token"
     case userAlreadyExists = "user_already_exists"
 }
+
+enum ApiError: Error {
+    case invalidURL
+    case invalidResponse
+    case noData
+    case networkError(Error)
+    case decodingError(Error)
+    
+}
