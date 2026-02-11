@@ -8,7 +8,7 @@
 import Foundation
 
 protocol SignInBusinessLogic {
-    func getCode()
+    func getCode(_ email: String)
     func signInWithApple(userId: String, email: String?, fullName: PersonNameComponents?, identityToken: String?, authorizationCode: String?)
     func appleSignInFailed(_ error: Error)
     func signInWithGoogle(idToken: String?, accessToken: String)
@@ -17,4 +17,8 @@ protocol SignInBusinessLogic {
 
 protocol SignInPresentationLogic {
     
+}
+
+protocol SignInWorkerLogic {
+    func sendCodeRequest(request: SignInModels.SendCodeRequest, completion: @escaping (Result<Void, Error>) -> Void)
 }

@@ -13,9 +13,11 @@ final class AppCoordinator {
     private let navigationController: UINavigationController
     private var window = UIWindow()
     private let userDefaults = UserDefaultsManager()
+    private let keychainManager: KeychainManagerProtocol
     
     private init() {
         self.navigationController = UINavigationController()
+        self.keychainManager = KeychainManager()
     }
     
     func setWindow(_ window: UIWindow) {
@@ -38,7 +40,7 @@ final class AppCoordinator {
     }
     
     func showSignIn() {
-        let signInVC = SignInAssembly.build()
+        let signInVC = SignInAssembly.build(km: keychainManager)
         navigationController.setViewControllers([signInVC], animated: true)
         window.rootViewController = navigationController
         window.makeKeyAndVisible()

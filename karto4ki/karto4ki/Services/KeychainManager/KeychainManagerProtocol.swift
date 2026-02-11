@@ -10,4 +10,5 @@ import Foundation
 protocol KeychainManagerProtocol {
     func save(key: String, value: String) -> Bool
     func getString(key: String) -> String?
+    func save(key: String, value: UUID) -> Bool
 }

@@ -168,7 +168,9 @@ class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureReco
 
     @objc
     private func getCode() {
-        interactor.getCode()
+        // TODO: show an error
+        guard let email = textField.text else { return }
+        interactor.getCode(email)
     }
 
     private func configureEmailTextField() {
