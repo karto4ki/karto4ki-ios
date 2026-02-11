@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct UserDefaultsManager {
+struct UserDefaultsManager: UserDefaultsManagerProtocol {
     
     private let defaults = UserDefaults.standard
     
