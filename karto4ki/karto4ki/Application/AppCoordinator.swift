@@ -12,7 +12,7 @@ final class AppCoordinator {
     static let shared = AppCoordinator()
     private let navigationController: UINavigationController
     private var window = UIWindow()
-    private let userDefaults = UserDefaultsService()
+    private let userDefaults = UserDefaultsManager()
     
     private init() {
         self.navigationController = UINavigationController()

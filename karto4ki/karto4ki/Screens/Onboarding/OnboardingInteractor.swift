@@ -9,7 +9,7 @@ import Foundation
 
 struct OnboardingInteractor: OnboardingBussinessLogic {
     
-    private let userDefaults = UserDefaultsService()
+    private let userDefaults = UserDefaultsManager()
 
     func routingToSignIn() {
         userDefaults.putOnboardingCompleted()

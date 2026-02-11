@@ -9,5 +9,5 @@ import Foundation
 
 protocol UserDefaultsManagerProtocol {
     func putOnboardingCompleted()
-    func isOnboardingCompleted()
+    func isOnboardingCompleted() -> Bool
 }
