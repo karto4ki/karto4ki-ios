@@ -18,4 +18,8 @@ struct UserDefaultsManager: UserDefaultsManagerProtocol {
     func isOnboardingCompleted() -> Bool {
         return defaults.bool(forKey: "onboardingCompleted")
     }
+    
+    func saveEmail(_ email: String) {
+        defaults.set(email, forKey: "email")
+    }
 }

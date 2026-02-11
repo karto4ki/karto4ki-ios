@@ -12,6 +12,13 @@ final class KeychainManager: KeychainManagerProtocol {
     enum Keys: String {
         case refreshToken = "refreshToken"
         case accessToken = "accessToken"
+        case signinCode = "signinCode"
+    }
+    
+    enum KeychainError: Error {
+        case saveError
+        case getError
+        case deleteError
     }
     
     @discardableResult
@@ -27,6 +34,11 @@ final class KeychainManager: KeychainManagerProtocol {
         SecItemDelete(query as CFDictionary)
         let status = SecItemAdd(query as CFDictionary, nil)
         return status == errSecSuccess
+    }
+    
+    @discardableResult
+    func save(key: String, value: UUID) -> Bool {
+        return save(key: key, value: value.uuidString)
     }
     
     func getString(key: String) -> String? {
