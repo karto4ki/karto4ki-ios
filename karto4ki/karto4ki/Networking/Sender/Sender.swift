@@ -109,7 +109,13 @@ final class Sender {
         case 200:
             decodeResponse(data, completion: completion)
         case 401:
-            handleUnauthorizedError(attempt: attempt, endpoint: endpoint, method: method, headers: headers, body: body, completion: completion)
+            // TODO: check if the refresh bug was fixed
+            if endpoint == IdentityServiceEndpoints.refreshToken.rawValue {
+                decodeErrorResponse(data: data, completion: completion)
+            } else {
+                handleUnauthorizedError(attempt: attempt, endpoint: endpoint, method: method, headers: headers, body: body, completion: completion
+                )
+            }
         case 500...599:
             handleServerError(attempt: attempt, endpoint: endpoint, method: method, headers: headers, body: body, completion: completion, data: data)
         default:
@@ -133,7 +139,18 @@ final class Sender {
                                                             headers: [String: String]?,
                                                             body: Data?,
                                                             completion: @escaping (Result<SuccessResponse<T>, Error>) -> Void) {
-        // TODO: create token manager and handling
+        TokenManager.refreshAccessToken { result in
+            switch result {
+            case .success(let response):
+                let tokens = response.data
+                TokenManager.saveTokensToKeychain(tokens: tokens)
+                
+                send(endpoint: endpoint, method: method, headers: headers, body: body, attempt: attempt + 1, completion: completion)
+                
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
     }
     
     private static func handleServerError<T: Codable>(attempt: Int,
