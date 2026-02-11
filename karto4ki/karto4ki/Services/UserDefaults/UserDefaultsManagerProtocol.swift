@@ -6,3 +6,8 @@
 //
 
 import Foundation
+
+protocol UserDefaultsManagerProtocol {
+    func putOnboardingCompleted()
+    func isOnboardingCompleted()
+}
