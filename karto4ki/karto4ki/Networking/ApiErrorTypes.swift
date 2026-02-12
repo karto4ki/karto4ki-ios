@@ -29,5 +29,5 @@ enum ApiError: Error {
     case noData
     case networkError(Error)
     case decodingError(Error)
-    
+    case unknown
 }

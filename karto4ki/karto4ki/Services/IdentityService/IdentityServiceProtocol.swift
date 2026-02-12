@@ -11,6 +11,8 @@ protocol IdentityServiceProtocol {
     func sendCodeRequest<Request: Codable, Response: Codable>(_ request: Request,
                                                               _ endpoint: String,
                                                               _ responseType: Response.Type,
-                                                              completion: @escaping (Result<SuccessResponse<Response>, Error>) -> Void
-    )
+                                                              completion: @escaping (Result<SuccessResponse<Response>, Error>) -> Void)
+    
+    func sendRefreshTokensRequest(_ request: RefreshRequest,
+                                  completion: @escaping (Result<SuccessResponse<SuccessModels.Tokens>, Error>) -> Void)
 }

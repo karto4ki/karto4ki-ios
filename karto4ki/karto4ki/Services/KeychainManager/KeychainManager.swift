@@ -56,4 +56,18 @@ final class KeychainManager: KeychainManagerProtocol {
               let valueString = String(data: data, encoding: .utf8) else { return nil }
         return valueString
     }
+    
+    func delete(key: String) -> Bool {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key
+        ]
+        
+        let status = SecItemDelete(query as CFDictionary)
+        return status == errSecSuccess
+    }
+    
+    func deleteTokens() -> Bool {
+        return (delete(key: KeychainManager.Keys.accessToken.rawValue) && delete(key: KeychainManager.Keys.refreshToken.rawValue))
+    }
 }

@@ -22,4 +22,18 @@ final class IdentityService: IdentityServiceProtocol {
         Sender.send(endpoint: endpoint, method: .post, headers: headers, body: body, completion: completion)
     }
     
+    func sendRefreshTokensRequest(_ request: RefreshRequest,
+                                  completion: @escaping (Result<SuccessResponse<SuccessModels.Tokens>, any Error>) -> Void) {
+        let endpoint = IdentityServiceEndpoints.refreshToken.rawValue
+        let idempotencyKey = UUID().uuidString
+        
+        let body = try? JSONEncoder().encode(request)
+        
+        let headers = [
+            "Idempotency-Key": idempotencyKey,
+            "Content-Type": "application/json"
+        ]
+        
+        Sender.send(endpoint: endpoint, method: .post, headers: headers, body: body, completion: completion)
+    }
 }
