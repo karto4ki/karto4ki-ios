@@ -15,4 +15,7 @@ enum IdentityServiceEndpoints: String {
     case appleAuth = "/api/identity/v1.0/signin/oauth/apple"
     case register = "/api/identity/v1.0/signin/oauth/register"
     case signout = "/api/identity/v1.0/signout"
+    case signupSendCode = "/api/identity/v1.0/signup/send-email-code"
+    case signupVerifyCode = "/api/identity/v1.0/signup/verify-code"
+    case signup = "/api/identity/v1.0/signup"
 }

@@ -20,7 +20,7 @@ final class SignInWorker: SignInWorkerLogic {
     func sendCodeRequest(request: SignInModels.SendCodeRequest,
                          completion: @escaping (Result<Void, Error>) -> Void) {
         identityService.sendCodeRequest(request,
-                                        IdentityServiceEndpoints.signin.rawValue,
+                                        IdentityServiceEndpoints.signupSendCode.rawValue,
                                         SuccessModels.SendCodeSigninData.self) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else {return}
