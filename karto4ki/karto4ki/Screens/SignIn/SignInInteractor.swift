@@ -26,7 +26,7 @@ final class SignInInteractor: SignInBusinessLogic {
             case .success:
                 AppCoordinator.shared.showVerifyCodeScreen()
             case .failure(let error):
-                let errorId = self.errorHandler.handleError(error)
+                let _ = self.errorHandler.handleError(error)
                 // TODO: show error message to user
                 print(error.localizedDescription)
             }
