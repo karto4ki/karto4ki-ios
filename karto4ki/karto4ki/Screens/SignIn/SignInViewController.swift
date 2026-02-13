@@ -21,10 +21,9 @@ final class SignInViewController: UIViewController, UITextFieldDelegate, UIGestu
     private let getCodeButton: UIButton = UIButton(type: .system)
     private let textField: UITextField = UITextField()
     private let welcomeLabel: UILabel = UILabel()
-    private let emailBigLabel: UILabel = UILabel()
+    private let emailLabel: UILabel = UILabel()
     private let cardsLogoView: UIImageView = UIImageView(image: UIImage(named: "logo"))
 
-    private let formStack = UIStackView()
     private let orRow = UIView()
 
     init(interactor: SignInBusinessLogic) {
@@ -49,7 +48,7 @@ final class SignInViewController: UIViewController, UITextFieldDelegate, UIGestu
         configureLines()
         configureGetCodeButton()
         configureEmailTextField()
-        configureEmailBigLabel()
+        configureEmailLabel()
         configureWelcomeLabel()
         configureHeart()
         configureCardsLogoView()
@@ -87,18 +86,18 @@ final class SignInViewController: UIViewController, UITextFieldDelegate, UIGestu
         welcomeLabel.textColor = .white
         welcomeLabel.textAlignment = .center
         view.addSubview(welcomeLabel)
-        welcomeLabel.pinBottom(to: emailBigLabel.topAnchor, -5)
+        welcomeLabel.pinBottom(to: emailLabel.topAnchor, -5)
         welcomeLabel.pinCenterX(to: view.centerXAnchor)
     }
 
-    private func configureEmailBigLabel() {
-        emailBigLabel.text = "Введите почту"
-        emailBigLabel.font = Fonts.phantom
-        emailBigLabel.textColor = .white
-        emailBigLabel.textAlignment = .center
-        view.addSubview(emailBigLabel)
-        emailBigLabel.pinBottom(to: textField.topAnchor, 30)
-        emailBigLabel.pinCenterX(to: view.centerXAnchor)
+    private func configureEmailLabel() {
+        emailLabel.text = "Введите почту"
+        emailLabel.font = Fonts.phantom
+        emailLabel.textColor = .white
+        emailLabel.textAlignment = .center
+        view.addSubview(emailLabel)
+        emailLabel.pinBottom(to: textField.topAnchor, 30)
+        emailLabel.pinCenterX(to: view.centerXAnchor)
     }
 
     private func configureEmailTextField() {
