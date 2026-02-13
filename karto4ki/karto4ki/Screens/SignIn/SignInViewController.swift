@@ -9,10 +9,10 @@ import UIKit
 import AuthenticationServices
 import GoogleSignIn
 
-class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate, KeyboardAvoiding {
+final class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate {
 
     private let interactor: SignInBusinessLogic
-    private let translucentBackgroundView: UIView = UIView()
+    private let heart = UILabel()
     private let appleIDButton: UIButton = UIButton(type: .system)
     private let gmailButton: UIButton = UIButton()
     private let orLabel: UILabel = UILabel()
@@ -20,8 +20,7 @@ class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureReco
     private let lLine: UIView = UIView()
     private let getCodeButton: UIButton = UIButton(type: .system)
     private let textField: UITextField = UITextField()
-    private var translucentBottomConstraint: NSLayoutConstraint = NSLayoutConstraint()
-    private let emailSmallLabel: UILabel = UILabel()
+    private let welcomeLabel: UILabel = UILabel()
     private let emailBigLabel: UILabel = UILabel()
     private let cardsLogoView: UIImageView = UIImageView(image: UIImage(named: "logo"))
 
@@ -42,135 +41,64 @@ class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureReco
         configureUI()
     }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        translucentBackgroundView.roundCorners([.topLeft, .topRight], radius: 60)
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        startKeyboardAvoiding()
-    }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        stopKeyboardAvoiding()
-    }
-
-    func keyboardAdjustment(height: CGFloat,
-                            duration: TimeInterval,
-                            options: UIView.AnimationOptions) {
-        translucentBottomConstraint.constant = -height
-
-        UIView.animate(
-            withDuration: duration,
-            delay: 0,
-            options: options,
-            animations: { self.view.layoutIfNeeded() }
-        )
-    }
-
     private func configureUI() {
         configureBackground()
-        configureTranslucentBackground()
-        configureCardsLogoView()
         configureAppleIdButton()
         configureGmailButton()
         configureOrLabel()
         configureLines()
         configureGetCodeButton()
         configureEmailTextField()
-        configureEmailSmallLabel()
         configureEmailBigLabel()
-        configureFormStack()
-        translucentBackgroundView.pinTop(to: formStack.topAnchor, -30)
+        configureWelcomeLabel()
+        configureHeart()
+        configureCardsLogoView()
     }
 
     private func configureBackground() {
-        let background = BackgroundView(with: "background-8")
+        let background = BackgroundView(with: "background-6")
         view.addSubview(background)
         background.pin(to: view)
         view.sendSubviewToBack(background)
-    }
-
-    private func configureTranslucentBackground() {
-        translucentBackgroundView.backgroundColor = UIColor.white.withAlphaComponent(0.6)
-        view.addSubview(translucentBackgroundView)
-        translucentBackgroundView.pinLeft(to: view.leadingAnchor)
-        translucentBackgroundView.pinRight(to: view.trailingAnchor)
-
-        translucentBottomConstraint = translucentBackgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        NSLayoutConstraint.activate([translucentBottomConstraint])
+        background.isUserInteractionEnabled = false
     }
 
     private func configureCardsLogoView() {
         view.addSubview(cardsLogoView)
         cardsLogoView.contentMode = .scaleAspectFit
-        cardsLogoView.pinBottom(to: translucentBackgroundView.topAnchor, 0)
         cardsLogoView.pinLeft(to: view.leadingAnchor, 30)
         cardsLogoView.pinRight(to: view.trailingAnchor, 30)
-        cardsLogoView.pinTop(to: view.safeAreaLayoutGuide.topAnchor, 15)
+        cardsLogoView.pinBottom(to: heart.topAnchor, -120)
     }
 
-    private func configureAppleIdButton() {
-        var config = UIButton.Configuration.filled()
-        config.baseBackgroundColor = .black.withAlphaComponent(0.8)
-        config.baseForegroundColor = .white
-        config.background.cornerRadius = 25
-        var container = AttributeContainer()
-        container.font = Fonts.futuraB17
-        config.attributedTitle = AttributedString("Продолжить с Apple ID", attributes: container)
-        appleIDButton.configuration = config
-        appleIDButton.setHeight(50)
-        appleIDButton.addTarget(self, action: #selector(signInWithAppleTapped), for: .touchUpInside)
+    private func configureHeart() {
+        heart.text = "."
+        heart.font = UIFont(name: "Musinka-Regular", size: 300)
+        heart.textColor = .white
+        heart.textAlignment = .center
+        view.addSubview(heart)
+        heart.pinBottom(to: welcomeLabel.topAnchor, -20)
+        heart.pinCenterX(to: view.centerXAnchor)
     }
 
-    private func configureGmailButton() {
-        var config = UIButton.Configuration.filled()
-        config.image = UIImage(named: "google")
-        config.imagePlacement = .trailing
-        config.baseBackgroundColor = .white.withAlphaComponent(0.6)
-        config.baseForegroundColor = Colors.lilicBAB6FD
-        config.background.cornerRadius = 25
-        var container = AttributeContainer()
-        container.font = Fonts.futuraB17
-        config.attributedTitle = AttributedString("Продолжить с Google", attributes: container)
-        gmailButton.configuration = config
-        gmailButton.layer.borderWidth = 1
-        gmailButton.layer.borderColor = Colors.lilicBAB6FD.cgColor
-        gmailButton.layer.cornerRadius = 25
-        gmailButton.setHeight(50)
-        gmailButton.addTarget(self, action: #selector(signInWithGoogleTapped), for: .touchUpInside)
+    private func configureWelcomeLabel() {
+        welcomeLabel.text = "Добро пожаловать"
+        welcomeLabel.font = Fonts.futuraB22
+        welcomeLabel.textColor = .white
+        welcomeLabel.textAlignment = .center
+        view.addSubview(welcomeLabel)
+        welcomeLabel.pinBottom(to: emailBigLabel.topAnchor, -5)
+        welcomeLabel.pinCenterX(to: view.centerXAnchor)
     }
 
-    private func configureOrLabel() {
-        orLabel.text = "или"
-        orLabel.font = Fonts.futuraM17
-        orLabel.textColor = Colors.grayCFCFCF
-    }
-
-    private func configureLines() {
-        rLine.backgroundColor = Colors.grayCFCFCF
-        lLine.backgroundColor = Colors.grayCFCFCF
-        rLine.setHeight(1)
-        lLine.setHeight(1)
-    }
-
-    private func configureGetCodeButton() {
-        getCodeButton.setTitle("     Получить код     ", for: .normal)
-        getCodeButton.setTitleColor(.white, for: .normal)
-        getCodeButton.backgroundColor = Colors.lilicD9D7FF
-        getCodeButton.layer.cornerRadius = 25
-        getCodeButton.titleLabel?.font = UIFont(name: "futuralt-bold", size: 20)
-        getCodeButton.setHeight(50)
-        getCodeButton.addTarget(self, action: #selector(getCode), for: .touchUpInside)
-    }
-
-    @objc
-    private func getCode() {
-        // TODO: show an error
-        guard let email = textField.text else { return }
-        interactor.getCode(email)
+    private func configureEmailBigLabel() {
+        emailBigLabel.text = "Введите почту"
+        emailBigLabel.font = Fonts.phantom
+        emailBigLabel.textColor = .white
+        emailBigLabel.textAlignment = .center
+        view.addSubview(emailBigLabel)
+        emailBigLabel.pinBottom(to: textField.topAnchor, 30)
+        emailBigLabel.pinCenterX(to: view.centerXAnchor)
     }
 
     private func configureEmailTextField() {
@@ -178,11 +106,14 @@ class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureReco
         textField.font = Fonts.futuraM17
         textField.attributedPlaceholder = NSAttributedString(
             string: "email",
-            attributes: [NSAttributedString.Key.foregroundColor: Colors.grayD9D9D9]
+            attributes: [NSAttributedString.Key.foregroundColor: UIColor.white.withAlphaComponent(0.8)]
         )
-        textField.textColor = Colors.gray848484
+        textField.textColor = .white
         textField.borderStyle = .none
-        textField.backgroundColor = .white
+        textField.layer.cornerRadius = 25
+        textField.layer.borderWidth = 1
+        textField.layer.borderColor = UIColor.white.cgColor
+        textField.backgroundColor = .white.withAlphaComponent(0.2)
         textField.autocapitalizationType = .none
         textField.autocorrectionType = .no
         textField.layer.cornerRadius = 25
@@ -195,62 +126,103 @@ class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureReco
         textField.rightViewMode = .always
 
         dismissKeyboard()
+
+        view.addSubview(textField)
+        textField.pinBottom(to: getCodeButton.topAnchor, 15)
+        textField.pinLeft(to: view.leadingAnchor, 40)
+        textField.pinRight(to: view.trailingAnchor, 40)
     }
 
-    private func configureEmailSmallLabel() {
-        emailSmallLabel.text = "для создания или входа в аккаунт"
-        emailSmallLabel.font = Fonts.futuraB14
-        emailSmallLabel.textColor = Colors.lilicBAB6FD
-        emailSmallLabel.textAlignment = .center
-        emailSmallLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+    private func configureGetCodeButton() {
+        getCodeButton.setTitle("     Получить код     ", for: .normal)
+        getCodeButton.setTitleColor(.white, for: .normal)
+        getCodeButton.backgroundColor = Colors.lilicBAB6FD.withAlphaComponent(0.4)
+        getCodeButton.layer.cornerRadius = 25
+        getCodeButton.titleLabel?.font = UIFont(name: "futuralt-bold", size: 20)
+        getCodeButton.setHeight(50)
+        getCodeButton.addTarget(self, action: #selector(getCode), for: .touchUpInside)
+        view.addSubview(getCodeButton)
+        getCodeButton.pinBottom(to: orLabel.topAnchor, 15)
+        getCodeButton.pinLeft(to: view.leadingAnchor, 40)
+        getCodeButton.pinRight(to: view.trailingAnchor, 40)
     }
 
-    private func configureEmailBigLabel() {
-        emailBigLabel.text = "Введите почту"
-        emailBigLabel.font = Fonts.futuraB22
-        emailBigLabel.textColor = Colors.lilicBAB6FD
-        emailBigLabel.textAlignment = .center
-        emailBigLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+    private func configureOrLabel() {
+        orLabel.text = "или"
+        orLabel.font = Fonts.futuraB20
+        orLabel.textColor = .white
+        view.addSubview(orLabel)
+        orLabel.pinBottom(to: gmailButton.topAnchor, 15)
+        orLabel.pinCenterX(to: view.centerXAnchor, 0)
     }
 
-    private func configureFormStack() {
-        translucentBackgroundView.addSubview(formStack)
+    private func configureLines() {
+        rLine.backgroundColor = .white
+        lLine.backgroundColor = .white
+        rLine.setHeight(1)
+        lLine.setHeight(1)
+        view.addSubview(rLine)
+        view.addSubview(lLine)
 
-        formStack.axis = .vertical
-        formStack.alignment = .fill
-        formStack.distribution = .fill
-        formStack.spacing = 12
-
-        formStack.pinLeft(to: translucentBackgroundView.leadingAnchor, 40)
-        formStack.pinRight(to: translucentBackgroundView.trailingAnchor, 40)
-        formStack.pinBottom(to: translucentBackgroundView.safeAreaLayoutGuide.bottomAnchor, 15)
-
-        orRow.addSubview(orLabel)
-        orRow.addSubview(lLine)
-        orRow.addSubview(rLine)
-
-        orLabel.pinCenter(to: orRow)
-
-        lLine.pinLeft(to: orRow.leadingAnchor)
-        lLine.pinRight(to: orLabel.leadingAnchor, 10)
         lLine.pinCenterY(to: orLabel.centerYAnchor)
-
-        rLine.pinLeft(to: orLabel.trailingAnchor, 10)
-        rLine.pinRight(to: orRow.trailingAnchor)
         rLine.pinCenterY(to: orLabel.centerYAnchor)
+        lLine.pinRight(to: orLabel.leadingAnchor, 10)
+        rLine.pinLeft(to: orLabel.trailingAnchor, 10)
+        lLine.pinLeft(to: view.leadingAnchor, 40)
+        rLine.pinRight(to: view.trailingAnchor, 40)
+    }
 
-        orRow.setHeight(20)
+    private func configureGmailButton() {
+        var config = UIButton.Configuration.filled()
+        config.baseBackgroundColor = .white.withAlphaComponent(0.2)
+        config.baseForegroundColor = .white.withAlphaComponent(0.9)
+        config.background.cornerRadius = 25
+        var container = AttributeContainer()
+        container.font = UIFont(name: "futuralt-bold", size: 20)
+        config.attributedTitle = AttributedString("Продолжить с Google", attributes: container)
+        gmailButton.configuration = config
+        gmailButton.layer.borderWidth = 1
+        gmailButton.layer.borderColor = UIColor.white.cgColor
+        gmailButton.layer.cornerRadius = 25
+        gmailButton.setHeight(50)
+        gmailButton.addTarget(self, action: #selector(signInWithGoogleTapped), for: .touchUpInside)
+        view.addSubview(gmailButton)
+        gmailButton.pinBottom(to: appleIDButton.topAnchor, 15)
+        gmailButton.pinLeft(to: view.leadingAnchor, 40)
+        gmailButton.pinRight(to: view.trailingAnchor, 40)
+    }
 
-        formStack.addArrangedSubview(emailBigLabel)
-        formStack.addArrangedSubview(emailSmallLabel)
-        formStack.addArrangedSubview(textField)
-        formStack.addArrangedSubview(getCodeButton)
-        formStack.addArrangedSubview(orRow)
-        formStack.addArrangedSubview(gmailButton)
-        formStack.addArrangedSubview(appleIDButton)
+    private func configureAppleIdButton() {
+        var config = UIButton.Configuration.filled()
+        config.baseBackgroundColor = .white.withAlphaComponent(0.2)
+        config.baseForegroundColor = .white.withAlphaComponent(0.9)
+        config.background.cornerRadius = 25
+        var container = AttributeContainer()
+        container.font = UIFont(name: "futuralt-bold", size: 20)
+        config.attributedTitle = AttributedString("Продолжить с Apple ID", attributes: container)
+        appleIDButton.configuration = config
+        appleIDButton.setHeight(50)
+        appleIDButton.layer.borderWidth = 1
+        appleIDButton.layer.borderColor = UIColor.white.cgColor
+        appleIDButton.layer.cornerRadius = 25
+        appleIDButton.addTarget(self, action: #selector(signInWithAppleTapped), for: .touchUpInside)
 
-        formStack.setCustomSpacing(3, after: emailBigLabel)
-        formStack.setCustomSpacing(20, after: emailSmallLabel)
+        view.addSubview(appleIDButton)
+        appleIDButton.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            appleIDButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
+            appleIDButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
+            appleIDButton.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -40),
+            appleIDButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
+    }
+
+    @objc
+    private func getCode() {
+        // TODO: show an error
+        guard let email = textField.text else { return }
+        interactor.getCode(email)
     }
 
     private func dismissKeyboard() {
@@ -268,55 +240,10 @@ class SignInViewController: UIViewController, UITextFieldDelegate, UIGestureReco
     private func hideKeyboard() {
         view.endEditing(true)
     }
-
-    private func keyboardNotifications() {
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(keyboardWillShow),
-            name: UIResponder.keyboardWillShowNotification,
-            object: nil
-        )
-
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(keyboardWillHide),
-            name: UIResponder.keyboardWillHideNotification,
-            object: nil
-        )
-    }
-
-    @objc
-    private func keyboardWillShow(_ notification: Notification) {
-        guard
-            let userInfo = notification.userInfo,
-            let frame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
-            let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
-        else { return }
-
-        translucentBottomConstraint.constant = -frame.height
-
-        UIView.animate(withDuration: duration) {
-            self.view.layoutIfNeeded()
-        }
-    }
-
-    @objc
-    private func keyboardWillHide(_ notification: Notification) {
-        guard
-            let userInfo = notification.userInfo,
-            let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
-        else { return }
-
-        translucentBottomConstraint.constant = 0
-
-        UIView.animate(withDuration: duration) {
-            self.view.layoutIfNeeded()
-        }
-    }
 }
 
 extension SignInViewController: ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
-    
+
     @objc
     private func signInWithAppleTapped() {
         let provider = ASAuthorizationAppleIDProvider()
@@ -328,14 +255,14 @@ extension SignInViewController: ASAuthorizationControllerDelegate, ASAuthorizati
         controller.presentationContextProvider = self
         controller.performRequests()
     }
-    
+
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         view.window ?? UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .flatMap { $0.windows }
             .first { $0.isKeyWindow } ?? UIWindow()
     }
-    
+
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
         guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else { return }
 
@@ -361,7 +288,7 @@ extension SignInViewController: ASAuthorizationControllerDelegate, ASAuthorizati
 }
 
 extension SignInViewController {
-    
+
     @objc
     private func signInWithGoogleTapped() {
         guard let presentingVC = view.window?.rootViewController ?? self as UIViewController? else { return }
@@ -384,5 +311,4 @@ extension SignInViewController {
             )
         }
     }
-
 }
