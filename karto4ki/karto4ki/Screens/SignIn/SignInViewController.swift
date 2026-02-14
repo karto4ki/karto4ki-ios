@@ -137,6 +137,8 @@ final class SignInViewController: UIViewController, UITextFieldDelegate, UIGestu
         getCodeButton.setTitleColor(.white, for: .normal)
         getCodeButton.backgroundColor = Colors.lilicBAB6FD.withAlphaComponent(0.4)
         getCodeButton.layer.cornerRadius = 25
+        getCodeButton.layer.borderWidth = 1
+        getCodeButton.layer.borderColor = Colors.lilicBAB6FD.cgColor
         getCodeButton.titleLabel?.font = UIFont(name: "futuralt-bold", size: 20)
         getCodeButton.setHeight(50)
         getCodeButton.addTarget(self, action: #selector(getCode), for: .touchUpInside)
@@ -212,7 +214,7 @@ final class SignInViewController: UIViewController, UITextFieldDelegate, UIGestu
         NSLayoutConstraint.activate([
             appleIDButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
             appleIDButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
-            appleIDButton.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -40),
+            appleIDButton.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -60),
             appleIDButton.heightAnchor.constraint(equalToConstant: 50)
         ])
     }
