@@ -14,7 +14,7 @@ final class AppCoordinator {
     private var window = UIWindow()
     private let userDefaults = UserDefaultsManager()
     private let keychainManager = KeychainManager()
-    private let identityService = IdentityService()
+    private let identityService = MockIdentityService()
     
     private init() {
         self.navigationController = UINavigationController()

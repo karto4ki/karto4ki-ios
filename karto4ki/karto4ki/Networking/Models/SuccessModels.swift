@@ -26,4 +26,12 @@ enum SuccessModels {
             case signinKey = "signin_key"
         }
     }
+    
+    struct SendCodeSignupData: Codable {
+        let signupKey: UUID
+        
+        enum CodingKeys: String, CodingKey {
+            case signupKey = "signup_key"
+        }
+    }
 }
