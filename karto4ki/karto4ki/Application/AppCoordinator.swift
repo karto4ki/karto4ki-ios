@@ -52,12 +52,12 @@ final class AppCoordinator {
     }
     
     func showRegistration() {
-        let regVC = RegistrationAssembly.build()
+        let regVC = RegistrationAssembly.build(identity: identityService, keychain: keychainManager, userDefaults: userDefaults)
         navigationController.pushViewController(regVC, animated: true)
     }
     
-    func showRegistrationConfirmation(name: String, username: String, closure: @escaping (Bool) -> Void) {
-        let confirmVC = RegistrationConfitmViewController(name: name, username: username, closure: closure)
+    func showRegistrationConfirmation(name: String, username: String, goBackClosure: @escaping (Bool) -> Void?, routingClosure: @escaping (String, String) -> Void?) {
+        let confirmVC = RegistrationConfirmViewController(name: name, username: username, goBackClosure: goBackClosure, routingClosure: routingClosure)
         navigationController.pushViewController(confirmVC, animated: true)
     }
 }

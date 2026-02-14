@@ -25,7 +25,7 @@ final class CodeWorker: CodeWorkerLogic {
 //        }
         let signinCode = "dfgh"
         
-        let request = CodeModels.VerifyCodeRequest(signupKey: signinCode, code: code)
+        let request = VerifyCodeRequest(signupKey: signinCode, code: code)
         
         identityService.sendVerifyCodeRequest(request: request) { [weak self] result in
             guard let _ = self else { return }

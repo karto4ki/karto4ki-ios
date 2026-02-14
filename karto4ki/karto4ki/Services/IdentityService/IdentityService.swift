@@ -37,7 +37,7 @@ final class IdentityService: IdentityServiceProtocol {
         Sender.send(endpoint: endpoint, method: .post, headers: headers, body: body, completion: completion)
     }
     
-    func sendVerifyCodeRequest(request: CodeModels.VerifyCodeRequest,
+    func sendVerifyCodeRequest(request: VerifyCodeRequest,
                                completion: @escaping (Result<SuccessResponse<SuccessModels.VerifyData>, Error>) -> Void) {
         let endpoint = IdentityServiceEndpoints.signupVerifyCode.rawValue
         let idempotencyKey = UUID().uuidString
@@ -50,5 +50,19 @@ final class IdentityService: IdentityServiceProtocol {
         ]
         
         Sender.send(endpoint: endpoint, method: .post, headers: headers, body: body, completion: completion)
+    }
+    
+    func sendSignupRequest(_ request: SignupRequest, completion: @escaping (Result<SuccessResponse<SuccessModels.Tokens>, Error>) -> Void) {
+        let endpoint = IdentityServiceEndpoints.signup.rawValue
+        let idempotencyKey = UUID().uuidString
+        
+        let body = try? JSONEncoder().encode(request)
+        
+        let headers: [String: String] = [
+            "Idempotency-Key": idempotencyKey,
+            "Content-Type": "application/json"
+        ]
+        
+        Sender.send(endpoint: endpoint, method: .post, body: body, completion: completion)
     }
 }

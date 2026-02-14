@@ -17,7 +17,7 @@ final class SignInWorker: SignInWorkerLogic {
         self.keychainManager = km
     }
     
-    func sendCodeRequest(request: SignInModels.SendCodeRequest,
+    func sendCodeRequest(request: SendCodeRequest,
                          completion: @escaping (Result<Void, Error>) -> Void) {
         identityService.sendCodeRequest(request,
                                         IdentityServiceEndpoints.signupSendCode.rawValue,

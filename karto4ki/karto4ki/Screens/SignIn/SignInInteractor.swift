@@ -19,7 +19,7 @@ final class SignInInteractor: SignInBusinessLogic {
     }
     
     func getCode(_ email: String) {
-        let request = SignInModels.SendCodeRequest(email: email)
+        let request = SendCodeRequest(email: email)
         worker.sendCodeRequest(request: request) { [weak self] result in
             guard let self else { return }
             switch result {

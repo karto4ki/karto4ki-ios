@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class RegistrationConfitmViewController: UIViewController {
+final class RegistrationConfirmViewController: UIViewController {
     
     private let name: String
     private let username: String
@@ -15,13 +15,15 @@ final class RegistrationConfitmViewController: UIViewController {
     private let nameButton = UIButton(type: .system)
     private var isNameTapped: Bool = false
     private let usernameButton = UIButton(type: .system)
-    private let closure: (Bool) -> Void
+    private let goBackClosure: (Bool) -> Void?
+    private let routingClosure: (String, String) -> Void?
     private let continueButton: UIButton = UIButton(type: .system)
     
-    init(name: String, username: String, closure: @escaping (Bool) -> Void) {
+    init(name: String, username: String, goBackClosure: @escaping (Bool) -> Void?, routingClosure: @escaping (String, String) -> Void?) {
         self.name = name
         self.username = username
-        self.closure = closure
+        self.goBackClosure = goBackClosure
+        self.routingClosure = routingClosure
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -116,15 +118,20 @@ final class RegistrationConfitmViewController: UIViewController {
         view.addSubview(continueButton)
         continueButton.pinBottom(to: view.safeAreaLayoutGuide.bottomAnchor, 40)
         continueButton.pinCenterX(to: view.centerXAnchor)
+        continueButton.addTarget(self, action: #selector(confirm), for: .touchUpInside)
+    }
+    
+    @objc private func confirm() {
+        routingClosure(name, username)
     }
     
     @objc private func goBackName() {
-        closure(true)
+        goBackClosure(true)
         navigationController?.popViewController(animated: true)
     }
     
     @objc private func goBackUsername() {
-        closure(false)
+        goBackClosure(false)
         navigationController?.popViewController(animated: true)
     }
 }
