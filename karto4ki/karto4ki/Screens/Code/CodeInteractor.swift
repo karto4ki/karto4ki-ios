@@ -6,13 +6,18 @@
 //
 
 final class CodeInteractor: CodeBusinessLogic {
-    let presenter: CodePresentationLogic
     
-    init(presenter: CodePresentationLogic) {
+    private let presenter: CodePresentationLogic
+    private let worker: CodeWorkerLogic
+    private let errorHandler: ErrorHandlerLogic
+    
+    init(presenter: CodePresentationLogic, worker: CodeWorkerLogic, errorHandler: ErrorHandlerLogic) {
         self.presenter = presenter
+        self.worker = worker
+        self.errorHandler = errorHandler
     }
     
-    func sendVerificationRequest() {
+    func sendVerificationRequest(code: String) {
         AppCoordinator.shared.showRegistration()
     }
 }

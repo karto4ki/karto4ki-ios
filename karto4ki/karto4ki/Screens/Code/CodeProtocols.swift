@@ -10,5 +10,9 @@ protocol CodePresentationLogic {
 }
 
 protocol CodeBusinessLogic {
-    func sendVerificationRequest()
+    func sendVerificationRequest(code: String)
+}
+
+protocol CodeWorkerLogic {
+    
 }
