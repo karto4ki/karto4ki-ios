@@ -40,14 +40,14 @@ final class AppCoordinator {
     }
     
     func showSignIn() {
-        let signInVC = SignInAssembly.build(km: keychainManager, identity: identityService)
+        let signInVC = SignInAssembly.build(keychain: keychainManager, identity: identityService)
         navigationController.setViewControllers([signInVC], animated: true)
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
     }
     
     func showVerifyCodeScreen() {
-        let codeVC = CodeAssembly.build()
+        let codeVC = CodeAssembly.build(keychain: keychainManager, identity: identityService)
         navigationController.pushViewController(codeVC, animated: true)
     }
     

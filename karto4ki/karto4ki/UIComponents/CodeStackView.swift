@@ -23,7 +23,7 @@ final class CodeStackView: UIView {
         configure()
     }
     
-    func getCodeFromTextFields() -> String {
+    private func getCodeFromTextFields() -> String {
         var code: String = ""
         
         for field in textFields {
@@ -183,7 +183,8 @@ extension CodeStackView: UITextFieldDelegate {
     }
     
     private func sendRequestToInteractor() {
-        interactor?.sendVerificationRequest()
+        let code = getCodeFromTextFields()
+        interactor?.sendVerificationRequest(code: code)
     }
 }
 

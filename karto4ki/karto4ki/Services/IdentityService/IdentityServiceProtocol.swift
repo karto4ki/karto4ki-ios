@@ -15,4 +15,8 @@ protocol IdentityServiceProtocol {
     
     func sendRefreshTokensRequest(_ request: RefreshRequest,
                                   completion: @escaping (Result<SuccessResponse<SuccessModels.Tokens>, Error>) -> Void)
+    
+    func sendVerifyCodeRequest(request: CodeModels.VerifyCodeRequest,
+                               completion: @escaping (Result<SuccessResponse<SuccessModels.VerifyData>, Error>) -> Void)
+                               
 }

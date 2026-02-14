@@ -8,9 +8,11 @@
 import Foundation
 
 struct CodeAssembly {
-    static func build() -> CodeViewController {
+    static func build(keychain: KeychainManagerProtocol, identity: IdentityServiceProtocol) -> CodeViewController {
         let presenter = CodePresenter()
-        let interactor = CodeInteractor(presenter: presenter)
+        let worker = CodeWorker(identityService: identity, keychainManager: keychain)
+        let errorHandler = ErrorHandler(keychainManager: keychain, identityService: identity)
+        let interactor = CodeInteractor(presenter: presenter, worker: worker, errorHandler: errorHandler)
         let view = CodeViewController(interactor: interactor)
         presenter.view = view
         return view
