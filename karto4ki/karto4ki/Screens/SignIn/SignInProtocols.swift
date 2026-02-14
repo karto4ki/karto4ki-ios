@@ -20,5 +20,5 @@ protocol SignInPresentationLogic {
 }
 
 protocol SignInWorkerLogic {
-    func sendCodeRequest(request: SignInModels.SendCodeRequest, completion: @escaping (Result<Void, Error>) -> Void)
+    func sendCodeRequest(request: SendCodeRequest, completion: @escaping (Result<Void, Error>) -> Void)
 }

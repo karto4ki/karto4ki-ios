@@ -19,7 +19,7 @@ final class RegistrationViewController: UIViewController, KeyboardAvoiding, UIGe
     private let baseEnterTop: CGFloat = -100
     private let baseFieldTop: CGFloat = 30
     private var name: String?
-    private let interactor: RegistrationInteractor
+    private let interactor: RegistrationBusinessLogic
 
     private let nameButton = UIButton(type: .system)
 
@@ -257,9 +257,13 @@ extension RegistrationViewController: UITextFieldDelegate {
                 updateWithNickname()
             } else {
                 dismissKeyboard()
-                interactor.goToConfirmation(name: name ?? "", username: text, closure: { [weak self] (isName: Bool) in
+                let goBack = { [weak self] (isName: Bool) in
                     self?.update(isName: isName)
-                })
+                }
+                let routing = { [weak self] (name: String, username: String) in
+                    self?.interactor.confirm(name: name, username: username)
+                }
+                interactor.goToConfirmation(name: name ?? "", username: text, goBackClosure: goBack, routingClosure: routing)
             }
         }
         return true

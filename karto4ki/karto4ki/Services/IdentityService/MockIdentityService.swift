@@ -46,7 +46,7 @@ final class MockIdentityService: IdentityServiceProtocol {
         Sender.send(endpoint: endpoint, method: .post, headers: headers, body: body, completion: completion)
     }
     
-    func sendVerifyCodeRequest(request: CodeModels.VerifyCodeRequest,
+    func sendVerifyCodeRequest(request: VerifyCodeRequest,
                                completion: @escaping (Result<SuccessResponse<SuccessModels.VerifyData>, Error>) -> Void) {
         let json = """
         {
@@ -60,6 +60,26 @@ final class MockIdentityService: IdentityServiceProtocol {
         
         do {
             let decoded = try JSONDecoder().decode(SuccessResponse<SuccessModels.VerifyData>.self, from: data)
+            completion(.success(decoded))
+        } catch {
+            completion(.failure(error))
+        }
+    }
+    
+    func sendSignupRequest(_ request: SignupRequest, completion: @escaping (Result<SuccessResponse<SuccessModels.Tokens>, Error>) -> Void) {
+        let json = """
+        {
+              "data": {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+                "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODlhczAiLCJuYW1lIjoiSm9obiBEZHNvZSIsImlhdCI6MTUxNjIzOTAyMn0.gMtW_LPAMSJXOwU4GhTlnC7tgLI_ILtrr6CQw26U784"
+              }
+        }
+        """
+        
+        let data = Data(json.utf8)
+        
+        do {
+            let decoded = try JSONDecoder().decode(SuccessResponse<SuccessModels.Tokens>.self, from: data)
             completion(.success(decoded))
         } catch {
             completion(.failure(error))

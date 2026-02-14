@@ -14,3 +14,18 @@ struct RefreshRequest: Codable {
         case refreshToken = "refresh_token"
     }
 }
+
+struct SendCodeRequest: Codable {
+    let email: String
+}
+
+struct VerifyCodeRequest: Codable {
+    let signupKey: String
+    let code: String
+}
+
+struct SignupRequest: Codable {
+    let signupKey: String
+    let name: String
+    let username: String
+}

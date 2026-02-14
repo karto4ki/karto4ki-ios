@@ -10,4 +10,7 @@ import Foundation
 protocol UserDefaultsManagerProtocol {
     func putOnboardingCompleted()
     func isOnboardingCompleted() -> Bool
+    func saveEmail(_ email: String)
+    func saveName(_ name: String)
+    func saveUsername(_ username: String)
 }

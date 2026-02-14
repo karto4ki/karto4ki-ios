@@ -22,4 +22,12 @@ struct UserDefaultsManager: UserDefaultsManagerProtocol {
     func saveEmail(_ email: String) {
         defaults.set(email, forKey: "email")
     }
+    
+    func saveName(_ name: String) {
+        UserDefaults.standard.set(name, forKey: "name")
+    }
+    
+    func saveUsername(_ username: String) {
+        UserDefaults.standard.set(username, forKey: "username")
+    }
 }
