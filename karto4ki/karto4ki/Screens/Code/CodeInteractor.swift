@@ -5,6 +5,8 @@
 //  Created by лизо4ка курунок on 02.01.2026.
 //
 
+import Foundation
+
 final class CodeInteractor: CodeBusinessLogic {
     
     private let presenter: CodePresentationLogic
@@ -18,6 +20,20 @@ final class CodeInteractor: CodeBusinessLogic {
     }
     
     func sendVerificationRequest(code: String) {
-        AppCoordinator.shared.showRegistration()
+        worker.sendVerificationRequest(code: code) { [weak self] result in
+            guard let self else { return }
+            switch result {
+            case .success:
+                DispatchQueue.main.async {
+                    AppCoordinator.shared.showRegistration()
+                }
+            case .failure(let error):
+                let _ = self.errorHandler.handleError(error)
+                DispatchQueue.main.async {
+                    // TODO: show error
+                }
+                print(error.localizedDescription)
+            }
+        }
     }
 }

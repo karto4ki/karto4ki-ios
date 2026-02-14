@@ -45,4 +45,24 @@ final class MockIdentityService: IdentityServiceProtocol {
         
         Sender.send(endpoint: endpoint, method: .post, headers: headers, body: body, completion: completion)
     }
+    
+    func sendVerifyCodeRequest(request: CodeModels.VerifyCodeRequest,
+                               completion: @escaping (Result<SuccessResponse<SuccessModels.VerifyData>, Error>) -> Void) {
+        let json = """
+        {
+            "data": {
+                
+              }
+        }
+        """
+        
+        let data = Data(json.utf8)
+        
+        do {
+            let decoded = try JSONDecoder().decode(SuccessResponse<SuccessModels.VerifyData>.self, from: data)
+            completion(.success(decoded))
+        } catch {
+            completion(.failure(error))
+        }
+    }
 }

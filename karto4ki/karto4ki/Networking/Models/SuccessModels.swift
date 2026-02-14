@@ -34,4 +34,8 @@ enum SuccessModels {
             case signupKey = "signup_key"
         }
     }
+    
+    struct VerifyData: Codable {
+        
+    }
 }

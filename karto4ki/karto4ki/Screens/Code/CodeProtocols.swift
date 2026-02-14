@@ -14,5 +14,5 @@ protocol CodeBusinessLogic {
 }
 
 protocol CodeWorkerLogic {
-    
+    func sendVerificationRequest(code: String, completion: @escaping (Result<Void, Error>) -> Void)
 }
