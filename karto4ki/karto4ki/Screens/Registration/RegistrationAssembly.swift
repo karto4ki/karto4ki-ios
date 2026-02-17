@@ -8,10 +8,11 @@
 import Foundation
 
 struct RegistrationAssembly {
-    static func build(identity: IdentityServiceProtocol, keychain: KeychainManagerProtocol, userDefaults: UserDefaultsManagerProtocol) -> RegistrationViewController {
-        let worker = RegistrationWorker(identityService: identity, keychainManager: keychain, userDefaults: userDefaults)
-        let errorHandler = ErrorHandler(keychainManager: keychain, identityService: identity)
-        let interactor = RegistrationInteractor(worker: worker, errorHandler: errorHandler)
+    static func build(context: ContextProtocol) -> RegistrationViewController {
+        let worker = RegistrationWorker(identityService: context.identityService,
+                                        keychainManager: context.keychainManager,
+                                        userDefaults: context.userDefaults)
+        let interactor = RegistrationInteractor(worker: worker, errorHandler: context.errorHandler)
         let view = RegistrationViewController(interactor: interactor)
         return view
     }

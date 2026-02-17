@@ -11,9 +11,9 @@ final class CodeInteractor: CodeBusinessLogic {
     
     private let presenter: CodePresentationLogic
     private let worker: CodeWorkerLogic
-    private let errorHandler: ErrorHandlerLogic
+    private let errorHandler: ErrorHandlerProtocol
     
-    init(presenter: CodePresentationLogic, worker: CodeWorkerLogic, errorHandler: ErrorHandlerLogic) {
+    init(presenter: CodePresentationLogic, worker: CodeWorkerLogic, errorHandler: ErrorHandlerProtocol) {
         self.presenter = presenter
         self.worker = worker
         self.errorHandler = errorHandler

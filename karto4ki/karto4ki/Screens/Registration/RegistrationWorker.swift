@@ -21,12 +21,10 @@ final class RegistrationWorker: RegistrationWorkerLogic {
     
     func sendSignupRequest(name: String, username: String,
                            completion: @escaping (Result<Void, Error>) -> Void) {
-        #warning("uncomment if use server")
-        //        guard let signupCode = keychainManager.getString(key: KeychainManager.Keys.signinCode.rawValue) else {
-        //            completion(.failure(ApiError.noData))
-        //            return
-        //        }
-        let signupCode = "dfgh"
+        guard let signupCode = keychainManager.getString(key: KeychainManager.Keys.signinCode.rawValue) else {
+            completion(.failure(ApiError.noData))
+            return
+        }
         
         let request = SignupRequest(signupKey: signupCode, name: name, username: username)
         

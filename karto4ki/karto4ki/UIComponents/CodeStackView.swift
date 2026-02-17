@@ -33,7 +33,6 @@ final class CodeStackView: UIView {
             }
             code.append(text)
         }
-        print(code)
         return code
     }
     

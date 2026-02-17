@@ -10,9 +10,9 @@ import Foundation
 final class RegistrationInteractor: RegistrationBusinessLogic {
     
     private let worker: RegistrationWorkerLogic
-    private let errorHandler: ErrorHandlerLogic
+    private let errorHandler: ErrorHandlerProtocol
     
-    init(worker: RegistrationWorkerLogic, errorHandler: ErrorHandlerLogic) {
+    init(worker: RegistrationWorkerLogic, errorHandler: ErrorHandlerProtocol) {
         self.worker = worker
         self.errorHandler = errorHandler
     }

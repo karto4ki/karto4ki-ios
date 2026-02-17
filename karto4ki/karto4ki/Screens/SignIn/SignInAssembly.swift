@@ -8,11 +8,10 @@
 import Foundation
 
 struct SignInAssembly {
-    static func build(keychain: KeychainManagerProtocol, identity: IdentityServiceProtocol) -> SignInViewController {
+    static func build(context: ContextProtocol) -> SignInViewController {
         let presenter = SignInPresenter()
-        let worker = SignInWorker(km: keychain)
-        let errorHandler = ErrorHandler(keychainManager: keychain, identityService: identity)
-        let interactor = SignInInteractor(presenter: presenter, worker: worker, errorHandler: errorHandler)
+        let worker = SignInWorker(keychain: context.keychainManager)
+        let interactor = SignInInteractor(presenter: presenter, worker: worker, errorHandler: context.errorHandler)
         let view = SignInViewController(interactor: interactor)
         presenter.view = view
         return view

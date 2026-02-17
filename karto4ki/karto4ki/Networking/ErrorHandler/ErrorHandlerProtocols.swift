@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol ErrorHandlerLogic {
+protocol ErrorHandlerProtocol {
     func handleError(_ error: Error) -> ErrorDescription
     func handleRefreshTokenError()
 }

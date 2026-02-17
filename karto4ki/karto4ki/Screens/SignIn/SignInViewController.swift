@@ -221,8 +221,7 @@ final class SignInViewController: UIViewController, UITextFieldDelegate, UIGestu
 
     @objc
     private func getCode() {
-        // TODO: show an error
-        guard let email = textField.text else { return }
+        guard let email = textField.text, !email.isEmpty else { return }
         interactor.getCode(email)
     }
 
