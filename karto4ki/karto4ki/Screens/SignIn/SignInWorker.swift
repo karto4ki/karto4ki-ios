@@ -12,9 +12,9 @@ final class SignInWorker: SignInWorkerLogic {
     private let keychainManager: KeychainManagerProtocol
     private let userDefaults = UserDefaultsManager()
     
-    init(km: KeychainManagerProtocol, identityService: IdentityServiceProtocol = MockIdentityService()) {
+    init(keychain: KeychainManagerProtocol, identityService: IdentityServiceProtocol = MockIdentityService()) {
         self.identityService = identityService
-        self.keychainManager = km
+        self.keychainManager = keychain
     }
     
     func sendCodeRequest(request: SendCodeRequest,

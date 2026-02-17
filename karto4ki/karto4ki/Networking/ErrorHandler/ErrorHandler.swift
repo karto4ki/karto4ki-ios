@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class ErrorHandler: ErrorHandlerLogic {
+final class ErrorHandler: ErrorHandlerProtocol {
     
     private let serverErrorMessage: String = "Server error."
     private let keychainManager: KeychainManagerProtocol

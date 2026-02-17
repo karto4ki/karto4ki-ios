@@ -12,12 +12,17 @@ final class AppCoordinator {
     static let shared = AppCoordinator()
     private let navigationController: UINavigationController
     private var window = UIWindow()
-    private let userDefaults = UserDefaultsManager()
-    private let keychainManager = KeychainManager()
-    private let identityService = MockIdentityService()
+    private let context: Context
     
     private init() {
         self.navigationController = UINavigationController()
+        let keychainManager = KeychainManager()
+        let identityService = MockIdentityService()
+        context = .init(keychainManager: keychainManager,
+                        userDefaults: UserDefaultsManager(),
+                        identityService: identityService,
+                        errorHandler: ErrorHandler(keychainManager: keychainManager, identityService: identityService))
+        
     }
     
     func setWindow(_ window: UIWindow) {
@@ -25,7 +30,7 @@ final class AppCoordinator {
     }
     
     func start() {
-        if userDefaults.isOnboardingCompleted() {
+        if context.userDefaults.isOnboardingCompleted() {
             showSignIn()
         } else {
             showOnboarding()
@@ -40,19 +45,19 @@ final class AppCoordinator {
     }
     
     func showSignIn() {
-        let signInVC = SignInAssembly.build(keychain: keychainManager, identity: identityService)
+        let signInVC = SignInAssembly.build(context: context)
         navigationController.setViewControllers([signInVC], animated: true)
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
     }
     
     func showVerifyCodeScreen() {
-        let codeVC = CodeAssembly.build(keychain: keychainManager, identity: identityService)
+        let codeVC = CodeAssembly.build(context: context)
         navigationController.pushViewController(codeVC, animated: true)
     }
     
     func showRegistration() {
-        let regVC = RegistrationAssembly.build(identity: identityService, keychain: keychainManager, userDefaults: userDefaults)
+        let regVC = RegistrationAssembly.build(context: context)
         navigationController.pushViewController(regVC, animated: true)
     }
     

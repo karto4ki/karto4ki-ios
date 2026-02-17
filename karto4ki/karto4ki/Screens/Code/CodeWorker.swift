@@ -18,12 +18,10 @@ final class CodeWorker: CodeWorkerLogic {
     }
     
     func sendVerificationRequest(code: String, completion: @escaping (Result<Void, any Error>) -> Void) {
-        #warning("uncomment if use server")
-//        guard let signinCode = keychainManager.getString(key: KeychainManager.Keys.signinCode.rawValue) else {
-//            completion(.failure(ApiError.noData))
-//            return
-//        }
-        let signinCode = "dfgh"
+        guard let signinCode = keychainManager.getString(key: KeychainManager.Keys.signinCode.rawValue) else {
+            completion(.failure(ApiError.noData))
+            return
+        }
         
         let request = VerifyCodeRequest(signupKey: signinCode, code: code)
         

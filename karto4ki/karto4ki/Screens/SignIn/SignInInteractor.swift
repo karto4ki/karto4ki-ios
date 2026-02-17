@@ -10,9 +10,9 @@ import Foundation
 final class SignInInteractor: SignInBusinessLogic {
     private let presenter: SignInPresentationLogic
     private let worker: SignInWorkerLogic
-    private let errorHandler: ErrorHandlerLogic
+    private let errorHandler: ErrorHandlerProtocol
     
-    init(presenter: SignInPresentationLogic, worker: SignInWorkerLogic, errorHandler: ErrorHandlerLogic) {
+    init(presenter: SignInPresentationLogic, worker: SignInWorkerLogic, errorHandler: ErrorHandlerProtocol) {
         self.presenter = presenter
         self.worker = worker
         self.errorHandler = errorHandler
