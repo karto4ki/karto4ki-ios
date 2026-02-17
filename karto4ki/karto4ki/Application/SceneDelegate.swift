@@ -24,19 +24,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         AppCoordinator.shared.setWindow(window)
         AppCoordinator.shared.start()
-        
-        let fonts = UIFont.familyNames
-        for font in fonts {
-            if font == "PhantomMuff 1.5 Plus" {
-                print(font)
-                for i in UIFont.fontNames(forFamilyName: font) {
-                    print(i)
-                }
-            }
-            
-        }
-        
-        
     }
     
     private func setAppearance() {

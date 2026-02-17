@@ -63,6 +63,6 @@ final class IdentityService: IdentityServiceProtocol {
             "Content-Type": "application/json"
         ]
         
-        Sender.send(endpoint: endpoint, method: .post, body: body, completion: completion)
+        Sender.send(endpoint: endpoint, method: .post, headers: headers, body: body, completion: completion)
     }
 }
