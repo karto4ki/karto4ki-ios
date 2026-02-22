@@ -81,7 +81,7 @@ final class SignInViewController: UIViewController, UITextFieldDelegate, UIGestu
         cardsLogoView.contentMode = .scaleAspectFit
         cardsLogoView.pinLeft(to: view.leadingAnchor, 30)
         cardsLogoView.pinRight(to: view.trailingAnchor, 30)
-        cardsLogoView.pinBottom(to: heart.topAnchor, -120)
+        cardsLogoView.pinBottom(to: heart.topAnchor, -140)
     }
 
     private func configureHeart() {

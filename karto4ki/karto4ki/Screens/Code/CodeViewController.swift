@@ -19,7 +19,6 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         static let errorMessageDuration: TimeInterval = 2
         static let numberOfLines: Int = 2
         static let extraKeyboardIndent: CGFloat = 40
-        static let resendButtonHeight: CGFloat = 48
         static let resendButtonWidth: CGFloat = 230
         static let resendButtonBigWidth: CGFloat = 280
         static let resendButtonShortCount: Int = 11
@@ -205,7 +204,6 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
     private func configureResendButton() {
         view.addSubview(resendButton)
         resendButton.pinCenterX(to: view)
-        resendButton.setHeight(Constants.resendButtonHeight)
 
         guard let label = resendButton.titleLabel, let text = label.text else { return }
         resendButton.setWidth(text.count > Constants.resendButtonShortCount
