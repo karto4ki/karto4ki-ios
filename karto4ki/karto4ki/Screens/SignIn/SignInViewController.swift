@@ -13,16 +13,30 @@ final class SignInViewController: UIViewController, UITextFieldDelegate, UIGestu
 
     private let interactor: SignInBusinessLogic
     private let heart = UILabel()
-    private let appleIDButton: UIButton = UIButton(type: .system)
-    private let gmailButton: UIButton = UIButton()
+    
     private let orLabel: UILabel = UILabel()
     private let rLine: UIView = UIView()
     private let lLine: UIView = UIView()
-    private let getCodeButton: UIButton = UIButton(type: .system)
     private let textField: UITextField = UITextField()
     private let welcomeLabel: UILabel = UILabel()
     private let emailLabel: UILabel = UILabel()
     private let cardsLogoView: UIImageView = UIImageView(image: UIImage(named: "logo"))
+    
+    private let appleIDButton: UIButton = ButtonFactory.makeButton(
+        title: "Продолжить с Apple ID",
+        titleColor: .white.withAlphaComponent(0.9),
+        backgroundColor: .white.withAlphaComponent(0.2),
+        borderColor: .white.withAlphaComponent(0.9))
+    private let gmailButton: UIButton = ButtonFactory.makeButton(
+        title: "Продолжить с Google",
+        titleColor: .white.withAlphaComponent(0.9),
+        backgroundColor: .white.withAlphaComponent(0.2),
+        borderColor: .white.withAlphaComponent(0.9))
+    private let getCodeButton: UIButton = ButtonFactory.makeButton(
+        title: "     Получить код     ",
+        titleColor: .white,
+        backgroundColor: Colors.lilicBAB6FD.withAlphaComponent(0.4),
+        borderColor: Colors.lilicBAB6FD)
 
     private let orRow = UIView()
 
@@ -133,14 +147,6 @@ final class SignInViewController: UIViewController, UITextFieldDelegate, UIGestu
     }
 
     private func configureGetCodeButton() {
-        getCodeButton.setTitle("     Получить код     ", for: .normal)
-        getCodeButton.setTitleColor(.white, for: .normal)
-        getCodeButton.backgroundColor = Colors.lilicBAB6FD.withAlphaComponent(0.4)
-        getCodeButton.layer.cornerRadius = 25
-        getCodeButton.layer.borderWidth = 1
-        getCodeButton.layer.borderColor = Colors.lilicBAB6FD.cgColor
-        getCodeButton.titleLabel?.font = UIFont(name: "futuralt-bold", size: 20)
-        getCodeButton.setHeight(50)
         getCodeButton.addTarget(self, action: #selector(getCode), for: .touchUpInside)
         view.addSubview(getCodeButton)
         getCodeButton.pinBottom(to: orLabel.topAnchor, 15)
@@ -174,18 +180,6 @@ final class SignInViewController: UIViewController, UITextFieldDelegate, UIGestu
     }
 
     private func configureGmailButton() {
-        var config = UIButton.Configuration.filled()
-        config.baseBackgroundColor = .white.withAlphaComponent(0.2)
-        config.baseForegroundColor = .white.withAlphaComponent(0.9)
-        config.background.cornerRadius = 25
-        var container = AttributeContainer()
-        container.font = UIFont(name: "futuralt-bold", size: 20)
-        config.attributedTitle = AttributedString("Продолжить с Google", attributes: container)
-        gmailButton.configuration = config
-        gmailButton.layer.borderWidth = 1
-        gmailButton.layer.borderColor = UIColor.white.cgColor
-        gmailButton.layer.cornerRadius = 25
-        gmailButton.setHeight(50)
         gmailButton.addTarget(self, action: #selector(signInWithGoogleTapped), for: .touchUpInside)
         view.addSubview(gmailButton)
         gmailButton.pinBottom(to: appleIDButton.topAnchor, 15)
@@ -194,29 +188,12 @@ final class SignInViewController: UIViewController, UITextFieldDelegate, UIGestu
     }
 
     private func configureAppleIdButton() {
-        var config = UIButton.Configuration.filled()
-        config.baseBackgroundColor = .white.withAlphaComponent(0.2)
-        config.baseForegroundColor = .white.withAlphaComponent(0.9)
-        config.background.cornerRadius = 25
-        var container = AttributeContainer()
-        container.font = UIFont(name: "futuralt-bold", size: 20)
-        config.attributedTitle = AttributedString("Продолжить с Apple ID", attributes: container)
-        appleIDButton.configuration = config
-        appleIDButton.setHeight(50)
-        appleIDButton.layer.borderWidth = 1
-        appleIDButton.layer.borderColor = UIColor.white.cgColor
-        appleIDButton.layer.cornerRadius = 25
         appleIDButton.addTarget(self, action: #selector(signInWithAppleTapped), for: .touchUpInside)
 
         view.addSubview(appleIDButton)
-        appleIDButton.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            appleIDButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
-            appleIDButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
-            appleIDButton.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -60),
-            appleIDButton.heightAnchor.constraint(equalToConstant: 50)
-        ])
+        appleIDButton.pinLeft(to: view.leadingAnchor, 40)
+        appleIDButton.pinRight(to: view.trailingAnchor, 40)
+        appleIDButton.pinBottom(to: view.keyboardLayoutGuide.topAnchor, 60)
     }
 
     @objc
