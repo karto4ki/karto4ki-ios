@@ -48,14 +48,20 @@ final class OnboardingViewController: UIPageViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = Colors.lilicD9D7FF
+        configureBackground()
 
         dataSource = self
         delegate = self
 
         setViewControllers([pages[0]], direction: .forward, animated: true)
         setupPageControl()
-        
+    }
+    
+    private func configureBackground() {
+        let background = BackgroundView(with: "background-6")
+        view.addSubview(background)
+        background.pin(to: view)
+        view.sendSubviewToBack(background)
     }
 
     private func setupPageControl() {

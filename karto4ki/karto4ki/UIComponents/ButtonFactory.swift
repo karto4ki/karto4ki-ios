@@ -22,6 +22,7 @@ final class ButtonFactory {
         button.configuration = config
         button.setHeight(50)
         button.layer.borderColor = borderColor.cgColor
+        button.layer.cornerRadius = 25
         button.layer.borderWidth = 1
         
         return button
