@@ -7,6 +7,7 @@
 
 import UIKit
 
+// TODO: remove keyboardavoiding
 final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, KeyboardAvoiding {
 
     private enum Constants {
@@ -36,7 +37,11 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
     private var smallLabel: UILabel = UILabel()
     private lazy var digitsStackView: CodeStackView = CodeStackView(interactor: interactor)
     private var timerLabel: UILabel = UILabel()
-    private var resendButton: UIButton = UIButton(type: .system)
+    private var resendButton: UIButton = ButtonFactory.makeButton(
+        title: "Отправить повторно",
+        titleColor: .white,
+        backgroundColor: .white.withAlphaComponent(0.2),
+        borderColor: .white)
 
     private var keyboardInset: CGFloat = 0
     private var timerBottomConstraint: NSLayoutConstraint?
@@ -199,11 +204,6 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
 
     private func configureResendButton() {
         view.addSubview(resendButton)
-        resendButton.setTitle("Отправить повторно", for: .normal)
-        resendButton.setTitleColor(Colors.lilicA59FFF, for: .normal)
-        resendButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .medium)
-        resendButton.backgroundColor = .white.withAlphaComponent(0.5)
-        resendButton.layer.cornerRadius = 25
         resendButton.pinCenterX(to: view)
         resendButton.setHeight(Constants.resendButtonHeight)
 
@@ -253,6 +253,7 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         }
     }
 
+    // TODO: по какой-то причине дерганная анимация тут
     @objc
     private func hideLabel() {
         UIView.animate(withDuration: 0.5, animations: {
