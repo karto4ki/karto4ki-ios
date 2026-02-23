@@ -29,14 +29,14 @@ final class BackgroundView: UIView {
         backgroundView.pinBottom(to: bottomAnchor)
         backgroundView.pinRight(to: trailingAnchor)
 
-        let blur = UIBlurEffect(style: .dark)
-        let blurView = UIVisualEffectView(effect: blur)
-        blurView.alpha = 0.1
-        backgroundView.addSubview(blurView)
-        blurView.pinTop(to: backgroundView.topAnchor)
-        blurView.pinLeft(to: backgroundView.leadingAnchor)
-        blurView.pinBottom(to: backgroundView.bottomAnchor)
-        blurView.pinRight(to: backgroundView.trailingAnchor)
+//        let blur = UIBlurEffect(style: .dark)
+//        let blurView = UIVisualEffectView(effect: blur)
+//        blurView.alpha = 0.1
+//        backgroundView.addSubview(blurView)
+//        blurView.pinTop(to: backgroundView.topAnchor)
+//        blurView.pinLeft(to: backgroundView.leadingAnchor)
+//        blurView.pinBottom(to: backgroundView.bottomAnchor)
+//        blurView.pinRight(to: backgroundView.trailingAnchor)
     }
 }
 

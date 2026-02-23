@@ -30,11 +30,11 @@ final class AppCoordinator {
     }
     
     func start() {
-//        if context.userDefaults.isOnboardingCompleted() {
-//            showSignIn()
-//        } else {
+        if context.userDefaults.isOnboardingCompleted() {
+            showSignIn()
+        } else {
             showOnboarding()
-//        }
+        }
     }
     
     func showOnboarding() {
