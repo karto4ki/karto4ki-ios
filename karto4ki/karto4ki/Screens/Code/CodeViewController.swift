@@ -7,7 +7,8 @@
 
 import UIKit
 
-final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, KeyboardAvoiding {
+
+final class CodeViewController: UIViewController, UIGestureRecognizerDelegate {
 
     private enum Constants {
         static let alphaStart: CGFloat = 0
@@ -18,11 +19,9 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         static let errorMessageDuration: TimeInterval = 2
         static let numberOfLines: Int = 2
         static let extraKeyboardIndent: CGFloat = 40
-        static let resendButtonHeight: CGFloat = 48
         static let resendButtonWidth: CGFloat = 230
         static let resendButtonBigWidth: CGFloat = 280
         static let resendButtonShortCount: Int = 11
-        static let bottomPadding: CGFloat = 10
     }
 
     let interactor: CodeBusinessLogic
@@ -31,21 +30,17 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
     private var countdownTimer: Timer?
     private var timeLabelText: String = "Отправить код повторно через"
 
+    private let contentGuide = UILayoutGuide()
     private var remainingTime: TimeInterval = 0
     private let bigLabel: UILabel = UILabel()
     private var smallLabel: UILabel = UILabel()
     private lazy var digitsStackView: CodeStackView = CodeStackView(interactor: interactor)
     private var timerLabel: UILabel = UILabel()
-    private var resendButton: UIButton = UIButton(type: .system)
-
-    private var keyboardInset: CGFloat = 0
-    private var timerBottomConstraint: NSLayoutConstraint?
-    private var buttonBottomConstraint: NSLayoutConstraint?
-    private var labelBottomConstraint: NSLayoutConstraint?
-
-    private var baseTimerBottomConstant: CGFloat = 0
-    private var baseButtonBottomConstant: CGFloat = 0
-    private var baseLabelBottomConstant: CGFloat = 0
+    private var resendButton: UIButton = ButtonFactory.makeButton(
+        title: "Отправить повторно",
+        titleColor: .white,
+        backgroundColor: .white.withAlphaComponent(0.2),
+        borderColor: .white)
 
     let timerDuration: TimeInterval = 90.0
 
@@ -61,46 +56,15 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
-
+        
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tapGesture.cancelsTouchesInView = false
         tapGesture.delegate = self
         view.addGestureRecognizer(tapGesture)
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        startKeyboardAvoiding()
-    }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        stopKeyboardAvoiding()
-    }
-
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         touch.view is UIControl ? false : true
-    }
-
-    func keyboardAdjustment(height: CGFloat,
-                            duration: TimeInterval,
-                            options: UIView.AnimationOptions) {
-
-        keyboardInset = height
-
-        if height == 0 {
-            timerBottomConstraint?.constant = baseTimerBottomConstant
-            buttonBottomConstraint?.constant = baseButtonBottomConstant
-            labelBottomConstraint?.constant = baseLabelBottomConstant
-        } else {
-            timerBottomConstraint?.constant = -(height + Constants.bottomPadding)
-            buttonBottomConstraint?.constant = -(height + Constants.bottomPadding)
-            labelBottomConstraint?.constant = -height + 80
-        }
-
-        UIView.animate(withDuration: duration, delay: 0, options: options, animations: {
-            self.view.layoutIfNeeded()
-        })
     }
 
     func hideResendButton() {
@@ -119,6 +83,7 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
 
     private func configureUI() {
         configureBackground()
+        configureLayoutGuide()
         configureBigLabel()
         configureDigitsStackView()
         configureSmallLabel()
@@ -132,7 +97,7 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         cardsLogoView.contentMode = .scaleAspectFit
         cardsLogoView.pinLeft(to: view.leadingAnchor, 30)
         cardsLogoView.pinRight(to: view.trailingAnchor, 30)
-        cardsLogoView.pinTop(to: view.safeAreaLayoutGuide.topAnchor, 15)
+        cardsLogoView.pinTop(to: contentGuide.topAnchor, 15)
         cardsLogoView.pinBottom(to: bigLabel.topAnchor, 15)
     }
 
@@ -141,6 +106,17 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         view.addSubview(background)
         background.pin(to: view)
         view.sendSubviewToBack(background)
+    }
+    
+    private func configureLayoutGuide() {
+        view.addLayoutGuide(contentGuide)
+
+        NSLayoutConstraint.activate([
+            contentGuide.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            contentGuide.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor),
+            contentGuide.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            contentGuide.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
     }
 
     private func configureBigLabel() {
@@ -151,11 +127,7 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
 
         view.addSubview(bigLabel)
         bigLabel.pinCenterX(to: view)
-        bigLabel.pinCenterY(to: view.centerYAnchor)
-
-        labelBottomConstraint = bigLabel.bottomAnchor.constraint(equalTo: view.centerYAnchor)
-        labelBottomConstraint?.isActive = true
-        baseLabelBottomConstant = labelBottomConstraint?.constant ?? 0
+        bigLabel.pinCenterY(to: contentGuide.centerYAnchor)
     }
 
     private func configureDigitsStackView() {
@@ -184,6 +156,7 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
     private func configureTimerLabel() {
         view.addSubview(timerLabel)
         timerLabel.pinCenterX(to: view)
+        timerLabel.pinBottom(to: view.keyboardLayoutGuide.topAnchor, 10)
         timerLabel.textAlignment = .center
         timerLabel.textColor = .white
         timerLabel.font = .systemFont(ofSize: 17, weight: .semibold)
@@ -191,21 +164,12 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         timerLabel.text = timeLabelText + "\n\(formatTime(Int(timerDuration)))"
         remainingTime = timerDuration
         startCountdown()
-
-        timerBottomConstraint = timerLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -Constants.bottomPadding)
-        timerBottomConstraint?.isActive = true
-        baseTimerBottomConstant = timerBottomConstraint?.constant ?? 0
     }
 
     private func configureResendButton() {
         view.addSubview(resendButton)
-        resendButton.setTitle("Отправить повторно", for: .normal)
-        resendButton.setTitleColor(Colors.lilicA59FFF, for: .normal)
-        resendButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .medium)
-        resendButton.backgroundColor = .white.withAlphaComponent(0.5)
-        resendButton.layer.cornerRadius = 25
         resendButton.pinCenterX(to: view)
-        resendButton.setHeight(Constants.resendButtonHeight)
+        resendButton.pinBottom(to: view.keyboardLayoutGuide.topAnchor, 10)
 
         guard let label = resendButton.titleLabel, let text = label.text else { return }
         resendButton.setWidth(text.count > Constants.resendButtonShortCount
@@ -214,10 +178,6 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
 
         resendButton.addTarget(self, action: #selector(resendButtonPressed), for: .touchUpInside)
         resendButton.isHidden = true
-
-        buttonBottomConstraint = resendButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -Constants.bottomPadding)
-        buttonBottomConstraint?.isActive = true
-        baseButtonBottomConstant = buttonBottomConstraint?.constant ?? 0
     }
 
     private func formatTime(_ totalSeconds: Int) -> String {
@@ -253,6 +213,7 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate, K
         }
     }
 
+    // TODO: по какой-то причине дерганная анимация тут
     @objc
     private func hideLabel() {
         UIView.animate(withDuration: 0.5, animations: {

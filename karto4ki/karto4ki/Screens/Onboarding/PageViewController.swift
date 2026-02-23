@@ -8,13 +8,13 @@
 import UIKit
 import Lottie
 
+// TODO: added different animations
 final class PageViewController: UIViewController {
 
     private let titleText: String
     private let descriptionText: String
     private let animationView = LottieAnimationView(name: "logo")
     private let showButton: Bool
-    private let button = UIButton(type: .system)
     private var interactor: OnboardingBussinessLogic?
 
     init(title: String, description: String, interactor: OnboardingBussinessLogic? = nil, button: Bool = false) {
@@ -31,7 +31,7 @@ final class PageViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = Colors.lilicD9D7FF
+        view.backgroundColor = .clear
         configureUI()
     }
     
@@ -53,23 +53,20 @@ final class PageViewController: UIViewController {
         descriptionLabel.textColor = .white
         descriptionLabel.textAlignment = .center
         
-        let button = UIButton(type: .system)
-        button.setTitle("Продолжить", for: .normal)
-        button.titleLabel?.font = .boldSystemFont(ofSize: 18)
+        let button = ButtonFactory.makeButton(
+            title: "Продолжить",
+            titleColor: Colors.lilicBAB6FD,
+            backgroundColor: .white.withAlphaComponent(0.5),
+            borderColor: .white.withAlphaComponent(0.8))
         button.isHidden = !showButton
-        button.setTitleColor(Colors.lilicBAB6FD, for: .normal)
-        button.layer.cornerRadius = 20
-        button.backgroundColor = .white.withAlphaComponent(0.5)
-        button.layer.borderColor = UIColor.white.withAlphaComponent(0.8).cgColor
-        button.layer.borderWidth = 1
+        button.titleLabel?.font = .boldSystemFont(ofSize: 18)
         button.addTarget(self, action: #selector(routing), for: .touchUpInside)
         let buttonContainer = UIView()
         buttonContainer.addSubview(button)
         button.pinCenterX(to: buttonContainer.centerXAnchor)
         button.pinTop(to: buttonContainer.topAnchor, 0)
         button.pinBottom(to: buttonContainer.bottomAnchor, 0)
-        button.setHeight(40)
-        button.setWidth(200)
+        button.setWidth(300)
         
         let view1 = UIView(frame: CGRect(x: 0, y: 0, width: 2, height: 10))
         let view2 = UIView(frame: CGRect(x: 0, y: 0, width: 2, height: 10))
@@ -86,7 +83,7 @@ final class PageViewController: UIViewController {
         
         configureAnimation()
         view.addSubview(stack)
-        stack.pinTop(to: animationView.bottomAnchor, 32)
+        stack.pinTop(to: animationView.bottomAnchor, 24)
         stack.pinBottom(to: view.safeAreaLayoutGuide.bottomAnchor, 32)
         stack.pinLeft(to: view.leadingAnchor, 24)
         stack.pinRight(to: view.trailingAnchor, 24)
@@ -102,7 +99,7 @@ final class PageViewController: UIViewController {
         animationView.loopMode = .playOnce
 
         view.addSubview(animationView)
-        animationView.pinTop(to: view.safeAreaLayoutGuide.topAnchor, 20)
+        animationView.pinTop(to: view.safeAreaLayoutGuide.topAnchor, 0)
         animationView.pinLeft(to: view.leadingAnchor, 0)
         animationView.pinRight(to: view.trailingAnchor, 0)
 
