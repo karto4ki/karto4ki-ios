@@ -65,7 +65,7 @@ final class RegistrationViewController: UIViewController, UIGestureRecognizerDel
     }
 
     private func configureBackground() {
-        let background = BackgroundView(with: "background-10")
+        let background = BackgroundView()
         view.addSubview(background)
         background.pin(to: view)
         view.sendSubviewToBack(background)

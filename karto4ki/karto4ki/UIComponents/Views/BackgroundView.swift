@@ -8,35 +8,33 @@
 import UIKit
 
 final class BackgroundView: UIView {
+    private let gradientLayer = CAGradientLayer()
     
-    init(with name: String) {
+    init() {
         super.init(frame: .zero)
-        configure(name)
+        configure()
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        configure("background")
+        configure()
     }
     
-    private func configure(_ name: String) {
-        let background = UIImage(named: name)
-        let backgroundView = UIImageView(image: background)
-        backgroundView.contentMode = .scaleToFill
-        addSubview(backgroundView)
-        backgroundView.pinTop(to: topAnchor)
-        backgroundView.pinLeft(to: leadingAnchor)
-        backgroundView.pinBottom(to: bottomAnchor)
-        backgroundView.pinRight(to: trailingAnchor)
-
-//        let blur = UIBlurEffect(style: .dark)
-//        let blurView = UIVisualEffectView(effect: blur)
-//        blurView.alpha = 0.1
-//        backgroundView.addSubview(blurView)
-//        blurView.pinTop(to: backgroundView.topAnchor)
-//        blurView.pinLeft(to: backgroundView.leadingAnchor)
-//        blurView.pinBottom(to: backgroundView.bottomAnchor)
-//        blurView.pinRight(to: backgroundView.trailingAnchor)
+    private func configure() {
+        gradientLayer.colors = [
+            UIColor(red: 0.75, green: 0.77, blue: 0.98, alpha: 1.0).cgColor,
+            UIColor(red: 0.75, green: 0.82, blue: 0.95, alpha: 1.0).cgColor,
+            UIColor(red: 0.75, green: 0.72, blue: 1.00, alpha: 1.0).cgColor
+        ]
+        gradientLayer.locations = [0.0, 0.55, 1.0]
+        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.0)
+        gradientLayer.endPoint = CGPoint(x: 1.0, y: 1.0)
+        layer.insertSublayer(gradientLayer, at: 0)
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        gradientLayer.frame = bounds
     }
 }
 

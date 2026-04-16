@@ -102,7 +102,7 @@ final class CodeViewController: UIViewController, UIGestureRecognizerDelegate {
     }
 
     private func configureBackground() {
-        let background = BackgroundView(with: "background-8")
+        let background = BackgroundView()
         view.addSubview(background)
         background.pin(to: view)
         view.sendSubviewToBack(background)

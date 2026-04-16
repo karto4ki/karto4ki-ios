@@ -58,7 +58,7 @@ final class OnboardingViewController: UIPageViewController {
     }
     
     private func configureBackground() {
-        let background = BackgroundView(with: "background-6")
+        let background = BackgroundView()
         view.addSubview(background)
         background.pin(to: view)
         view.sendSubviewToBack(background)
