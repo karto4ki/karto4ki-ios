@@ -45,6 +45,7 @@ final class Sender {
             headers: headers, body: body,
             authenticated: authenticated
         )
+        print("🔍 \(String(decoding: data, as: UTF8.self))")
         return try decoder.decode(SuccessResponse<T>.self, from: data).data
     }
 
