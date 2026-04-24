@@ -85,6 +85,11 @@ final class AppCoordinator {
         window.makeKeyAndVisible()
     }
 
+    func showProfile() {
+        let profileVC = ProfileScreenAssembly.build()
+        navigationController.pushViewController(profileVC, animated: true)
+    }
+
     // MARK: - Sign Out
 
     func signOut() {

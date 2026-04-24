@@ -85,11 +85,11 @@ final class MainScreenViewController: UIViewController {
             tabBarContainer.heightAnchor.constraint(equalToConstant: 60)
         ])
 
-        let items: [(String, Bool)] = [
-            ("house.fill", true),
-            ("plus.circle", false),
-            ("books.vertical", false),
-            ("person", false)
+        let items: [(String, Bool, Selector?)] = [
+            ("house.fill",     true,  nil),
+            ("plus.circle",    false, nil),
+            ("books.vertical", false, nil),
+            ("person",         false, #selector(profileTapped))
         ]
 
         let stack = UIStackView()
@@ -105,7 +105,7 @@ final class MainScreenViewController: UIViewController {
             stack.bottomAnchor.constraint(equalTo: tabBarContainer.bottomAnchor)
         ])
 
-        for (name, isActive) in items {
+        for (name, isActive, action) in items {
             let btn = UIButton(type: .system)
             let config = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
             let img = UIImage(systemName: name, withConfiguration: config)
@@ -113,8 +113,16 @@ final class MainScreenViewController: UIViewController {
             btn.tintColor = isActive
                 ? UIColor(red: 0.45, green: 0.40, blue: 0.90, alpha: 1)
                 : UIColor.white.withAlphaComponent(0.7)
+            if let action {
+                btn.addTarget(self, action: action, for: .touchUpInside)
+            }
             stack.addArrangedSubview(btn)
         }
+    }
+
+    @objc
+    private func profileTapped() {
+        AppCoordinator.shared.showProfile()
     }
 
     // MARK: - Scroll view
