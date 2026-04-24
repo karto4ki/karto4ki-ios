@@ -56,7 +56,7 @@ final class SemicircleGaugeView: UIView {
     }
 
     private func setupLabel() {
-        percentLabel.font = Fonts.futuraB20
+        percentLabel.font = UIFont.systemFont(ofSize: 60, weight: .heavy)
         percentLabel.textColor = UIColor(red: 0.35, green: 0.35, blue: 0.75, alpha: 1)
         percentLabel.textAlignment = .center
         percentLabel.sizeToFit()

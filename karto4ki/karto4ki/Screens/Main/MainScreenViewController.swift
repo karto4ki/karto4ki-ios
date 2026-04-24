@@ -325,7 +325,7 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
 
     private func configureCarouselSection() {
         carouselSection.axis = .vertical
-        carouselSection.spacing = 10
+        carouselSection.spacing = 2
         carouselSection.alignment = .fill
 
         carouselClipContainer.clipsToBounds = true

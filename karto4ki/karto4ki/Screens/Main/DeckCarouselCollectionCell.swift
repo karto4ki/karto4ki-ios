@@ -43,13 +43,15 @@ final class DeckCarouselCollectionCell: UICollectionViewCell {
 
     /// Три строки (futuraB15 ≈ 18pt по высоте) + два равных промежутка при `.equalSpacing`.
     private static let statsBlockHeight: CGFloat = 3 * 18 + 2 * 10 + 6
+    /// Расстояние между дугой процентов и блоком лейблов (визуально «тянет» карточку прогресса вниз).
+    private static let gaugeToStatsVerticalGap: CGFloat = 20
 
     /// Высота ячейки: `collectionWidth` — ширина клипа карусели, `interItemGap` — зазор между колодами при свайпе.
     static func contentHeight(collectionWidth: CGFloat, interItemGap: CGFloat) -> CGFloat {
         let itemW = max(0, collectionWidth - interItemGap)
         let gaugeW = max(0, itemW - 40)
         let gaugeH = gaugeW * 0.55
-        let progressBlock = 20 + gaugeH + 12 + statsBlockHeight + 20
+        let progressBlock = 20 + gaugeH + Self.gaugeToStatsVerticalGap + statsBlockHeight + 20
         return 90 + 16 + progressBlock
     }
 
@@ -85,7 +87,7 @@ final class DeckCarouselCollectionCell: UICollectionViewCell {
 
         let rowStack = UIStackView(arrangedSubviews: [cardsIcon, infoStack])
         rowStack.axis = .horizontal
-        rowStack.spacing = 14
+        rowStack.spacing = 20
         rowStack.alignment = .center
 
         deckCard.addSubview(rowStack)
@@ -144,7 +146,7 @@ final class DeckCarouselCollectionCell: UICollectionViewCell {
             gaugeView.trailingAnchor.constraint(equalTo: progressCard.trailingAnchor, constant: -20),
             gaugeView.heightAnchor.constraint(equalTo: gaugeView.widthAnchor, multiplier: 0.55),
 
-            statsStack.topAnchor.constraint(equalTo: gaugeView.bottomAnchor, constant: 12),
+            statsStack.topAnchor.constraint(equalTo: gaugeView.bottomAnchor, constant: Self.gaugeToStatsVerticalGap),
             statsStack.leadingAnchor.constraint(equalTo: progressCard.leadingAnchor, constant: 16),
             statsStack.trailingAnchor.constraint(equalTo: progressCard.trailingAnchor, constant: -16),
             progressCard.bottomAnchor.constraint(equalTo: statsStack.bottomAnchor, constant: 20)
