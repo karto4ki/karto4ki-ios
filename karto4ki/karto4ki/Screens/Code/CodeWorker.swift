@@ -1,40 +1,22 @@
-//
-//  CodeWorker.swift
-//  karto4ki
-//
-//  Created by лизо4ка курунок on 14.02.2026.
-//
-
 import Foundation
 
 final class CodeWorker: CodeWorkerLogic {
-    
+
     private let identityService: IdentityServiceProtocol
     private let keychainManager: KeychainManagerProtocol
-    
+
     init(identityService: IdentityServiceProtocol, keychainManager: KeychainManagerProtocol) {
         self.identityService = identityService
         self.keychainManager = keychainManager
     }
-    
-    func sendVerificationRequest(code: String, completion: @escaping (Result<Void, any Error>) -> Void) {
-        guard let signinCode = keychainManager.getString(key: KeychainManager.Keys.signinCode.rawValue) else {
-            completion(.failure(ApiError.noData))
-            return
-        }
-        
-        let request = VerifyCodeRequest(signupKey: signinCode, code: code)
-        
-        identityService.sendVerifyCodeRequest(request: request) { [weak self] result in
-            guard let _ = self else { return }
-            switch result{
-            case .success:
-                completion(.success(()))
-            case .failure(let error):
-                completion(.failure(error))
-            }
-            
-        }
+
+    func verifyForSignIn(signinKey: String, code: String) async throws {
+        let tokens = try await identityService.signIn(signinKey: signinKey, code: code)
+        keychainManager.save(key: KeychainManager.Keys.accessToken.rawValue, value: tokens.accessToken)
+        keychainManager.save(key: KeychainManager.Keys.refreshToken.rawValue, value: tokens.refreshToken)
     }
-    
+
+    func verifyForSignUp(signupKey: String, code: String) async throws {
+        try await identityService.verifyCode(signupKey: signupKey, code: code)
+    }
 }

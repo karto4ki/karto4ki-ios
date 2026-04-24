@@ -2,10 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>SERVER_BASE_URL</key>
-	<string>http://localhost</string>
-	<key>GIDClientID</key>
-	<string>$(GOOGLE_CLIENT_ID)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -15,6 +11,17 @@
 			</array>
 		</dict>
 	</array>
+	<key>GIDClientID</key>
+	<string>$(GOOGLE_CLIENT_ID)</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>SERVER_BASE_URL_DEVICE</key>
+	<string>http://192.168.0.100</string>
+	<key>SERVER_BASE_URL_SIMULATOR</key>
+	<string>http://localhost</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>PhantomMuff1.5PlusRegular.ttf</string>

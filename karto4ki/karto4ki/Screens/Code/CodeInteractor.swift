@@ -1,38 +1,37 @@
-//
-//  CodeInteractor.swift
-//  karto4ki
-//
-//  Created by лизо4ка курунок on 02.01.2026.
-//
-
 import Foundation
 
 final class CodeInteractor: CodeBusinessLogic {
-    
+
     private let presenter: CodePresentationLogic
     private let worker: CodeWorkerLogic
     private let errorHandler: ErrorHandlerProtocol
-    
-    init(presenter: CodePresentationLogic, worker: CodeWorkerLogic, errorHandler: ErrorHandlerProtocol) {
+    private let flow: AuthFlow
+
+    init(presenter: CodePresentationLogic, worker: CodeWorkerLogic, errorHandler: ErrorHandlerProtocol, flow: AuthFlow) {
         self.presenter = presenter
         self.worker = worker
         self.errorHandler = errorHandler
+        self.flow = flow
     }
-    
+
     func sendVerificationRequest(code: String) {
-        worker.sendVerificationRequest(code: code) { [weak self] result in
-            guard let self else { return }
-            switch result {
-            case .success:
-                DispatchQueue.main.async {
-                    AppCoordinator.shared.showRegistration()
+        Task {
+            do {
+                switch flow {
+                case .signIn(let signinKey):
+                    try await worker.verifyForSignIn(signinKey: signinKey, code: code)
+                    await MainActor.run {
+                        AppCoordinator.shared.showMainScreen()
+                    }
+
+                case .signUp(let signupKey):
+                    try await worker.verifyForSignUp(signupKey: signupKey, code: code)
+                    await MainActor.run {
+                        AppCoordinator.shared.showRegistration()
+                    }
                 }
-            case .failure(let error):
-                let _ = self.errorHandler.handleError(error)
-                DispatchQueue.main.async {
-                    // TODO: show error
-                }
-                print(error.localizedDescription)
+            } catch {
+                await errorHandler.handle(error)
             }
         }
     }

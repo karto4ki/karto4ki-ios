@@ -1,12 +1,5 @@
-//
-//  SuccessResponse.swift
-//  karto4ki
-//
-//  Created by лизо4ка курунок on 11.02.2026.
-//
-
 import Foundation
 
-struct SuccessResponse<T: Codable>: Codable {
+struct SuccessResponse<T: Decodable>: Decodable {
     let data: T
 }

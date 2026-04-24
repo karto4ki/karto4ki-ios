@@ -1,185 +1,151 @@
-//
-//  Sender.swift
-//  karto4ki
-//
-//  Created by лизо4ка курунок on 11.02.2026.
-//
-
 import Foundation
 
 final class Sender {
-    
-    private static let baseURLKey = "SERVER_BASE_URL"
-    private static let delays: [TimeInterval] = [1,3,10]
-    
-    static func send<T: Codable>(endpoint: String,
-                                 method: HTTPMethod,
-                                 headers: [String:String]? = nil,
-                                 body: Data? = nil,
-                                 attempt: Int = 0,
-                                 completion: @escaping (Result<SuccessResponse<T>, Error>) -> Void) {
-        
-        guard let baseURL = Bundle.main.object(forInfoDictionaryKey: baseURLKey) else {
-            fatalError("Can't get baseURL")
+
+    static let shared = Sender()
+
+    private let session = URLSession.shared
+    private let decoder = JSONDecoder()
+    private let keychainManager = KeychainManager()
+    private let retryDelays: [UInt64] = [1_000_000_000, 3_000_000_000, 10_000_000_000]
+
+    private var baseURL: String {
+        #if targetEnvironment(simulator)
+        let preferredKey = "SERVER_BASE_URL_SIMULATOR"
+        #else
+        let preferredKey = "SERVER_BASE_URL_DEVICE"
+        #endif
+
+        if let preferred = Bundle.main.object(forInfoDictionaryKey: preferredKey) as? String,
+           !preferred.isEmpty {
+            return preferred
         }
-        
-        // TODO: remove print
-        print("\(baseURL)\(endpoint)")
-        
+
+        if let legacy = Bundle.main.object(forInfoDictionaryKey: "SERVER_BASE_URL") as? String,
+           !legacy.isEmpty {
+            return legacy
+        }
+
+        fatalError("SERVER_BASE_URL_* not configured in Info.plist")
+    }
+
+    private init() {}
+
+    // MARK: - Public
+
+    func request<T: Decodable>(
+        endpoint: String,
+        method: HTTPMethod,
+        headers: [String: String] = [:],
+        body: Data? = nil,
+        authenticated: Bool = false
+    ) async throws -> T {
+        let data = try await perform(
+            endpoint: endpoint, method: method,
+            headers: headers, body: body,
+            authenticated: authenticated
+        )
+        return try decoder.decode(SuccessResponse<T>.self, from: data).data
+    }
+
+    func requestVoid(
+        endpoint: String,
+        method: HTTPMethod,
+        headers: [String: String] = [:],
+        body: Data? = nil,
+        authenticated: Bool = false
+    ) async throws {
+        _ = try await perform(
+            endpoint: endpoint, method: method,
+            headers: headers, body: body,
+            authenticated: authenticated
+        )
+    }
+
+    // MARK: - Private
+
+    private func perform(
+        endpoint: String,
+        method: HTTPMethod,
+        headers: [String: String],
+        body: Data?,
+        authenticated: Bool,
+        attempt: Int = 0
+    ) async throws -> Data {
         guard let url = URL(string: "\(baseURL)\(endpoint)") else {
-            completion(.failure(ApiError.invalidURL))
-            return
+            throw ApiError.invalidURL
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
-        
-        if let headers = headers {
-            for (key, value) in headers {
-                request.setValue(value, forHTTPHeaderField: key)
-            }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        for (key, value) in headers {
+            request.setValue(value, forHTTPHeaderField: key)
         }
-        
+
+        if authenticated,
+           let token = keychainManager.getString(key: KeychainManager.Keys.accessToken.rawValue) {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = body
-        
-        sendRequest(request: request, attempt: attempt, endpoint: endpoint, method: method, headers: headers, body: body, completion: completion)
-    }
-    
-    private static func sendRequest<T: Codable>(request: URLRequest,
-                                                attempt: Int,
-                                                endpoint: String,
-                                                method: HTTPMethod,
-                                                headers: [String: String]?,
-                                                body: Data?,
-                                                completion: @escaping (Result<SuccessResponse<T>, Error>) -> Void) {
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                handleNetworkError(error, attempt: attempt, endpoint: endpoint, method: method, headers: headers, body: body, completion: completion)
+
+        do {
+            let (data, response) = try await session.data(for: request)
+
+            guard let http = response as? HTTPURLResponse else {
+                throw ApiError.invalidResponse
             }
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                completion(.failure(ApiError.invalidResponse))
-                return
-            }
-            
-            guard let data = data else {
-                completion(.failure(ApiError.noData))
-                return
-            }
-            
-            handleResponse(httpResponse, data: data, attempt: attempt, endpoint: endpoint, method: method, headers: headers, body: data, completion: completion)
-        }
-        
-        task.resume()
-    }
-    
-    private static func handleNetworkError<T: Codable>(_ error: Error,
-                                                       attempt: Int,
-                                                       endpoint: String,
-                                                       method: HTTPMethod,
-                                                       headers: [String: String]?,
-                                                       body: Data?,
-                                                       completion: @escaping (Result<SuccessResponse<T>, Error>) -> Void) {
-        if attempt < delays.count {
-            let delay = delays[attempt]
-            DispatchQueue.global().asyncAfter(deadline: .now() + delay) {
-                send(endpoint: endpoint,
-                     method: method,
-                     headers: headers,
-                     body: body,
-                     attempt: attempt + 1,
-                     completion: completion)
-            }
-        } else {
-            completion(.failure(ApiError.networkError(error)))
-        }
-    }
-    
-    private static func handleResponse<T: Codable>(_ response: HTTPURLResponse,
-                                                   data: Data,
-                                                   attempt: Int,
-                                                   endpoint: String,
-                                                   method: HTTPMethod,
-                                                   headers: [String: String]?,
-                                                   body: Data?,
-                                                   completion: @escaping (Result<SuccessResponse<T>, Error>) -> Void) {
-        switch response.statusCode {
-        case 200:
-            decodeResponse(data, completion: completion)
-        case 401:
-            // TODO: check if the refresh bug was fixed
-            if endpoint == IdentityServiceEndpoints.refreshToken.rawValue {
-                decodeErrorResponse(data: data, completion: completion)
-            } else {
-                handleUnauthorizedError(attempt: attempt, endpoint: endpoint, method: method, headers: headers, body: body, completion: completion
+
+            switch http.statusCode {
+            case 200:
+                return data
+
+            case 401:
+                guard authenticated,
+                      endpoint != IdentityServiceEndpoints.refreshToken.rawValue
+                else {
+                    throw decodeError(data)
+                }
+                try await TokenManager.shared.refreshTokens()
+                return try await perform(
+                    endpoint: endpoint, method: method,
+                    headers: headers, body: body,
+                    authenticated: authenticated, attempt: attempt + 1
                 )
+
+            case 500...599:
+                guard attempt < retryDelays.count else { throw decodeError(data) }
+                try await Task.sleep(nanoseconds: retryDelays[attempt])
+                return try await perform(
+                    endpoint: endpoint, method: method,
+                    headers: headers, body: body,
+                    authenticated: authenticated, attempt: attempt + 1
+                )
+
+            default:
+                throw decodeError(data)
             }
-        case 500...599:
-            handleServerError(attempt: attempt, endpoint: endpoint, method: method, headers: headers, body: body, completion: completion, data: data)
-        default:
-            decodeErrorResponse(data: data, completion: completion)
+
+        } catch let err as ApiErrorResponse { throw err }
+          catch let err as ApiError          { throw err }
+          catch {
+            guard attempt < retryDelays.count else { throw ApiError.networkError(error) }
+            try await Task.sleep(nanoseconds: retryDelays[attempt])
+            return try await perform(
+                endpoint: endpoint, method: method,
+                headers: headers, body: body,
+                authenticated: authenticated, attempt: attempt + 1
+            )
         }
     }
-    
-    private static func decodeResponse<T: Codable>(_ data: Data,
-                                                   completion: (Result<SuccessResponse<T>, Error>) -> Void) {
+
+    private func decodeError(_ data: Data) -> Error {
         do {
-            let responseData = try JSONDecoder().decode(SuccessResponse<T>.self, from: data)
-            completion(.success(responseData))
+            return try decoder.decode(ApiErrorResponse.self, from: data)
         } catch {
-            completion(.failure(ApiError.decodingError(error)))
-        }
-    }
-    
-    private static func handleUnauthorizedError<T: Codable>(attempt: Int,
-                                                            endpoint: String,
-                                                            method: HTTPMethod,
-                                                            headers: [String: String]?,
-                                                            body: Data?,
-                                                            completion: @escaping (Result<SuccessResponse<T>, Error>) -> Void) {
-        TokenManager.refreshAccessToken { result in
-            switch result {
-            case .success(let response):
-                let tokens = response.data
-                TokenManager.saveTokensToKeychain(tokens: tokens)
-                
-                send(endpoint: endpoint, method: method, headers: headers, body: body, attempt: attempt + 1, completion: completion)
-                
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
-    }
-    
-    private static func handleServerError<T: Codable>(attempt: Int,
-                                                      endpoint: String,
-                                                      method: HTTPMethod,
-                                                      headers: [String: String]?,
-                                                      body: Data?,
-                                                      completion: @escaping (Result<SuccessResponse<T>, Error>) -> Void,
-                                                      data: Data) {
-        if attempt < delays.count {
-            let delay = delays[attempt]
-            DispatchQueue.global().asyncAfter(deadline: .now() + delay) {
-                send(endpoint: endpoint,
-                     method: method,
-                     headers: headers,
-                     body: body,
-                     attempt: attempt + 1,
-                     completion: completion)
-            }
-        } else {
-            decodeErrorResponse(data: data, completion: completion)
-        }
-    }
-    
-    private static func decodeErrorResponse<T: Codable>(data: Data,
-                                                        completion: @escaping (Result<SuccessResponse<T>, Error>) -> Void) {
-        do {
-            let errorResponse = try JSONDecoder().decode(ApiErrorResponse.self, from: data)
-            completion(.failure(errorResponse))
-        } catch {
-            completion(.failure(ApiError.decodingError(error)))
+            return ApiError.decodingError(error)
         }
     }
 }

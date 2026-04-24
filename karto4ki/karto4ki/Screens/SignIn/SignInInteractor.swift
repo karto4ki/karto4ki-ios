@@ -1,47 +1,87 @@
-//
-//  SignInInteractor.swift
-//  karto4ki
-//
-//  Created by лизо4ка курунок on 25.12.2025.
-//
-
 import Foundation
 
+private enum SignInFlowError: LocalizedError {
+    case missingGoogleIdToken
+    case missingAppleIdentityToken
+
+    var errorDescription: String? {
+        switch self {
+        case .missingGoogleIdToken:
+            return "Google не вернул id_token. Проверьте GOOGLE_CLIENT_ID и URL scheme."
+        case .missingAppleIdentityToken:
+            return "Apple не вернул identity token. Повторите вход."
+        }
+    }
+}
+
 final class SignInInteractor: SignInBusinessLogic {
+
     private let presenter: SignInPresentationLogic
     private let worker: SignInWorkerLogic
     private let errorHandler: ErrorHandlerProtocol
-    
+
     init(presenter: SignInPresentationLogic, worker: SignInWorkerLogic, errorHandler: ErrorHandlerProtocol) {
         self.presenter = presenter
         self.worker = worker
         self.errorHandler = errorHandler
     }
-    
+
     func getCode(_ email: String) {
-        let request = SendCodeRequest(email: email)
-        worker.sendCodeRequest(request: request) { [weak self] result in
-            guard let self else { return }
-            switch result {
-            case .success:
-                AppCoordinator.shared.showVerifyCodeScreen()
-            case .failure(let error):
-                let _ = self.errorHandler.handleError(error)
-                // TODO: show error message to user
-                print(error.localizedDescription)
+        Task {
+            do {
+                let response = try await worker.sendCode(email: email)
+                await MainActor.run {
+                    if response.isExisted {
+                        AppCoordinator.shared.showVerifyCodeScreen(flow: .signIn(signinKey: response.signinKey))
+                    } else {
+                        AppCoordinator.shared.showVerifyCodeScreen(flow: .signUp(signupKey: response.signinKey))
+                    }
+                }
+            } catch {
+                await errorHandler.handle(error)
             }
         }
     }
-    
-    // TODO: sign in with apple
-    func signInWithApple(userId: String, email: String?, fullName: PersonNameComponents?, identityToken: String?, authorizationCode: String?) {
-        AppCoordinator.shared.showRegistration()
-    }
-    func appleSignInFailed(_ error: Error){}
+
     func signInWithGoogle(idToken: String?, accessToken: String) {
-        AppCoordinator.shared.showRegistration()
+        guard let idToken else {
+            Task { await errorHandler.handle(SignInFlowError.missingGoogleIdToken) }
+            return
+        }
+        Task {
+            do {
+                try await worker.signInWithGoogle(idToken: idToken)
+                await MainActor.run {
+                    AppCoordinator.shared.showMainScreen()
+                }
+            } catch {
+                await errorHandler.handle(error)
+            }
+        }
     }
-    func googleSignInFailed(_ error: Error) {}
 
+    func signInWithApple(userId: String, email: String?, fullName: PersonNameComponents?, identityToken: String?, authorizationCode: String?) {
+        guard let identityToken else {
+            Task { await errorHandler.handle(SignInFlowError.missingAppleIdentityToken) }
+            return
+        }
+        Task {
+            do {
+                try await worker.signInWithApple(idToken: identityToken)
+                await MainActor.run {
+                    AppCoordinator.shared.showMainScreen()
+                }
+            } catch {
+                await errorHandler.handle(error)
+            }
+        }
+    }
 
+    func appleSignInFailed(_ error: Error) {
+        Task { await errorHandler.handle(error) }
+    }
+
+    func googleSignInFailed(_ error: Error) {
+        Task { await errorHandler.handle(error) }
+    }
 }
