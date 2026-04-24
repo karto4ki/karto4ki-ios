@@ -1,6 +1,6 @@
 import UIKit
 
-final class MainScreenViewController: UIViewController {
+final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate {
 
     private let interactor: MainScreenBusinessLogic
 
@@ -49,6 +49,7 @@ final class MainScreenViewController: UIViewController {
         navigationController?.setNavigationBarHidden(true, animated: false)
         configureBackground()
         configureScrollView()
+        configureDismissKeyboardGesture()
         configureSearchField()
         configureFriendsSection()
         configureStreakCard()
@@ -92,11 +93,32 @@ final class MainScreenViewController: UIViewController {
             contentStack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -12),
             contentStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -40)
         ])
+
+        scrollView.keyboardDismissMode = .onDrag
+    }
+
+    // MARK: - Keyboard
+
+    private func configureDismissKeyboardGesture() {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
+        tap.cancelsTouchesInView = false
+        tap.delegate = self
+        scrollView.addGestureRecognizer(tap)
+    }
+
+    @objc
+    private func hideKeyboard() {
+        view.endEditing(true)
     }
 
     // MARK: - Search field
 
     private func configureSearchField() {
+        searchField.delegate = self
+        searchField.returnKeyType = .search
+        searchField.autocorrectionType = .no
+        searchField.autocapitalizationType = .none
+
         searchField.attributedPlaceholder = NSAttributedString(
             string: "найдите карточки...",
             attributes: [.foregroundColor: UIColor.white.withAlphaComponent(0.7)]
@@ -109,15 +131,29 @@ final class MainScreenViewController: UIViewController {
         searchField.layer.borderColor = UIColor.white.withAlphaComponent(0.6).cgColor
         searchField.setHeight(44)
 
+        let rowHeight: CGFloat = 44
+        let leadingPad: CGFloat = 12
+        let iconSize: CGFloat = 18
+        let gapAfterIcon: CGFloat = 10
+        let leftWidth = leadingPad + iconSize + gapAfterIcon
+
+        let leftContainer = UIView(frame: CGRect(x: 0, y: 0, width: leftWidth, height: rowHeight))
         let iconConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
         let searchIcon = UIImageView(image: UIImage(systemName: "magnifyingglass", withConfiguration: iconConfig))
         searchIcon.tintColor = .white.withAlphaComponent(0.7)
-        searchIcon.frame = CGRect(x: 0, y: 0, width: 36, height: 20)
-        searchIcon.contentMode = .center
-        searchField.leftView = searchIcon
+        searchIcon.contentMode = .scaleAspectFit
+        searchIcon.frame = CGRect(
+            x: leadingPad,
+            y: (rowHeight - iconSize) / 2,
+            width: iconSize,
+            height: iconSize
+        )
+        leftContainer.addSubview(searchIcon)
+        searchField.leftView = leftContainer
         searchField.leftViewMode = .always
 
-        let rightPad = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
+        let trailingPad: CGFloat = 14
+        let rightPad = UIView(frame: CGRect(x: 0, y: 0, width: trailingPad, height: rowHeight))
         searchField.rightView = rightPad
         searchField.rightViewMode = .always
 
@@ -371,6 +407,27 @@ final class MainScreenViewController: UIViewController {
         card.clipsToBounds = true
         card.layer.borderWidth = 1
         card.layer.borderColor = UIColor.white.withAlphaComponent(0.5).cgColor
+    }
+}
+
+// MARK: - UITextFieldDelegate & keyboard gesture
+
+extension MainScreenViewController {
+
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        touch.view is UIControl ? false : true
+    }
+
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+        true
     }
 }
 
