@@ -197,7 +197,7 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
 
         let initialsLabel = UILabel()
         initialsLabel.text = friend.initials
-        initialsLabel.font = Fonts.futuraB14
+        initialsLabel.font = UIFont.systemFont(ofSize: 18, weight: .black)
         initialsLabel.textColor = .white
         initialsLabel.textAlignment = .center
         avatarView.addSubview(initialsLabel)
@@ -258,13 +258,13 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
         let flameColor: UIColor
 
         if day.isActive {
-            let config = UIImage.SymbolConfiguration(pointSize: 22, weight: .bold)
+            let config = UIImage.SymbolConfiguration(pointSize: 32, weight: .bold)
             flameImage = UIImage(systemName: "flame.fill", withConfiguration: config)
             flameColor = day.isCurrent
                 ? UIColor(red: 0.40, green: 0.40, blue: 0.90, alpha: 1)
                 : UIColor(red: 0.55, green: 0.50, blue: 0.95, alpha: 0.9)
         } else {
-            let config = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
+            let config = UIImage.SymbolConfiguration(pointSize: 32, weight: .regular)
             flameImage = UIImage(systemName: "flame", withConfiguration: config)
             flameColor = UIColor.white.withAlphaComponent(0.35)
         }
@@ -275,13 +275,13 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
 
         let dayLabel = UILabel()
         dayLabel.text = day.dayName
-        dayLabel.font = UIFont(name: "futuralt-bold", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .bold)
+        dayLabel.font = UIFont(name: "futuralt-bold", size: 15) ?? UIFont.systemFont(ofSize: 15, weight: .bold)
         dayLabel.textColor = .white.withAlphaComponent(0.85)
         dayLabel.textAlignment = .center
 
         let dateLabel = UILabel()
         dateLabel.text = day.date
-        dateLabel.font = UIFont.systemFont(ofSize: 8, weight: .medium)
+        dateLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         dateLabel.textColor = day.isCurrent
             ? UIColor.white
             : UIColor.white.withAlphaComponent(0.6)
@@ -289,7 +289,7 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
 
         let vStack = UIStackView(arrangedSubviews: [flameView, dayLabel, dateLabel])
         vStack.axis = .vertical
-        vStack.spacing = 2
+        vStack.spacing = 1
         vStack.alignment = .center
 
         container.addSubview(vStack)
