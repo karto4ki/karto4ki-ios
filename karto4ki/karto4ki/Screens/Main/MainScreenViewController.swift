@@ -1,6 +1,7 @@
 import UIKit
 
-final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate {
+final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate,
+    UICollectionViewDataSource, UICollectionViewDelegate {
 
     private let interactor: MainScreenBusinessLogic
 
@@ -18,18 +19,30 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
     private let streakCard  = UIView()
     private let streakStack = UIStackView()
 
-    // MARK: - Deck card
-    private let deckCard = UIView()
-    private let deckTitleLabel  = UILabel()
-    private let deckAuthorLabel = UILabel()
-    private let deckCountLabel  = UILabel()
+    // MARK: - Deck carousel (UICollectionView — видно соседнюю колоду при перетаскивании)
+    private let carouselSection = UIStackView()
+    private let carouselClipContainer = UIView()
+    private let deckPageControl = UIPageControl()
+    private let deckFlowLayout = UICollectionViewFlowLayout()
+    private lazy var deckCollectionView: UICollectionView = {
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: deckFlowLayout)
+        cv.backgroundColor = .clear
+        cv.isPagingEnabled = true
+        cv.showsHorizontalScrollIndicator = false
+        cv.showsVerticalScrollIndicator = false
+        cv.alwaysBounceHorizontal = true
+        cv.dataSource = self
+        cv.delegate = self
+        cv.register(DeckCarouselCollectionCell.self, forCellWithReuseIdentifier: DeckCarouselCollectionCell.reuseId)
+        cv.contentInsetAdjustmentBehavior = .never
+        return cv
+    }()
 
-    // MARK: - Progress card
-    private let progressCard  = UIView()
-    private let gaugeView     = SemicircleGaugeView()
-    private let learnedLabel  = UILabel()
-    private let notLearnedLabel = UILabel()
-    private let errorsLabel   = UILabel()
+    private var deckCarouselItems: [MainScreenModels.DeckCarouselItem] = []
+    private var lastDeckCarouselLayoutWidth: CGFloat = 0
+    /// Зазор между колодами при свайпе; вместе с шириной ячейки даёт шаг ровно в ширину клипа (`isPagingEnabled`).
+    private let deckCarouselInterItemGap: CGFloat = 10
+    private var carouselClipHeightConstraint: NSLayoutConstraint?
 
     // MARK: - Init
 
@@ -53,9 +66,13 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
         configureSearchField()
         configureFriendsSection()
         configureStreakCard()
-        configureDeckCard()
-        configureProgressCard()
+        configureCarouselSection()
         interactor.loadData()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateDeckCarouselLayoutIfNeeded()
     }
 
     // MARK: - Background
@@ -304,93 +321,134 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
         return container
     }
 
-    // MARK: - Deck card
+    // MARK: - Carousel (колода + прогресс)
 
-    private func configureDeckCard() {
-        styleCard(deckCard)
-        contentStack.addArrangedSubview(deckCard)
-        deckCard.setHeight(90)
+    private func configureCarouselSection() {
+        carouselSection.axis = .vertical
+        carouselSection.spacing = 10
+        carouselSection.alignment = .fill
 
-        let cardsIconConfig = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
-        let cardsIcon = UIImageView(image: UIImage(systemName: "rectangle.on.rectangle.angled", withConfiguration: cardsIconConfig))
-        cardsIcon.tintColor = .white.withAlphaComponent(0.9)
-        cardsIcon.contentMode = .scaleAspectFit
-        cardsIcon.setWidth(50)
+        carouselClipContainer.clipsToBounds = true
+        carouselClipContainer.backgroundColor = .clear
 
-        deckTitleLabel.font = Fonts.futuraB17
-        deckTitleLabel.textColor = .white
-        deckTitleLabel.numberOfLines = 2
-        deckTitleLabel.adjustsFontSizeToFitWidth = true
+        deckFlowLayout.scrollDirection = .horizontal
+        deckFlowLayout.minimumLineSpacing = deckCarouselInterItemGap
+        deckFlowLayout.minimumInteritemSpacing = 0
 
-        deckAuthorLabel.font = Fonts.futuraB14
-        deckAuthorLabel.textColor = .white.withAlphaComponent(0.8)
-
-        deckCountLabel.font = Fonts.futuraB14
-        deckCountLabel.textColor = .white.withAlphaComponent(0.8)
-
-        let infoStack = UIStackView(arrangedSubviews: [deckTitleLabel, deckAuthorLabel, deckCountLabel])
-        infoStack.axis = .vertical
-        infoStack.spacing = 3
-        infoStack.alignment = .leading
-
-        let rowStack = UIStackView(arrangedSubviews: [cardsIcon, infoStack])
-        rowStack.axis = .horizontal
-        rowStack.spacing = 14
-        rowStack.alignment = .center
-
-        deckCard.addSubview(rowStack)
-        rowStack.translatesAutoresizingMaskIntoConstraints = false
+        carouselClipContainer.addSubview(deckCollectionView)
+        deckCollectionView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            rowStack.leadingAnchor.constraint(equalTo: deckCard.leadingAnchor, constant: 16),
-            rowStack.trailingAnchor.constraint(equalTo: deckCard.trailingAnchor, constant: -16),
-            rowStack.topAnchor.constraint(equalTo: deckCard.topAnchor, constant: 14),
-            rowStack.bottomAnchor.constraint(equalTo: deckCard.bottomAnchor, constant: -14)
+            deckCollectionView.topAnchor.constraint(equalTo: carouselClipContainer.topAnchor),
+            deckCollectionView.leadingAnchor.constraint(equalTo: carouselClipContainer.leadingAnchor),
+            deckCollectionView.trailingAnchor.constraint(equalTo: carouselClipContainer.trailingAnchor),
+            deckCollectionView.bottomAnchor.constraint(equalTo: carouselClipContainer.bottomAnchor)
         ])
+
+        let clipH = carouselClipContainer.heightAnchor.constraint(equalToConstant: 320)
+        clipH.priority = .required
+        clipH.isActive = true
+        carouselClipHeightConstraint = clipH
+
+        // Дефолтный itemSize у flow — мелкий; до первого layout ячейки иначе получают ~50×50 и рвут constraints.
+        let provisionalClipW = max(320, UIScreen.main.bounds.width - 40)
+        deckFlowLayout.itemSize = deckCarouselItemSize(collectionClipWidth: provisionalClipW)
+
+        deckPageControl.currentPageIndicatorTintColor = UIColor(red: 0.45, green: 0.40, blue: 0.90, alpha: 1)
+        deckPageControl.pageIndicatorTintColor = UIColor.white.withAlphaComponent(0.35)
+        deckPageControl.isUserInteractionEnabled = false
+        deckPageControl.hidesForSinglePage = true
+
+        carouselSection.addArrangedSubview(carouselClipContainer)
+        carouselSection.addArrangedSubview(deckPageControl)
+
+        contentStack.addArrangedSubview(carouselSection)
     }
 
-    // MARK: - Progress card
+    private func deckCarouselPhysicalItemCount() -> Int {
+        let n = deckCarouselItems.count
+        if n <= 1 { return n }
+        return n + 2
+    }
 
-    private func configureProgressCard() {
-        styleCard(progressCard)
-        contentStack.addArrangedSubview(progressCard)
+    private func deckCarouselItem(physicalIndex: Int) -> MainScreenModels.DeckCarouselItem? {
+        let n = deckCarouselItems.count
+        guard n > 0 else { return nil }
+        if n == 1 { return deckCarouselItems[0] }
+        if physicalIndex == 0 { return deckCarouselItems[n - 1] }
+        if physicalIndex == n + 1 { return deckCarouselItems[0] }
+        return deckCarouselItems[physicalIndex - 1]
+    }
 
-        gaugeView.translatesAutoresizingMaskIntoConstraints = false
-        progressCard.addSubview(gaugeView)
+    private func logicalPageIndex(fromPhysical physical: Int) -> Int {
+        let n = deckCarouselItems.count
+        guard n > 1 else { return 0 }
+        if physical <= 0 { return n - 1 }
+        if physical >= n + 1 { return 0 }
+        return physical - 1
+    }
 
-        let statsStack = UIStackView()
-        statsStack.axis = .vertical
-        statsStack.spacing = 5
-        statsStack.alignment = .center
+    private func deckCarouselItemSize(collectionClipWidth w: CGFloat) -> CGSize {
+        let itemW = w - deckCarouselInterItemGap
+        let nh = DeckCarouselCollectionCell.contentHeight(collectionWidth: w, interItemGap: deckCarouselInterItemGap)
+        return CGSize(width: itemW, height: nh)
+    }
 
-        learnedLabel.font = Fonts.futuraB14
-        learnedLabel.textColor = .white.withAlphaComponent(0.9)
-        learnedLabel.textAlignment = .center
+    private func updateDeckCarouselLayoutIfNeeded() {
+        let w = carouselClipContainer.bounds.width
+        guard w >= 200 else { return }
 
-        notLearnedLabel.font = Fonts.futuraB14
-        notLearnedLabel.textColor = .white.withAlphaComponent(0.9)
-        notLearnedLabel.textAlignment = .center
+        let itemSize = deckCarouselItemSize(collectionClipWidth: w)
+        carouselClipHeightConstraint?.constant = itemSize.height
 
-        errorsLabel.font = Fonts.futuraB14
-        errorsLabel.textAlignment = .center
+        if abs(w - lastDeckCarouselLayoutWidth) < 0.5 {
+            return
+        }
+        lastDeckCarouselLayoutWidth = w
 
-        statsStack.addArrangedSubview(learnedLabel)
-        statsStack.addArrangedSubview(notLearnedLabel)
-        statsStack.addArrangedSubview(errorsLabel)
+        deckFlowLayout.minimumLineSpacing = deckCarouselInterItemGap
+        deckFlowLayout.itemSize = itemSize
+        deckFlowLayout.invalidateLayout()
 
-        progressCard.addSubview(statsStack)
-        statsStack.translatesAutoresizingMaskIntoConstraints = false
+        deckCollectionView.reloadData()
+        deckCollectionView.layoutIfNeeded()
 
-        NSLayoutConstraint.activate([
-            gaugeView.topAnchor.constraint(equalTo: progressCard.topAnchor, constant: 20),
-            gaugeView.leadingAnchor.constraint(equalTo: progressCard.leadingAnchor, constant: 20),
-            gaugeView.trailingAnchor.constraint(equalTo: progressCard.trailingAnchor, constant: -20),
-            gaugeView.heightAnchor.constraint(equalTo: gaugeView.widthAnchor, multiplier: 0.55),
+        if deckCarouselItems.count > 1 {
+            deckCollectionView.scrollToItem(at: IndexPath(item: 1, section: 0), at: .left, animated: false)
+        } else if deckCarouselItems.count == 1 {
+            deckCollectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .left, animated: false)
+        }
+        updateDeckPageControlFromScrollOffset()
+    }
 
-            statsStack.topAnchor.constraint(equalTo: gaugeView.bottomAnchor, constant: 12),
-            statsStack.leadingAnchor.constraint(equalTo: progressCard.leadingAnchor, constant: 16),
-            statsStack.trailingAnchor.constraint(equalTo: progressCard.trailingAnchor, constant: -16),
-            statsStack.bottomAnchor.constraint(equalTo: progressCard.bottomAnchor, constant: -20)
-        ])
+    private func resetDeckCarouselAfterDataLoad() {
+        lastDeckCarouselLayoutWidth = 0
+        view.layoutIfNeeded()
+        updateDeckCarouselLayoutIfNeeded()
+    }
+
+    private func fixInfiniteDeckCarouselIfNeeded() {
+        let n = deckCarouselItems.count
+        guard n > 1 else { return }
+        let w = deckCollectionView.bounds.width
+        guard w > 0 else { return }
+        var page = Int(round(deckCollectionView.contentOffset.x / w))
+        if page <= 0 {
+            deckCollectionView.scrollToItem(at: IndexPath(item: n, section: 0), at: .left, animated: false)
+            page = n
+        } else if page >= n + 1 {
+            deckCollectionView.scrollToItem(at: IndexPath(item: 1, section: 0), at: .left, animated: false)
+            page = 1
+        }
+        deckPageControl.currentPage = logicalPageIndex(fromPhysical: page)
+    }
+
+    private func updateDeckPageControlFromScrollOffset() {
+        let n = deckCarouselItems.count
+        guard n > 0 else { return }
+        let w = deckCollectionView.bounds.width
+        guard w > 0 else { return }
+        let physical = Int(round(deckCollectionView.contentOffset.x / w))
+        deckPageControl.currentPage = logicalPageIndex(fromPhysical: physical)
     }
 
     // MARK: - Helpers
@@ -421,7 +479,41 @@ extension MainScreenViewController {
         _ gestureRecognizer: UIGestureRecognizer,
         shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
     ) -> Bool {
-        true
+        if otherGestureRecognizer === scrollView.panGestureRecognizer { return true }
+        if otherGestureRecognizer === deckCollectionView.panGestureRecognizer { return true }
+        return true
+    }
+}
+
+// MARK: - Deck carousel (UICollectionView)
+
+extension MainScreenViewController {
+
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        deckCarouselPhysicalItemCount()
+    }
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let raw = collectionView.dequeueReusableCell(withReuseIdentifier: DeckCarouselCollectionCell.reuseId, for: indexPath)
+        guard let cell = raw as? DeckCarouselCollectionCell,
+              let item = deckCarouselItem(physicalIndex: indexPath.item) else { return raw }
+        cell.configure(with: item)
+        return cell
+    }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard scrollView === deckCollectionView else { return }
+        updateDeckPageControlFromScrollOffset()
+    }
+
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        guard scrollView === deckCollectionView else { return }
+        fixInfiniteDeckCarouselIfNeeded()
+    }
+
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        guard scrollView === deckCollectionView, !decelerate else { return }
+        fixInfiniteDeckCarouselIfNeeded()
     }
 }
 
@@ -430,10 +522,11 @@ extension MainScreenViewController {
 extension MainScreenViewController: MainScreenDisplayLogic {
 
     func displayData(_ viewModel: MainScreenModels.ViewModel) {
+        deckCarouselItems = viewModel.deckCarousel
+        deckPageControl.numberOfPages = max(1, deckCarouselItems.count)
         updateFriends(viewModel.friends)
         updateStreak(viewModel.streakDays)
-        updateDeck(viewModel.recentDeck)
-        updateProgress(viewModel.progress)
+        resetDeckCarouselAfterDataLoad()
     }
 
     private func updateFriends(_ friends: [MainScreenModels.Friend]) {
@@ -448,23 +541,5 @@ extension MainScreenViewController: MainScreenDisplayLogic {
         days.forEach { day in
             streakStack.addArrangedSubview(addStreakDayView(day))
         }
-    }
-
-    private func updateDeck(_ deck: MainScreenModels.DeckCard) {
-        deckTitleLabel.text  = deck.title
-        deckAuthorLabel.text = "* автор: \(deck.author)"
-        deckCountLabel.text  = "* \(deck.cardCount) карточки"
-    }
-
-    private func updateProgress(_ data: MainScreenModels.ProgressData) {
-        gaugeView.setProgress(data.percent)
-        learnedLabel.text    = "изученные: \(data.learned)"
-        notLearnedLabel.text = "не изученные: \(data.notLearned)"
-
-        let errorsText = NSAttributedString(
-            string: "с ошибками: \(data.withErrors)",
-            attributes: [.foregroundColor: UIColor(red: 0.95, green: 0.30, blue: 0.35, alpha: 1)]
-        )
-        errorsLabel.attributedText = errorsText
     }
 }

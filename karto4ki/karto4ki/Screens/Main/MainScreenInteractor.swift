@@ -25,9 +25,17 @@ final class MainScreenInteractor: MainScreenBusinessLogic {
             .init(dayName: "вс", date: "22.02", isActive: false, isCurrent: false)
         ]
 
-        let deck = MainScreenModels.DeckCard(title: "Коллоквиум по ios", author: "lzkgmr", cardCount: 32)
-        let progress = MainScreenModels.ProgressData(percent: 26, learned: 8, notLearned: 19, withErrors: 10)
+        let carousel: [MainScreenModels.DeckCarouselItem] = [
+            .init(
+                deck: .init(title: "Коллоквиум по ios", author: "lzkgmr", cardCount: 32),
+                progress: .init(percent: 26, learned: 8, notLearned: 19, withErrors: 10)
+            ),
+            .init(
+                deck: .init(title: "Английский B2", author: "kurunon", cardCount: 54),
+                progress: .init(percent: 61, learned: 22, notLearned: 18, withErrors: 14)
+            )
+        ]
 
-        presenter.presentData(friends: friends, streakDays: streakDays, recentDeck: deck, progress: progress)
+        presenter.presentData(friends: friends, streakDays: streakDays, deckCarousel: carousel)
     }
 }

@@ -28,11 +28,16 @@ enum MainScreenModels {
         let withErrors: Int
     }
 
+    /// Одна «страница» карусели: колода + её статистика
+    struct DeckCarouselItem {
+        let deck: DeckCard
+        let progress: ProgressData
+    }
+
     struct ViewModel {
         let friends: [Friend]
         let streakDays: [StreakDay]
-        let recentDeck: DeckCard
-        let progress: ProgressData
+        let deckCarousel: [DeckCarouselItem]
     }
 }
 
@@ -44,8 +49,7 @@ protocol MainScreenPresentationLogic: AnyObject {
     func presentData(
         friends: [MainScreenModels.Friend],
         streakDays: [MainScreenModels.StreakDay],
-        recentDeck: MainScreenModels.DeckCard,
-        progress: MainScreenModels.ProgressData
+        deckCarousel: [MainScreenModels.DeckCarouselItem]
     )
 }
 
