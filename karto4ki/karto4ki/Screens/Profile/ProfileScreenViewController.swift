@@ -26,8 +26,6 @@ final class ProfileScreenViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationController?.setNavigationBarHidden(true, animated: false)
-        navigationController?.interactivePopGestureRecognizer?.delegate = nil
         configureUI()
     }
 
@@ -35,7 +33,6 @@ final class ProfileScreenViewController: UIViewController {
 
     private func configureUI() {
         configureBackground()
-        configureBackButton()
         configureTitleLabel()
         configureSignOutButton()
     }
@@ -45,24 +42,6 @@ final class ProfileScreenViewController: UIViewController {
         view.addSubview(bg)
         bg.pin(to: view)
         view.sendSubviewToBack(bg)
-    }
-
-    private func configureBackButton() {
-        let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold)
-        let image = UIImage(systemName: "chevron.left", withConfiguration: config)
-        let backButton = UIButton(type: .system)
-        backButton.setImage(image, for: .normal)
-        backButton.tintColor = .white.withAlphaComponent(0.9)
-        backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
-
-        view.addSubview(backButton)
-        backButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 12),
-            backButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            backButton.widthAnchor.constraint(equalToConstant: 44),
-            backButton.heightAnchor.constraint(equalToConstant: 44)
-        ])
     }
 
     private func configureTitleLabel() {
@@ -93,11 +72,6 @@ final class ProfileScreenViewController: UIViewController {
     }
 
     // MARK: - Actions
-
-    @objc
-    private func backTapped() {
-        navigationController?.popViewController(animated: true)
-    }
 
     @objc
     private func signOutTapped() {

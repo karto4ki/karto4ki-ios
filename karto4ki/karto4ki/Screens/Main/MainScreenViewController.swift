@@ -31,9 +31,6 @@ final class MainScreenViewController: UIViewController {
     private let notLearnedLabel = UILabel()
     private let errorsLabel   = UILabel()
 
-    // MARK: - Tab bar
-    private let tabBarContainer = UIView()
-
     // MARK: - Init
 
     init(interactor: MainScreenBusinessLogic) {
@@ -51,7 +48,6 @@ final class MainScreenViewController: UIViewController {
         super.viewDidLoad()
         navigationController?.setNavigationBarHidden(true, animated: false)
         configureBackground()
-        configureTabBar()
         configureScrollView()
         configureSearchField()
         configureFriendsSection()
@@ -70,61 +66,6 @@ final class MainScreenViewController: UIViewController {
         view.sendSubviewToBack(bg)
     }
 
-    // MARK: - Tab bar
-
-    private func configureTabBar() {
-        tabBarContainer.backgroundColor = .white.withAlphaComponent(0.3)
-        tabBarContainer.layer.cornerRadius = 30
-        tabBarContainer.clipsToBounds = true
-        view.addSubview(tabBarContainer)
-        tabBarContainer.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            tabBarContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            tabBarContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            tabBarContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8),
-            tabBarContainer.heightAnchor.constraint(equalToConstant: 60)
-        ])
-
-        let items: [(String, Bool, Selector?)] = [
-            ("house.fill",     true,  nil),
-            ("plus.circle",    false, nil),
-            ("books.vertical", false, nil),
-            ("person",         false, #selector(profileTapped))
-        ]
-
-        let stack = UIStackView()
-        stack.axis = .horizontal
-        stack.distribution = .fillEqually
-        stack.alignment = .center
-        tabBarContainer.addSubview(stack)
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: tabBarContainer.leadingAnchor),
-            stack.trailingAnchor.constraint(equalTo: tabBarContainer.trailingAnchor),
-            stack.topAnchor.constraint(equalTo: tabBarContainer.topAnchor),
-            stack.bottomAnchor.constraint(equalTo: tabBarContainer.bottomAnchor)
-        ])
-
-        for (name, isActive, action) in items {
-            let btn = UIButton(type: .system)
-            let config = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
-            let img = UIImage(systemName: name, withConfiguration: config)
-            btn.setImage(img, for: .normal)
-            btn.tintColor = isActive
-                ? UIColor(red: 0.45, green: 0.40, blue: 0.90, alpha: 1)
-                : UIColor.white.withAlphaComponent(0.7)
-            if let action {
-                btn.addTarget(self, action: action, for: .touchUpInside)
-            }
-            stack.addArrangedSubview(btn)
-        }
-    }
-
-    @objc
-    private func profileTapped() {
-        AppCoordinator.shared.showProfile()
-    }
-
     // MARK: - Scroll view
 
     private func configureScrollView() {
@@ -136,7 +77,7 @@ final class MainScreenViewController: UIViewController {
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: tabBarContainer.topAnchor, constant: -8)
+            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -76)
         ])
 
         contentStack.axis = .vertical

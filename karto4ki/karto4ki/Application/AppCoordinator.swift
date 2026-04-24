@@ -79,15 +79,10 @@ final class AppCoordinator {
     }
 
     func showMainScreen() {
-        let mainVC = MainScreenAssembly.build()
-        navigationController.setViewControllers([mainVC], animated: true)
+        let tabVC = TabContainerViewController()
+        navigationController.setViewControllers([tabVC], animated: true)
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
-    }
-
-    func showProfile() {
-        let profileVC = ProfileScreenAssembly.build()
-        navigationController.pushViewController(profileVC, animated: true)
     }
 
     // MARK: - Sign Out
