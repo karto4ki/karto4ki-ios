@@ -301,12 +301,6 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
             vStack.trailingAnchor.constraint(equalTo: container.trailingAnchor)
         ])
 
-        if day.isCurrent {
-            container.backgroundColor = .white.withAlphaComponent(0.15)
-            container.layer.cornerRadius = 12
-            container.clipsToBounds = true
-        }
-
         return container
     }
 
