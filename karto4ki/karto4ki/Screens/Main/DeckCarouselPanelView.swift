@@ -1,11 +1,11 @@
 import UIKit
 
-final class DeckCarouselCollectionCell: UICollectionViewCell {
+/// Одна страница: колода + статистика (без коллекции, только верстка).
+final class DeckCarouselPanelView: UIView {
 
-    static let reuseId = "DeckCarouselCollectionCell"
-
-    /// Вертикальный шаг между колодой и статистикой в ячейке — тот же, что между блоками на главном экране.
+    /// Вертикальный шаг между колодой и статистикой — как `MainScreenCardLayout` на главной.
     static let verticalBlockSpacing: CGFloat = 10
+
     private let deckCard = UIView()
     private let deckTitleLabel = UILabel()
     private let deckAuthorLabel = UILabel()
@@ -45,7 +45,7 @@ final class DeckCarouselCollectionCell: UICollectionViewCell {
 
     private enum Layout {
         static let deckCardHeight: CGFloat = 86
-        static let deckProgressSpacing: CGFloat = DeckCarouselCollectionCell.verticalBlockSpacing
+        static let deckProgressSpacing: CGFloat = DeckCarouselPanelView.verticalBlockSpacing
         static let gaugeTop: CGFloat = 10
         static let gaugeHorizontalInset: CGFloat = MainScreenCardLayout.horizontalContentInset
         static let gaugeHeightMultiplier: CGFloat = 0.46
@@ -53,24 +53,19 @@ final class DeckCarouselCollectionCell: UICollectionViewCell {
         static let statsHorizontalInset: CGFloat = MainScreenCardLayout.horizontalContentInset
         static let statsStackMinSpacing: CGFloat = 4
         static let progressBottomPadding: CGFloat = 10
-        /// Три компактные строки + минимальные зазоры `.equalSpacing`.
         static let statsBlockHeight: CGFloat = 3 * 15 + 2 * statsStackMinSpacing + 4
     }
 
-    /// Высота ячейки: `collectionWidth` — ширина клипа карусели, `interItemGap` — зазор между страницами flow (0 = ширина стрика).
-    static func contentHeight(collectionWidth: CGFloat, interItemGap: CGFloat) -> CGFloat {
-        let itemW = max(0, collectionWidth - interItemGap)
-        let columnW = itemW
-        let gaugeW = max(0, columnW - 2 * MainScreenCardLayout.horizontalContentInset)
+    static func contentHeight(panelWidth: CGFloat) -> CGFloat {
+        let w = max(0, panelWidth)
+        let gaugeW = max(0, w - 2 * MainScreenCardLayout.horizontalContentInset)
         let gaugeH = gaugeW * Layout.gaugeHeightMultiplier
         let progressBlock = Layout.gaugeTop + gaugeH + Layout.gaugeToStatsGap + Layout.statsBlockHeight + Layout.progressBottomPadding
         return Layout.deckCardHeight + Layout.deckProgressSpacing + progressBlock
     }
 
-    // MARK: - Private
-
     private func configure() {
-        contentView.backgroundColor = .clear
+        backgroundColor = .clear
 
         styleCard(deckCard)
         deckCard.setHeight(Layout.deckCardHeight)
@@ -177,13 +172,13 @@ final class DeckCarouselCollectionCell: UICollectionViewCell {
         column.alignment = .fill
         deckCard.setContentHuggingPriority(.defaultHigh, for: .vertical)
 
-        contentView.addSubview(column)
+        addSubview(column)
         column.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            column.topAnchor.constraint(equalTo: contentView.topAnchor),
-            column.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            column.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            column.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+            column.topAnchor.constraint(equalTo: topAnchor),
+            column.leadingAnchor.constraint(equalTo: leadingAnchor),
+            column.trailingAnchor.constraint(equalTo: trailingAnchor),
+            column.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
 

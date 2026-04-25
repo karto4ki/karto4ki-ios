@@ -1,7 +1,6 @@
 import UIKit
 
-final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate,
-    UICollectionViewDataSource, UICollectionViewDelegate {
+final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate {
 
     private let interactor: MainScreenBusinessLogic
 
@@ -24,33 +23,18 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
     private let streakMessageIcon = UIImageView()
     private let streakMessageLabel = UILabel()
 
-    // MARK: - Deck carousel (UICollectionView — видно соседнюю колоду при перетаскивании)
+    // MARK: - Deck (свайп — смена страницы без «ведения» пальцем)
     private let carouselSection = UIStackView()
     private let carouselClipContainer = UIView()
     private let deckPageControl = UIPageControl()
-    private let deckFlowLayout = UICollectionViewFlowLayout()
-    private lazy var deckCollectionView: UICollectionView = {
-        let cv = UICollectionView(frame: .zero, collectionViewLayout: deckFlowLayout)
-        cv.backgroundColor = .clear
-        cv.isPagingEnabled = true
-        cv.showsHorizontalScrollIndicator = false
-        cv.showsVerticalScrollIndicator = false
-        cv.alwaysBounceHorizontal = true
-        cv.dataSource = self
-        cv.delegate = self
-        cv.register(DeckCarouselCollectionCell.self, forCellWithReuseIdentifier: DeckCarouselCollectionCell.reuseId)
-        cv.contentInsetAdjustmentBehavior = .never
-        return cv
-    }()
+    private let deckPanelView = DeckCarouselPanelView()
 
     private var deckCarouselItems: [MainScreenModels.DeckCarouselItem] = []
-    private var lastDeckCarouselLayoutWidth: CGFloat = 0
-    /// 0: ширина ячейки = клип = как плашка стрика. Просвет при свайпе даёт отступ контента внутри ячейки (`DeckCarouselCollectionCell`).
-    private let deckCarouselInterItemGap: CGFloat = 0
+    private var deckCarouselIndex: Int = 0
+    private var lastDeckPanelLayoutWidth: CGFloat = 0
     private var carouselClipHeightConstraint: NSLayoutConstraint?
 
-    /// Как `DeckCarouselCollectionCell.Layout.deckProgressSpacing` — единый шаг между блоками на главной.
-    private let mainContentBlockSpacing: CGFloat = DeckCarouselCollectionCell.verticalBlockSpacing
+    private let mainContentBlockSpacing: CGFloat = DeckCarouselPanelView.verticalBlockSpacing
 
     // MARK: - Init
 
@@ -81,7 +65,7 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        updateDeckCarouselLayoutIfNeeded()
+        updateDeckPanelLayoutIfNeeded()
     }
 
     // MARK: - Background
@@ -380,7 +364,7 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
         }
     }
 
-    // MARK: - Carousel (колода + прогресс)
+    // MARK: - Deck panel + page control
 
     private func configureCarouselSection() {
         carouselSection.axis = .vertical
@@ -390,17 +374,13 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
         carouselClipContainer.clipsToBounds = true
         carouselClipContainer.backgroundColor = .clear
 
-        deckFlowLayout.scrollDirection = .horizontal
-        deckFlowLayout.minimumLineSpacing = deckCarouselInterItemGap
-        deckFlowLayout.minimumInteritemSpacing = 0
-
-        carouselClipContainer.addSubview(deckCollectionView)
-        deckCollectionView.translatesAutoresizingMaskIntoConstraints = false
+        carouselClipContainer.addSubview(deckPanelView)
+        deckPanelView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            deckCollectionView.topAnchor.constraint(equalTo: carouselClipContainer.topAnchor),
-            deckCollectionView.leadingAnchor.constraint(equalTo: carouselClipContainer.leadingAnchor),
-            deckCollectionView.trailingAnchor.constraint(equalTo: carouselClipContainer.trailingAnchor),
-            deckCollectionView.bottomAnchor.constraint(equalTo: carouselClipContainer.bottomAnchor)
+            deckPanelView.topAnchor.constraint(equalTo: carouselClipContainer.topAnchor),
+            deckPanelView.leadingAnchor.constraint(equalTo: carouselClipContainer.leadingAnchor),
+            deckPanelView.trailingAnchor.constraint(equalTo: carouselClipContainer.trailingAnchor),
+            deckPanelView.bottomAnchor.constraint(equalTo: carouselClipContainer.bottomAnchor)
         ])
 
         let clipH = carouselClipContainer.heightAnchor.constraint(equalToConstant: 320)
@@ -408,9 +388,16 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
         clipH.isActive = true
         carouselClipHeightConstraint = clipH
 
-        // Дефолтный itemSize у flow — мелкий; до первого layout ячейки иначе получают ~50×50 и рвут constraints.
-        let provisionalClipW = max(320, UIScreen.main.bounds.width - 40)
-        deckFlowLayout.itemSize = deckCarouselItemSize(collectionClipWidth: provisionalClipW)
+        let provisionalW = max(320, UIScreen.main.bounds.width - 40)
+        carouselClipHeightConstraint?.constant = DeckCarouselPanelView.contentHeight(panelWidth: provisionalW)
+
+        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleDeckSwipe(_:)))
+        swipeLeft.direction = .left
+        carouselClipContainer.addGestureRecognizer(swipeLeft)
+
+        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(handleDeckSwipe(_:)))
+        swipeRight.direction = .right
+        carouselClipContainer.addGestureRecognizer(swipeRight)
 
         deckPageControl.currentPageIndicatorTintColor = UIColor(red: 0.45, green: 0.40, blue: 0.90, alpha: 1)
         deckPageControl.pageIndicatorTintColor = UIColor.white.withAlphaComponent(0.35)
@@ -425,91 +412,63 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
         contentStack.addArrangedSubview(carouselSection)
     }
 
-    private func deckCarouselPhysicalItemCount() -> Int {
+    @objc
+    private func handleDeckSwipe(_ gr: UISwipeGestureRecognizer) {
         let n = deckCarouselItems.count
-        if n <= 1 { return n }
-        return n + 2
+        guard n > 1 else { return }
+        switch gr.direction {
+        case .left:
+            let next = (deckCarouselIndex + 1) % n
+            showDeckPage(index: next, animated: true)
+        case .right:
+            let prev = (deckCarouselIndex - 1 + n) % n
+            showDeckPage(index: prev, animated: true)
+        default:
+            break
+        }
     }
 
-    private func deckCarouselItem(physicalIndex: Int) -> MainScreenModels.DeckCarouselItem? {
-        let n = deckCarouselItems.count
-        guard n > 0 else { return nil }
-        if n == 1 { return deckCarouselItems[0] }
-        if physicalIndex == 0 { return deckCarouselItems[n - 1] }
-        if physicalIndex == n + 1 { return deckCarouselItems[0] }
-        return deckCarouselItems[physicalIndex - 1]
+    private func showDeckPage(index: Int, animated: Bool) {
+        guard index >= 0, index < deckCarouselItems.count else { return }
+        deckCarouselIndex = index
+        let item = deckCarouselItems[index]
+        let apply = { self.deckPanelView.configure(with: item) }
+        if animated {
+            UIView.transition(with: deckPanelView, duration: 0.28, options: .transitionCrossDissolve, animations: apply)
+        } else {
+            apply()
+        }
+        deckPageControl.currentPage = index
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
-    private func logicalPageIndex(fromPhysical physical: Int) -> Int {
-        let n = deckCarouselItems.count
-        guard n > 1 else { return 0 }
-        if physical <= 0 { return n - 1 }
-        if physical >= n + 1 { return 0 }
-        return physical - 1
-    }
-
-    private func deckCarouselItemSize(collectionClipWidth w: CGFloat) -> CGSize {
-        let itemW = w - deckCarouselInterItemGap
-        let nh = DeckCarouselCollectionCell.contentHeight(collectionWidth: w, interItemGap: deckCarouselInterItemGap)
-        return CGSize(width: itemW, height: nh)
-    }
-
-    private func updateDeckCarouselLayoutIfNeeded() {
+    private func updateDeckPanelLayoutIfNeeded() {
         let w = carouselClipContainer.bounds.width
         guard w >= 200 else { return }
 
-        let itemSize = deckCarouselItemSize(collectionClipWidth: w)
-        carouselClipHeightConstraint?.constant = itemSize.height
+        let nh = DeckCarouselPanelView.contentHeight(panelWidth: w)
+        carouselClipHeightConstraint?.constant = nh
 
-        if abs(w - lastDeckCarouselLayoutWidth) < 0.5 {
+        if abs(w - lastDeckPanelLayoutWidth) < 0.5 {
             return
         }
-        lastDeckCarouselLayoutWidth = w
+        lastDeckPanelLayoutWidth = w
 
-        deckFlowLayout.minimumLineSpacing = deckCarouselInterItemGap
-        deckFlowLayout.itemSize = itemSize
-        deckFlowLayout.invalidateLayout()
-
-        deckCollectionView.reloadData()
-        deckCollectionView.layoutIfNeeded()
-
-        if deckCarouselItems.count > 1 {
-            deckCollectionView.scrollToItem(at: IndexPath(item: 1, section: 0), at: .left, animated: false)
-        } else if deckCarouselItems.count == 1 {
-            deckCollectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .left, animated: false)
+        if !deckCarouselItems.isEmpty {
+            let idx = min(deckCarouselIndex, max(0, deckCarouselItems.count - 1))
+            showDeckPage(index: idx, animated: false)
         }
-        updateDeckPageControlFromScrollOffset()
     }
 
-    private func resetDeckCarouselAfterDataLoad() {
-        lastDeckCarouselLayoutWidth = 0
+    private func resetDeckPanelAfterDataLoad() {
+        deckCarouselIndex = 0
+        lastDeckPanelLayoutWidth = 0
         view.layoutIfNeeded()
-        updateDeckCarouselLayoutIfNeeded()
-    }
-
-    private func fixInfiniteDeckCarouselIfNeeded() {
-        let n = deckCarouselItems.count
-        guard n > 1 else { return }
-        let w = deckCollectionView.bounds.width
-        guard w > 0 else { return }
-        var page = Int(round(deckCollectionView.contentOffset.x / w))
-        if page <= 0 {
-            deckCollectionView.scrollToItem(at: IndexPath(item: n, section: 0), at: .left, animated: false)
-            page = n
-        } else if page >= n + 1 {
-            deckCollectionView.scrollToItem(at: IndexPath(item: 1, section: 0), at: .left, animated: false)
-            page = 1
+        updateDeckPanelLayoutIfNeeded()
+        if deckCarouselItems.isEmpty {
+            return
         }
-        deckPageControl.currentPage = logicalPageIndex(fromPhysical: page)
-    }
-
-    private func updateDeckPageControlFromScrollOffset() {
-        let n = deckCarouselItems.count
-        guard n > 0 else { return }
-        let w = deckCollectionView.bounds.width
-        guard w > 0 else { return }
-        let physical = Int(round(deckCollectionView.contentOffset.x / w))
-        deckPageControl.currentPage = logicalPageIndex(fromPhysical: physical)
+        showDeckPage(index: 0, animated: false)
     }
 
     // MARK: - Helpers
@@ -541,40 +500,7 @@ extension MainScreenViewController {
         shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
     ) -> Bool {
         if otherGestureRecognizer === scrollView.panGestureRecognizer { return true }
-        if otherGestureRecognizer === deckCollectionView.panGestureRecognizer { return true }
         return true
-    }
-}
-
-// MARK: - Deck carousel (UICollectionView)
-
-extension MainScreenViewController {
-
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        deckCarouselPhysicalItemCount()
-    }
-
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let raw = collectionView.dequeueReusableCell(withReuseIdentifier: DeckCarouselCollectionCell.reuseId, for: indexPath)
-        guard let cell = raw as? DeckCarouselCollectionCell,
-              let item = deckCarouselItem(physicalIndex: indexPath.item) else { return raw }
-        cell.configure(with: item)
-        return cell
-    }
-
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        guard scrollView === deckCollectionView else { return }
-        updateDeckPageControlFromScrollOffset()
-    }
-
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        guard scrollView === deckCollectionView else { return }
-        fixInfiniteDeckCarouselIfNeeded()
-    }
-
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        guard scrollView === deckCollectionView, !decelerate else { return }
-        fixInfiniteDeckCarouselIfNeeded()
     }
 }
 
@@ -588,7 +514,7 @@ extension MainScreenViewController: MainScreenDisplayLogic {
         updateFriends(viewModel.friends)
         updateStreak(viewModel.streakDays)
         updateStreakMessage(currentStreakDayCount: viewModel.currentStreakDayCount)
-        resetDeckCarouselAfterDataLoad()
+        resetDeckPanelAfterDataLoad()
     }
 
     private func updateFriends(_ friends: [MainScreenModels.Friend]) {
