@@ -5,6 +5,7 @@ protocol ProfileScreenBusinessLogic: AnyObject {
     func signOut()
     func updateDisplayNameAndUsername(name: String, username: String)
     func setNotificationEnabled(_ enabled: Bool)
+    func deleteAccount()
 }
 
 protocol ProfileScreenPresentationLogic: AnyObject {

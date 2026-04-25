@@ -71,8 +71,8 @@ final class ProfileScreenInteractor: ProfileScreenBusinessLogic {
             do {
                 let updated = try await userService.updateMe(
                     UpdateProfileRequest(
-                        name: nil,
-                        username: nil,
+                        name: latest.name,
+                        username: latest.username,
                         notificationEnabled: enabled
                     )
                 )
@@ -81,7 +81,27 @@ final class ProfileScreenInteractor: ProfileScreenBusinessLogic {
                 }
                 presenter.presentProfile(updated)
             } catch {
-                presenter.presentProfile(latest)
+                await MainActor.run {
+                    presenter.presentProfile(latest)
+                }
+                await errorHandler.handle(error)
+            }
+        }
+    }
+
+    func deleteAccount() {
+        presenter.presentLoading(true)
+        Task {
+            do {
+                try await userService.deleteMe()
+                await MainActor.run {
+                    presenter.presentLoading(false)
+                    AppCoordinator.shared.signOut()
+                }
+            } catch {
+                await MainActor.run {
+                    presenter.presentLoading(false)
+                }
                 await errorHandler.handle(error)
             }
         }

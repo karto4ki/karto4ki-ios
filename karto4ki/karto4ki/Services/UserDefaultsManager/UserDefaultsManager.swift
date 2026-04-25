@@ -8,7 +8,7 @@
 import Foundation
 
 struct UserDefaultsManager: UserDefaultsManagerProtocol {
-    
+
     private let defaults = UserDefaults.standard
     
     func putOnboardingCompleted() {

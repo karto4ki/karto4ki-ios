@@ -136,7 +136,7 @@ final class ProfileScreenViewController: UIViewController {
     }
 
     private func configureProfileHeaderCard() {
-        applyGlassChrome(to: profileHeaderCard, tint: UIColor.white.withAlphaComponent(0.12), border: UIColor.white.withAlphaComponent(0.45))
+        styleCloudCardLikeMain(profileHeaderCard)
         contentStack.addArrangedSubview(profileHeaderCard)
 
         let avatarSize: CGFloat = 96
@@ -218,7 +218,7 @@ final class ProfileScreenViewController: UIViewController {
     }
 
     private func configureEmailCard() {
-        applyGlassChrome(to: emailCard, tint: UIColor.white.withAlphaComponent(0.12), border: UIColor.white.withAlphaComponent(0.45))
+        styleCloudCardLikeMain(emailCard)
         contentStack.addArrangedSubview(emailCard)
 
         let icon = iconBadge(symbol: "envelope.fill", background: profilePurple)
@@ -243,7 +243,7 @@ final class ProfileScreenViewController: UIViewController {
     }
 
     private func configureNotificationsCard() {
-        applyGlassChrome(to: notificationsCard, tint: UIColor.white.withAlphaComponent(0.12), border: UIColor.white.withAlphaComponent(0.45))
+        styleCloudCardLikeMain(notificationsCard)
         contentStack.addArrangedSubview(notificationsCard)
 
         let icon = iconBadge(symbol: "bell.fill", background: profilePurple)
@@ -280,12 +280,7 @@ final class ProfileScreenViewController: UIViewController {
     }
 
     private func configureLogoutCard() {
-        let redBorder = UIColor(red: 0.92, green: 0.38, blue: 0.44, alpha: 0.85)
-        applyGlassChrome(
-            to: logoutCard,
-            tint: UIColor(red: 0.98, green: 0.42, blue: 0.48, alpha: 0.22),
-            border: redBorder
-        )
+        styleLogoutCloudCardLikeMain(logoutCard)
         contentStack.addArrangedSubview(logoutCard)
 
         let icon = iconBadge(
@@ -331,40 +326,26 @@ final class ProfileScreenViewController: UIViewController {
         ])
     }
 
-    // MARK: - Glass & icons
+    // MARK: - Карточки как на главном (`MainScreenViewController.styleCard`)
 
-    private func applyGlassChrome(to container: UIView, tint: UIColor, border: UIColor) {
-        container.subviews.forEach { $0.removeFromSuperview() }
-        container.layer.cornerRadius = glassCorner
-        container.clipsToBounds = true
-        container.layer.borderWidth = 1
-        container.layer.borderColor = border.cgColor
-
-        let blur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialLight))
-        blur.translatesAutoresizingMaskIntoConstraints = false
-        blur.isUserInteractionEnabled = false
-        container.addSubview(blur)
-        NSLayoutConstraint.activate([
-            blur.topAnchor.constraint(equalTo: container.topAnchor),
-            blur.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            blur.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            blur.bottomAnchor.constraint(equalTo: container.bottomAnchor)
-        ])
-
-        let wash = UIView()
-        wash.backgroundColor = tint
-        wash.isUserInteractionEnabled = false
-        wash.translatesAutoresizingMaskIntoConstraints = false
-        container.addSubview(wash)
-        NSLayoutConstraint.activate([
-            wash.topAnchor.constraint(equalTo: container.topAnchor),
-            wash.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            wash.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            wash.bottomAnchor.constraint(equalTo: container.bottomAnchor)
-        ])
+    private func styleCloudCardLikeMain(_ card: UIView) {
+        card.backgroundColor = .white.withAlphaComponent(0.28)
+        card.layer.cornerRadius = glassCorner
+        card.clipsToBounds = true
+        card.layer.borderWidth = 1
+        card.layer.borderColor = UIColor.white.withAlphaComponent(0.5).cgColor
     }
 
-    /// Добавляет контент поверх blur (вызов после `applyGlassChrome`, иначе порядок субвью сбросится).
+    /// Та же заливка 0.28, что у белых «облаков» на главной; красная обводка для выхода.
+    private func styleLogoutCloudCardLikeMain(_ card: UIView) {
+        card.backgroundColor = .white.withAlphaComponent(0.28)
+        card.layer.cornerRadius = glassCorner
+        card.clipsToBounds = true
+        card.layer.borderWidth = 1
+        card.layer.borderColor = UIColor(red: 0.92, green: 0.38, blue: 0.44, alpha: 0.85).cgColor
+    }
+
+    /// Вставляет контент в карточку (вызвать после `styleCloudCardLikeMain`, пока в `card` нет сабвью).
     private func embedCardContent(_ content: UIView, in container: UIView, inset: UIEdgeInsets) {
         container.addSubview(content)
         content.translatesAutoresizingMaskIntoConstraints = false
@@ -440,7 +421,8 @@ final class ProfileScreenViewController: UIViewController {
         interactor.setNotificationEnabled(sender.isOn)
     }
 
-    private func setNotificationSwitchFromServer(_ isOn: Bool) {
+    /// Программная установка без лишнего `.valueChanged` (иначе уходит второй PUT).
+    private func applyNotificationSwitchFromViewModel(_ isOn: Bool) {
         notificationSwitch.removeTarget(self, action: #selector(notificationSwitchChanged(_:)), for: .valueChanged)
         notificationSwitch.setOn(isOn, animated: false)
         wireNotificationSwitchTarget()
@@ -452,6 +434,22 @@ final class ProfileScreenViewController: UIViewController {
 
     @objc
     private func editTapped() {
+        let sheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        sheet.addAction(UIAlertAction(title: "Изменить данные", style: .default) { [weak self] _ in
+            self?.presentEditProfileAlert()
+        })
+        sheet.addAction(UIAlertAction(title: "Удалить аккаунт", style: .destructive) { [weak self] _ in
+            self?.presentDeleteAccountConfirmation()
+        })
+        sheet.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        if let pop = sheet.popoverPresentationController {
+            pop.sourceView = editAvatarButton
+            pop.sourceRect = editAvatarButton.bounds
+        }
+        present(sheet, animated: true)
+    }
+
+    private func presentEditProfileAlert() {
         let alert = UIAlertController(title: "Изменить данные", message: nil, preferredStyle: .alert)
         alert.addTextField { $0.placeholder = "Имя"; $0.text = self.nameValueLabel.text }
         alert.addTextField { $0.placeholder = "Никнейм"; $0.text = self.usernameValueLabel.text?.replacingOccurrences(of: "@", with: "") }
@@ -462,6 +460,19 @@ final class ProfileScreenViewController: UIViewController {
                   let username = alert.textFields?[1].text
             else { return }
             self.interactor.updateDisplayNameAndUsername(name: name, username: username)
+        })
+        present(alert, animated: true)
+    }
+
+    private func presentDeleteAccountConfirmation() {
+        let alert = UIAlertController(
+            title: "Удалить аккаунт?",
+            message: "Профиль и данные будут удалены без возможности восстановления.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            self?.interactor.deleteAccount()
         })
         present(alert, animated: true)
     }
@@ -491,7 +502,7 @@ extension ProfileScreenViewController: ProfileScreenDisplayLogic {
         emailValueLabel.text = viewModel.emailDisplay == "не указан" ? "—" : viewModel.emailDisplay
         initialsLabel.text = viewModel.initials
 
-        setNotificationSwitchFromServer(viewModel.notificationEnabled)
+        applyNotificationSwitchFromViewModel(viewModel.notificationEnabled)
 
         loadAvatar(from: viewModel.photoURL)
     }
