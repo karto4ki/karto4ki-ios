@@ -30,4 +30,10 @@ struct UserDefaultsManager: UserDefaultsManagerProtocol {
     func saveUsername(_ username: String) {
         UserDefaults.standard.set(username, forKey: "username")
     }
+
+    func clearSessionCaches() {
+        defaults.removeObject(forKey: "email")
+        defaults.removeObject(forKey: "name")
+        defaults.removeObject(forKey: "username")
+    }
 }

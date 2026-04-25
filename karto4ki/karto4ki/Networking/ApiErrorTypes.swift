@@ -8,6 +8,7 @@
 import Foundation
 
 enum ApiErrorTypes: String, Codable, Error {
+    case unauthorized = "unauthorized"
     case invalidJson = "invalid_json"
     case validationFailed = "validation_failed"
     case userNotFound = "user_not_found"

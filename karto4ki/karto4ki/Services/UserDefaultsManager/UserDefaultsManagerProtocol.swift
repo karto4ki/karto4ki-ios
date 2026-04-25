@@ -13,4 +13,6 @@ protocol UserDefaultsManagerProtocol {
     func saveEmail(_ email: String)
     func saveName(_ name: String)
     func saveUsername(_ username: String)
+    /// Кэш сессии (почта/имя из потока входа), без флага онбординга.
+    func clearSessionCaches()
 }

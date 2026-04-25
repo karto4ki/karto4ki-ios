@@ -61,6 +61,13 @@ struct UpdateProfileRequest: Encodable {
         case name, username
         case notificationEnabled = "notification_enabled"
     }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(name, forKey: .name)
+        try container.encodeIfPresent(username, forKey: .username)
+        try container.encodeIfPresent(notificationEnabled, forKey: .notificationEnabled)
+    }
 }
 
 struct UpdatePhotoRequest: Encodable {

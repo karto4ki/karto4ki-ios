@@ -10,14 +10,15 @@ final class AppCoordinator {
     private init() {
         self.navigationController = UINavigationController()
         let keychainManager = KeychainManager()
+        let userDefaults = UserDefaultsManager()
         let identityService = IdentityService()
         let userService = UserService()
         context = Context(
             keychainManager: keychainManager,
-            userDefaults: UserDefaultsManager(),
+            userDefaults: userDefaults,
             identityService: identityService,
             userService: userService,
-            errorHandler: ErrorHandler(keychainManager: keychainManager)
+            errorHandler: ErrorHandler(keychainManager: keychainManager, userDefaults: userDefaults)
         )
     }
 
@@ -79,7 +80,7 @@ final class AppCoordinator {
     }
 
     func showMainScreen() {
-        let tabVC = TabContainerViewController()
+        let tabVC = TabContainerViewController(context: context)
         navigationController.setViewControllers([tabVC], animated: true)
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
@@ -94,7 +95,8 @@ final class AppCoordinator {
             ) {
                 try? await context.identityService.signOut(refreshToken: refreshToken)
             }
-            _ = context.keychainManager.deleteTokens()
+            context.keychainManager.clearSessionSecrets()
+            context.userDefaults.clearSessionCaches()
             await MainActor.run {
                 showSignIn()
             }

@@ -10,11 +10,13 @@ final class TabContainerViewController: UIViewController {
         let makeVC: () -> UIViewController
     }
 
+    private let appContext: ContextProtocol
+
     private lazy var tabs: [TabItem] = [
         TabItem(icon: "house",          activeIcon: "house.fill")     { MainScreenAssembly.build() },
         TabItem(icon: "plus.circle",    activeIcon: "plus.circle.fill") { PlaceholderViewController() },
         TabItem(icon: "books.vertical", activeIcon: "books.vertical.fill") { PlaceholderViewController() },
-        TabItem(icon: "person",         activeIcon: "person.fill")    { ProfileScreenAssembly.build() }
+        TabItem(icon: "person",         activeIcon: "person.fill")    { ProfileScreenAssembly.build(context: self.appContext) }
     ]
 
     private var cachedVCs: [Int: UIViewController] = [:]
@@ -25,6 +27,17 @@ final class TabContainerViewController: UIViewController {
 
     private let contentContainer = UIView()
     private let tabBarContainer  = UIView()
+
+    // MARK: - Init
+
+    init(context: ContextProtocol) {
+        self.appContext = context
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     // MARK: - Lifecycle
 

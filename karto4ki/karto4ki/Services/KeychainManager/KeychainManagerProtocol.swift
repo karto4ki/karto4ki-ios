@@ -12,5 +12,7 @@ protocol KeychainManagerProtocol {
     func getString(key: String) -> String?
     func save(key: String, value: UUID) -> Bool
     func deleteTokens() -> Bool
+    /// Токены и временные ключи входа (без полного сброса keychain приложения).
+    func clearSessionSecrets()
     func delete(key: String) -> Bool
 }

@@ -3,9 +3,11 @@ import UIKit
 final class ErrorHandler: ErrorHandlerProtocol {
 
     private let keychainManager: KeychainManagerProtocol
+    private let userDefaults: UserDefaultsManagerProtocol
 
-    init(keychainManager: KeychainManagerProtocol) {
+    init(keychainManager: KeychainManagerProtocol, userDefaults: UserDefaultsManagerProtocol) {
         self.keychainManager = keychainManager
+        self.userDefaults = userDefaults
     }
 
     @MainActor
@@ -15,7 +17,8 @@ final class ErrorHandler: ErrorHandlerProtocol {
     }
 
     func handleSessionExpired() {
-        _ = keychainManager.deleteTokens()
+        keychainManager.clearSessionSecrets()
+        userDefaults.clearSessionCaches()
         DispatchQueue.main.async {
             AppCoordinator.shared.showSignIn()
         }
@@ -37,7 +40,9 @@ final class ErrorHandler: ErrorHandlerProtocol {
     private func mapApiResponse(_ error: ApiErrorResponse) -> String? {
         switch error.errorType {
         case ApiErrorTypes.refreshTokenExpired.rawValue,
-             ApiErrorTypes.refreshTokenInvalidated.rawValue:
+             ApiErrorTypes.refreshTokenInvalidated.rawValue,
+             ApiErrorTypes.unauthorized.rawValue,
+             ApiErrorTypes.invalidToken.rawValue:
             handleSessionExpired()
             return nil
 

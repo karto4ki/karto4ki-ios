@@ -109,6 +109,10 @@ final class Sender {
                 else {
                     throw decodeError(data)
                 }
+                // Один цикл refresh + повтор; повторный 401 — конец сессии (см. ErrorHandler для `unauthorized`).
+                guard attempt == 0 else {
+                    throw final401Error(data)
+                }
                 try await TokenManager.shared.refreshTokens()
                 return try await perform(
                     endpoint: endpoint, method: method,
@@ -148,5 +152,17 @@ final class Sender {
         } catch {
             return ApiError.decodingError(error)
         }
+    }
+
+    /// После неудачного refresh тело 401 может быть пустым или не JSON — всё равно выкидываем в `unauthorized`.
+    private func final401Error(_ data: Data) -> Error {
+        if let decoded = try? decoder.decode(ApiErrorResponse.self, from: data) {
+            return decoded
+        }
+        return ApiErrorResponse(
+            errorType: ApiErrorTypes.unauthorized.rawValue,
+            errorMessage: "Unauthorized",
+            errorDetails: nil
+        )
     }
 }
