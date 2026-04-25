@@ -19,8 +19,8 @@ final class MainScreenInteractor: MainScreenBusinessLogic {
             .init(dayName: "пн", date: "16.02", isActive: true,  isCurrent: false),
             .init(dayName: "вт", date: "17.02", isActive: true,  isCurrent: false),
             .init(dayName: "ср", date: "18.02", isActive: true,  isCurrent: false),
-            .init(dayName: "чт", date: "19.02", isActive: true,  isCurrent: true),
-            .init(dayName: "пт", date: "20.02", isActive: false, isCurrent: false),
+            .init(dayName: "чт", date: "19.02", isActive: true,  isCurrent: false),
+            .init(dayName: "пт", date: "20.02", isActive: true,  isCurrent: true),
             .init(dayName: "сб", date: "21.02", isActive: false, isCurrent: false),
             .init(dayName: "вс", date: "22.02", isActive: false, isCurrent: false)
         ]

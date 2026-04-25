@@ -1,5 +1,10 @@
 import UIKit
 
+/// Общие отступы контента внутри полупрозрачных карточек на главном (стрик, сообщение, колода/статистика).
+enum MainScreenCardLayout {
+    static let horizontalContentInset: CGFloat = 10
+}
+
 enum MainScreenModels {
 
     struct Friend {
@@ -37,7 +42,21 @@ enum MainScreenModels {
     struct ViewModel {
         let friends: [Friend]
         let streakDays: [StreakDay]
+        /// Подряд идущих активных дней до текущего (включительно) по календарю стрика.
+        let currentStreakDayCount: Int
         let deckCarousel: [DeckCarouselItem]
+    }
+
+    /// Сколько дней подряд активен стрик, заканчивая днём с `isCurrent == true`.
+    static func currentStreakLength(days: [StreakDay]) -> Int {
+        guard let i = days.firstIndex(where: { $0.isCurrent }) else { return 0 }
+        var n = 0
+        var j = i
+        while j >= 0 && days[j].isActive {
+            n += 1
+            j -= 1
+        }
+        return n
     }
 }
 

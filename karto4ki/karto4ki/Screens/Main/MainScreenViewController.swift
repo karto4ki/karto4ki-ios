@@ -19,6 +19,11 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
     private let streakCard  = UIView()
     private let streakStack = UIStackView()
 
+    // MARK: - Streak message (под плашкой календаря)
+    private let streakMessageCard = UIView()
+    private let streakMessageIcon = UIImageView()
+    private let streakMessageLabel = UILabel()
+
     // MARK: - Deck carousel (UICollectionView — видно соседнюю колоду при перетаскивании)
     private let carouselSection = UIStackView()
     private let carouselClipContainer = UIView()
@@ -40,9 +45,12 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
 
     private var deckCarouselItems: [MainScreenModels.DeckCarouselItem] = []
     private var lastDeckCarouselLayoutWidth: CGFloat = 0
-    /// Зазор между колодами при свайпе; вместе с шириной ячейки даёт шаг ровно в ширину клипа (`isPagingEnabled`).
-    private let deckCarouselInterItemGap: CGFloat = 10
+    /// 0: ширина ячейки = клип = как плашка стрика. Просвет при свайпе даёт отступ контента внутри ячейки (`DeckCarouselCollectionCell`).
+    private let deckCarouselInterItemGap: CGFloat = 0
     private var carouselClipHeightConstraint: NSLayoutConstraint?
+
+    /// Как `DeckCarouselCollectionCell.Layout.deckProgressSpacing` — единый шаг между блоками на главной.
+    private let mainContentBlockSpacing: CGFloat = DeckCarouselCollectionCell.verticalBlockSpacing
 
     // MARK: - Init
 
@@ -66,6 +74,7 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
         configureSearchField()
         configureFriendsSection()
         configureStreakCard()
+        configureStreakMessageCard()
         configureCarouselSection()
         interactor.loadData()
     }
@@ -99,15 +108,15 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
         ])
 
         contentStack.axis = .vertical
-        contentStack.spacing = 16
+        contentStack.spacing = mainContentBlockSpacing
         contentStack.alignment = .fill
         scrollView.addSubview(contentStack)
         contentStack.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            contentStack.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 12),
+            contentStack.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: mainContentBlockSpacing),
             contentStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 20),
             contentStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -20),
-            contentStack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -12),
+            contentStack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -mainContentBlockSpacing),
             contentStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -40)
         ])
 
@@ -262,8 +271,8 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
         NSLayoutConstraint.activate([
             streakStack.topAnchor.constraint(equalTo: streakCard.topAnchor, constant: 14),
             streakStack.bottomAnchor.constraint(equalTo: streakCard.bottomAnchor, constant: -14),
-            streakStack.leadingAnchor.constraint(equalTo: streakCard.leadingAnchor, constant: 10),
-            streakStack.trailingAnchor.constraint(equalTo: streakCard.trailingAnchor, constant: -10),
+            streakStack.leadingAnchor.constraint(equalTo: streakCard.leadingAnchor, constant: MainScreenCardLayout.horizontalContentInset),
+            streakStack.trailingAnchor.constraint(equalTo: streakCard.trailingAnchor, constant: -MainScreenCardLayout.horizontalContentInset),
             streakStack.heightAnchor.constraint(equalToConstant: 70)
         ])
     }
@@ -321,11 +330,61 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
         return container
     }
 
+    private func configureStreakMessageCard() {
+        styleCard(streakMessageCard)
+        contentStack.addArrangedSubview(streakMessageCard)
+
+        let iconConfig = UIImage.SymbolConfiguration(pointSize: 26, weight: .bold)
+        streakMessageIcon.image = UIImage(systemName: "flame.fill", withConfiguration: iconConfig)
+        streakMessageIcon.tintColor = UIColor(red: 0.98, green: 0.52, blue: 0.32, alpha: 1)
+        streakMessageIcon.contentMode = .scaleAspectFit
+        streakMessageIcon.setContentCompressionResistancePriority(.required, for: .horizontal)
+        streakMessageIcon.setWidth(34)
+
+        streakMessageLabel.font = Fonts.futuraB14
+        streakMessageLabel.textColor = .white
+        streakMessageLabel.numberOfLines = 0
+
+        let row = UIStackView(arrangedSubviews: [streakMessageIcon, streakMessageLabel])
+        row.axis = .horizontal
+        row.spacing = 12
+        row.alignment = .center
+
+        streakMessageCard.addSubview(row)
+        row.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            row.centerYAnchor.constraint(equalTo: streakMessageCard.centerYAnchor),
+            row.topAnchor.constraint(equalTo: streakMessageCard.topAnchor, constant: mainContentBlockSpacing),
+            row.bottomAnchor.constraint(equalTo: streakMessageCard.bottomAnchor, constant: -mainContentBlockSpacing),
+            row.leadingAnchor.constraint(equalTo: streakMessageCard.leadingAnchor, constant: MainScreenCardLayout.horizontalContentInset),
+            row.trailingAnchor.constraint(equalTo: streakMessageCard.trailingAnchor, constant: -MainScreenCardLayout.horizontalContentInset)
+        ])
+    }
+
+    private func updateStreakMessage(currentStreakDayCount: Int) {
+        if currentStreakDayCount == 0 {
+            streakMessageLabel.text = "учитесь каждый день, чтобы поддерживать стрик"
+        } else {
+            streakMessageLabel.text = "у вас стрик уже \(currentStreakDayCount) \(Self.russianDayWord(for: currentStreakDayCount))"
+        }
+    }
+
+    private static func russianDayWord(for n: Int) -> String {
+        let n100 = n % 100
+        let n10 = n % 10
+        if n100 >= 11 && n100 <= 14 { return "дней" }
+        switch n10 {
+        case 1: return "день"
+        case 2, 3, 4: return "дня"
+        default: return "дней"
+        }
+    }
+
     // MARK: - Carousel (колода + прогресс)
 
     private func configureCarouselSection() {
         carouselSection.axis = .vertical
-        carouselSection.spacing = 2
+        carouselSection.spacing = 0
         carouselSection.alignment = .fill
 
         carouselClipContainer.clipsToBounds = true
@@ -357,6 +416,8 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
         deckPageControl.pageIndicatorTintColor = UIColor.white.withAlphaComponent(0.35)
         deckPageControl.isUserInteractionEnabled = false
         deckPageControl.hidesForSinglePage = true
+        deckPageControl.setContentHuggingPriority(.required, for: .vertical)
+        deckPageControl.setContentCompressionResistancePriority(.required, for: .vertical)
 
         carouselSection.addArrangedSubview(carouselClipContainer)
         carouselSection.addArrangedSubview(deckPageControl)
@@ -526,6 +587,7 @@ extension MainScreenViewController: MainScreenDisplayLogic {
         deckPageControl.numberOfPages = max(1, deckCarouselItems.count)
         updateFriends(viewModel.friends)
         updateStreak(viewModel.streakDays)
+        updateStreakMessage(currentStreakDayCount: viewModel.currentStreakDayCount)
         resetDeckCarouselAfterDataLoad()
     }
 

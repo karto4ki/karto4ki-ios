@@ -9,9 +9,11 @@ final class MainScreenPresenter: MainScreenPresentationLogic {
         streakDays: [MainScreenModels.StreakDay],
         deckCarousel: [MainScreenModels.DeckCarouselItem]
     ) {
+        let streakCount = MainScreenModels.currentStreakLength(days: streakDays)
         let viewModel = MainScreenModels.ViewModel(
             friends: friends,
             streakDays: streakDays,
+            currentStreakDayCount: streakCount,
             deckCarousel: deckCarousel
         )
         view?.displayData(viewModel)

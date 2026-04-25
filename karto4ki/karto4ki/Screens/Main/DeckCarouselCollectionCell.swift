@@ -4,6 +4,8 @@ final class DeckCarouselCollectionCell: UICollectionViewCell {
 
     static let reuseId = "DeckCarouselCollectionCell"
 
+    /// Вертикальный шаг между колодой и статистикой в ячейке — тот же, что между блоками на главном экране.
+    static let verticalBlockSpacing: CGFloat = 10
     private let deckCard = UIView()
     private let deckTitleLabel = UILabel()
     private let deckAuthorLabel = UILabel()
@@ -41,18 +43,28 @@ final class DeckCarouselCollectionCell: UICollectionViewCell {
         )
     }
 
-    /// Три строки (futuraB15 ≈ 18pt по высоте) + два равных промежутка при `.equalSpacing`.
-    private static let statsBlockHeight: CGFloat = 3 * 18 + 2 * 10 + 6
-    /// Расстояние между дугой процентов и блоком лейблов (визуально «тянет» карточку прогресса вниз).
-    private static let gaugeToStatsVerticalGap: CGFloat = 20
+    private enum Layout {
+        static let deckCardHeight: CGFloat = 86
+        static let deckProgressSpacing: CGFloat = DeckCarouselCollectionCell.verticalBlockSpacing
+        static let gaugeTop: CGFloat = 10
+        static let gaugeHorizontalInset: CGFloat = MainScreenCardLayout.horizontalContentInset
+        static let gaugeHeightMultiplier: CGFloat = 0.46
+        static let gaugeToStatsGap: CGFloat = 6
+        static let statsHorizontalInset: CGFloat = MainScreenCardLayout.horizontalContentInset
+        static let statsStackMinSpacing: CGFloat = 4
+        static let progressBottomPadding: CGFloat = 10
+        /// Три компактные строки + минимальные зазоры `.equalSpacing`.
+        static let statsBlockHeight: CGFloat = 3 * 15 + 2 * statsStackMinSpacing + 4
+    }
 
-    /// Высота ячейки: `collectionWidth` — ширина клипа карусели, `interItemGap` — зазор между колодами при свайпе.
+    /// Высота ячейки: `collectionWidth` — ширина клипа карусели, `interItemGap` — зазор между страницами flow (0 = ширина стрика).
     static func contentHeight(collectionWidth: CGFloat, interItemGap: CGFloat) -> CGFloat {
         let itemW = max(0, collectionWidth - interItemGap)
-        let gaugeW = max(0, itemW - 40)
-        let gaugeH = gaugeW * 0.55
-        let progressBlock = 20 + gaugeH + Self.gaugeToStatsVerticalGap + statsBlockHeight + 20
-        return 90 + 16 + progressBlock
+        let columnW = itemW
+        let gaugeW = max(0, columnW - 2 * MainScreenCardLayout.horizontalContentInset)
+        let gaugeH = gaugeW * Layout.gaugeHeightMultiplier
+        let progressBlock = Layout.gaugeTop + gaugeH + Layout.gaugeToStatsGap + Layout.statsBlockHeight + Layout.progressBottomPadding
+        return Layout.deckCardHeight + Layout.deckProgressSpacing + progressBlock
     }
 
     // MARK: - Private
@@ -61,13 +73,13 @@ final class DeckCarouselCollectionCell: UICollectionViewCell {
         contentView.backgroundColor = .clear
 
         styleCard(deckCard)
-        deckCard.setHeight(90)
+        deckCard.setHeight(Layout.deckCardHeight)
 
-        let cardsIconConfig = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
+        let cardsIconConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
         let cardsIcon = UIImageView(image: UIImage(systemName: "rectangle.on.rectangle.angled", withConfiguration: cardsIconConfig))
         cardsIcon.tintColor = .white.withAlphaComponent(0.9)
         cardsIcon.contentMode = .scaleAspectFit
-        cardsIcon.setWidth(50)
+        cardsIcon.setWidth(42)
 
         deckTitleLabel.font = Fonts.futuraB17
         deckTitleLabel.textColor = .white
@@ -82,40 +94,42 @@ final class DeckCarouselCollectionCell: UICollectionViewCell {
 
         let infoStack = UIStackView(arrangedSubviews: [deckTitleLabel, deckAuthorLabel, deckCountLabel])
         infoStack.axis = .vertical
-        infoStack.spacing = 3
+        infoStack.spacing = 2
         infoStack.alignment = .leading
 
         let rowStack = UIStackView(arrangedSubviews: [cardsIcon, infoStack])
         rowStack.axis = .horizontal
-        rowStack.spacing = 20
+        rowStack.spacing = 12
         rowStack.alignment = .center
 
         deckCard.addSubview(rowStack)
         rowStack.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            rowStack.leadingAnchor.constraint(equalTo: deckCard.leadingAnchor, constant: 16),
-            rowStack.trailingAnchor.constraint(equalTo: deckCard.trailingAnchor, constant: -16),
-            rowStack.topAnchor.constraint(equalTo: deckCard.topAnchor, constant: 14),
-            rowStack.bottomAnchor.constraint(equalTo: deckCard.bottomAnchor, constant: -14)
+            rowStack.leadingAnchor.constraint(equalTo: deckCard.leadingAnchor, constant: MainScreenCardLayout.horizontalContentInset),
+            rowStack.trailingAnchor.constraint(equalTo: deckCard.trailingAnchor, constant: -MainScreenCardLayout.horizontalContentInset),
+            rowStack.topAnchor.constraint(equalTo: deckCard.topAnchor, constant: 8),
+            rowStack.bottomAnchor.constraint(equalTo: deckCard.bottomAnchor, constant: -8)
         ])
 
         styleCard(progressCard)
         gaugeView.translatesAutoresizingMaskIntoConstraints = false
         progressCard.addSubview(gaugeView)
 
-        learnedLabel.font = Fonts.futuraB14
+        let statsFont = UIFont(name: "futuralt-bold", size: 13) ?? UIFont.systemFont(ofSize: 13, weight: .bold)
+
+        learnedLabel.font = statsFont
         learnedLabel.textColor = .white.withAlphaComponent(0.9)
         learnedLabel.textAlignment = .center
         learnedLabel.numberOfLines = 1
         learnedLabel.setContentCompressionResistancePriority(.required, for: .vertical)
 
-        notLearnedLabel.font = Fonts.futuraB14
+        notLearnedLabel.font = statsFont
         notLearnedLabel.textColor = .white.withAlphaComponent(0.9)
         notLearnedLabel.textAlignment = .center
         notLearnedLabel.numberOfLines = 1
         notLearnedLabel.setContentCompressionResistancePriority(.required, for: .vertical)
 
-        errorsLabel.font = Fonts.futuraB14
+        errorsLabel.font = statsFont
         errorsLabel.textAlignment = .center
         errorsLabel.numberOfLines = 1
         errorsLabel.adjustsFontSizeToFitWidth = true
@@ -125,7 +139,7 @@ final class DeckCarouselCollectionCell: UICollectionViewCell {
         let statsStack = UIStackView(arrangedSubviews: [learnedLabel, notLearnedLabel, errorsLabel])
         statsStack.axis = .vertical
         statsStack.distribution = .equalSpacing
-        statsStack.spacing = 8
+        statsStack.spacing = Layout.statsStackMinSpacing
         statsStack.alignment = .fill
         statsStack.setContentHuggingPriority(.required, for: .vertical)
         statsStack.setContentCompressionResistancePriority(.required, for: .vertical)
@@ -141,20 +155,20 @@ final class DeckCarouselCollectionCell: UICollectionViewCell {
         verticalFiller.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
 
         NSLayoutConstraint.activate([
-            gaugeView.topAnchor.constraint(equalTo: progressCard.topAnchor, constant: 20),
-            gaugeView.leadingAnchor.constraint(equalTo: progressCard.leadingAnchor, constant: 20),
-            gaugeView.trailingAnchor.constraint(equalTo: progressCard.trailingAnchor, constant: -20),
-            gaugeView.heightAnchor.constraint(equalTo: gaugeView.widthAnchor, multiplier: 0.55),
+            gaugeView.topAnchor.constraint(equalTo: progressCard.topAnchor, constant: Layout.gaugeTop),
+            gaugeView.leadingAnchor.constraint(equalTo: progressCard.leadingAnchor, constant: Layout.gaugeHorizontalInset),
+            gaugeView.trailingAnchor.constraint(equalTo: progressCard.trailingAnchor, constant: -Layout.gaugeHorizontalInset),
+            gaugeView.heightAnchor.constraint(equalTo: gaugeView.widthAnchor, multiplier: Layout.gaugeHeightMultiplier),
 
-            statsStack.topAnchor.constraint(equalTo: gaugeView.bottomAnchor, constant: Self.gaugeToStatsVerticalGap),
-            statsStack.leadingAnchor.constraint(equalTo: progressCard.leadingAnchor, constant: 16),
-            statsStack.trailingAnchor.constraint(equalTo: progressCard.trailingAnchor, constant: -16),
-            progressCard.bottomAnchor.constraint(equalTo: statsStack.bottomAnchor, constant: 20)
+            statsStack.topAnchor.constraint(equalTo: gaugeView.bottomAnchor, constant: Layout.gaugeToStatsGap),
+            statsStack.leadingAnchor.constraint(equalTo: progressCard.leadingAnchor, constant: Layout.statsHorizontalInset),
+            statsStack.trailingAnchor.constraint(equalTo: progressCard.trailingAnchor, constant: -Layout.statsHorizontalInset),
+            progressCard.bottomAnchor.constraint(equalTo: statsStack.bottomAnchor, constant: Layout.progressBottomPadding)
         ])
 
         let deckProgressStack = UIStackView(arrangedSubviews: [deckCard, progressCard])
         deckProgressStack.axis = .vertical
-        deckProgressStack.spacing = 16
+        deckProgressStack.spacing = Layout.deckProgressSpacing
         deckProgressStack.alignment = .fill
 
         let column = UIStackView(arrangedSubviews: [deckProgressStack, verticalFiller])
