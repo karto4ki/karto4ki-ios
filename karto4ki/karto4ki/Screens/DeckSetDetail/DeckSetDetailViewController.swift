@@ -20,7 +20,9 @@ final class DeckSetDetailViewController: UIViewController {
     private let statsContainer = UIView()
     private let statsStack = UIStackView()
 
-    private let startStudyButton = UIButton(type: .system)
+    private let studyActionsStack = UIStackView()
+    private let rememberNotRememberButton = UIButton(type: .system)
+    private let typeAnswerButton = UIButton(type: .system)
     private let addToLibraryButton = UIButton(type: .system)
     private let cardsSectionTitle = UILabel()
     private let cardsStack = UIStackView()
@@ -55,7 +57,7 @@ final class DeckSetDetailViewController: UIViewController {
         configureTopBar()
         configureHeader()
         configureStats()
-        configureStartStudy()
+        configureStudyEntryButtons()
         configureAddToLibrary()
         configureCardsSection()
         configureAddCard()
@@ -232,25 +234,40 @@ final class DeckSetDetailViewController: UIViewController {
         contentStack.addArrangedSubview(statsContainer)
     }
 
-    private func configureStartStudy() {
-        let playCfg = UIImage.SymbolConfiguration(pointSize: 12, weight: .semibold)
-        startStudyButton.setImage(UIImage(systemName: "play.fill", withConfiguration: playCfg), for: .normal)
-        startStudyButton.setTitle(" Начать обучение", for: .normal)
-        startStudyButton.setTitleColor(.white, for: .normal)
-        startStudyButton.tintColor = .white
-        startStudyButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        startStudyButton.backgroundColor = deckFolderTint.withAlphaComponent(0.55)
-        startStudyButton.layer.cornerRadius = glassCorner
-        startStudyButton.layer.borderWidth = 1
-        startStudyButton.layer.borderColor = UIColor.white.withAlphaComponent(0.45).cgColor
-        startStudyButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
-        startStudyButton.addTarget(self, action: #selector(startStudyTapped), for: .touchUpInside)
+    private func configureStudyEntryButtons() {
+        studyActionsStack.axis = .vertical
+        studyActionsStack.spacing = 10
+        studyActionsStack.alignment = .fill
+
+        rememberNotRememberButton.setTitle("Помню / Не помню", for: .normal)
+        rememberNotRememberButton.setTitleColor(.white, for: .normal)
+        rememberNotRememberButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        rememberNotRememberButton.backgroundColor = deckFolderTint.withAlphaComponent(0.55)
+        rememberNotRememberButton.layer.cornerRadius = glassCorner
+        rememberNotRememberButton.layer.borderWidth = 1
+        rememberNotRememberButton.layer.borderColor = UIColor.white.withAlphaComponent(0.45).cgColor
+        rememberNotRememberButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
+        rememberNotRememberButton.addTarget(self, action: #selector(rememberNotRememberStudyTapped), for: .touchUpInside)
+
+        typeAnswerButton.setTitle("Ввести ответ", for: .normal)
+        typeAnswerButton.setTitleColor(.white, for: .normal)
+        typeAnswerButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        typeAnswerButton.backgroundColor = .clear
+        typeAnswerButton.layer.cornerRadius = glassCorner
+        typeAnswerButton.layer.borderWidth = 1.5
+        typeAnswerButton.layer.borderColor = UIColor.white.withAlphaComponent(0.65).cgColor
+        typeAnswerButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
+        typeAnswerButton.addTarget(self, action: #selector(typeAnswerStudyTapped), for: .touchUpInside)
 
         let hasCards = deck.total > 0
-        startStudyButton.isEnabled = hasCards
-        startStudyButton.alpha = hasCards ? 1 : 0.45
+        rememberNotRememberButton.isEnabled = hasCards
+        typeAnswerButton.isEnabled = hasCards
+        rememberNotRememberButton.alpha = hasCards ? 1 : 0.45
+        typeAnswerButton.alpha = hasCards ? 1 : 0.45
 
-        contentStack.addArrangedSubview(startStudyButton)
+        studyActionsStack.addArrangedSubview(rememberNotRememberButton)
+        studyActionsStack.addArrangedSubview(typeAnswerButton)
+        contentStack.addArrangedSubview(studyActionsStack)
         contentStack.setCustomSpacing(12, after: statsContainer)
     }
 
@@ -359,10 +376,17 @@ final class DeckSetDetailViewController: UIViewController {
     }
 
     @objc
-    private func startStudyTapped() {
+    private func rememberNotRememberStudyTapped() {
+        let study = FlashcardStudyViewController(deck: deck)
+        study.modalPresentationStyle = .fullScreen
+        present(study, animated: true)
+    }
+
+    @objc
+    private func typeAnswerStudyTapped() {
         let a = UIAlertController(
-            title: "Обучение",
-            message: "Режим изучения набора появится в следующих версиях.",
+            title: "Ввести ответ",
+            message: "Режим ввода ответа появится в следующих версиях.",
             preferredStyle: .alert
         )
         a.addAction(UIAlertAction(title: "OK", style: .default))
