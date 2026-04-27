@@ -87,7 +87,8 @@ final class LibraryScreenInteractor: LibraryScreenBusinessLogic {
                 learned: 0,
                 total: 46,
                 addedAt: cal.date(byAdding: .day, value: -7, to: now) ?? now,
-                colorIndex: 3
+                colorIndex: 3,
+                isUserOwned: false
             )
         ]
     }

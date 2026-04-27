@@ -325,13 +325,8 @@ final class LibraryScreenViewController: UIViewController {
     }
 
     private func openDeck(_ deck: LibraryModels.DeckSet) {
-        let a = UIAlertController(
-            title: deck.title,
-            message: "Экран набора будет подключён, когда появится API.",
-            preferredStyle: .alert
-        )
-        a.addAction(UIAlertAction(title: "OK", style: .default))
-        present(a, animated: true)
+        let detail = DeckSetDetailViewController(deck: deck)
+        present(detail, animated: true)
     }
 
     private func confirmDelete(_ deck: LibraryModels.DeckSet) {

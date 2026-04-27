@@ -17,14 +17,6 @@ final class LibraryDeckRowView: UIView {
     private let chevron = UIImageView()
 
     private var deleteWidth: NSLayoutConstraint?
-    private let wobbleKey = "library.row.wobble"
-
-    private static let folderColors: [UIColor] = [
-        UIColor(red: 0.55, green: 0.45, blue: 0.95, alpha: 1),
-        UIColor(red: 0.35, green: 0.78, blue: 0.55, alpha: 1),
-        UIColor(red: 0.98, green: 0.62, blue: 0.32, alpha: 1),
-        UIColor(red: 0.38, green: 0.65, blue: 0.98, alpha: 1)
-    ]
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -126,8 +118,7 @@ final class LibraryDeckRowView: UIView {
         progressCaptionLabel.text = "выучено: \(deck.learned) из \(deck.total)"
         metaLabel.text = createdText
         
-        let idx = deck.colorIndex % Self.folderColors.count
-        let c = Self.folderColors[idx]
+        let c = LibraryModels.FolderPalette.folderColor(colorIndex: deck.colorIndex)
         folderIcon.image = UIImage(systemName: "folder.fill")
         folderIcon.tintColor = c
         progressView.progressTintColor = c
