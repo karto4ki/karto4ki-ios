@@ -1,12 +1,11 @@
 import Foundation
 
-/// Имитация `GET/POST` к бэкенду: задержка, очередь карточек, финал «с сервера хватит».
+/// Имитация API: при старте два GET (текущая + следующая), после каждого POST — ещё один GET на карту «под колодой».
 final class FlashcardStudyMockSession {
 
     private let cards: [FlashcardStudyModels.StudyCardPayload]
-    private var currentIndex = 0
+    private var topCardIndex = 0
 
-    /// Сколько карточек отдать до «сервер сказал хватит» (имитация лимита сессии).
     private let serverLimit: Int
 
     init(deckId: UUID, deckTitle: String, deckTotal: Int) {
@@ -24,7 +23,6 @@ final class FlashcardStudyMockSession {
                 total: sessionTotal
             )
         }
-        // Имитация ответа сервера «хватит» чуть раньше конца длинной сессии.
         if cards.count >= 8 {
             self.serverLimit = cards.count - 2
         } else {
@@ -32,46 +30,55 @@ final class FlashcardStudyMockSession {
         }
     }
 
-    /// Имитация `GET …/study/session` + первая карточка.
-    func fetchInitialCard() async throws -> FlashcardStudyModels.StudyCardPayload {
+    /// Два последовательных «запроса»: текущая карточка и следующая под колодой.
+    func bootstrapDeck() async throws -> FlashcardStudyModels.DeckBootstrap {
         try await Self.networkDelay()
-        print("🌐 [mock] GET study session → card 1/\(cards.count)")
-        currentIndex = 0
-        guard let first = cards.first else {
+        print("🌐 [mock] GET study card #1 (current)")
+        try await Self.networkDelay()
+        print("🌐 [mock] GET study card #2 (prefetch under)")
+        topCardIndex = 0
+        guard let top = cards.first else {
             throw NSError(domain: "FlashcardStudyMock", code: 1, userInfo: [NSLocalizedDescriptionKey: "Пустой набор"])
         }
-        return first
+        let under: FlashcardStudyModels.StudyCardPayload? = cards.count > 1 ? cards[1] : nil
+        return FlashcardStudyModels.DeckBootstrap(top: top, under: under)
     }
 
-    /// Имитация `POST …/study/answer` + ответ с следующей карточкой или `finished`.
-    func submitAnswer(_ choice: FlashcardStudyModels.RememberChoice) async throws -> FlashcardStudyModels.NextCardResult {
+    /// POST ответа + GET следующей карты для нижнего слоя колоды.
+    func submitDeckAnswer(_ choice: FlashcardStudyModels.RememberChoice) async throws -> FlashcardStudyModels.DeckAdvanceResult {
         try await Self.networkDelay()
-        print("🌐 [mock] POST study answer: \(choice.rawValue) (card #\(currentIndex + 1))")
+        print("🌐 [mock] POST study answer: \(choice.rawValue) (top was #\(topCardIndex + 1))")
 
-        let nextIndex = currentIndex + 1
+        let newTopIndex = topCardIndex + 1
 
-        if nextIndex >= serverLimit {
+        if newTopIndex >= serverLimit {
             let messages = [
                 "Сервер: на сегодня достаточно.",
                 "Сессия завершена. Вернитесь завтра.",
                 "Лимит повторений на сегодня исчерпан."
             ]
-            return .finished(message: messages[nextIndex % messages.count])
+            return .finished(message: messages[newTopIndex % messages.count])
         }
 
-        if nextIndex >= cards.count {
+        if newTopIndex >= cards.count {
             return .finished(message: "Вы прошли все карточки в этом наборе.")
         }
 
-        currentIndex = nextIndex
-        return .card(cards[currentIndex])
+        topCardIndex = newTopIndex
+
+        try await Self.networkDelay()
+        print("🌐 [mock] GET study card (prefetch under after swipe)")
+
+        let prefetchIdx = topCardIndex + 1
+        let prefetchedUnder: FlashcardStudyModels.StudyCardPayload? = (prefetchIdx < cards.count) ? cards[prefetchIdx] : nil
+
+        return .continued(prefetchedUnder: prefetchedUnder)
     }
 
     private static func networkDelay() async throws {
         try await Task.sleep(nanoseconds: UInt64.random(in: 180_000_000...380_000_000))
     }
 
-    /// Тестовые пары «термин → кратко».
     private static let samplePool: [(String, String)] = [
         ("диспетчеризация", "Планирование и передача работ между потоками/очередями"),
         ("идемпотентность", "Повторный запрос даёт тот же результат, что и первый"),

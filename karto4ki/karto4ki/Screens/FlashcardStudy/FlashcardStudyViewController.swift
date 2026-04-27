@@ -1,6 +1,6 @@
 import UIKit
 
-/// Режим «Помню / не помню»: мок-сеть, живой pan (сдвиг + поворот, отмена отпусканием), переворот по тапу (tap ждёт, пока pan не провалится).
+/// Режим «Помню / не помню»: буфер из двух карточек (верх + следующая под ней), живой pan, тап ждёт pan.
 final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerDelegate {
 
     private let deck: LibraryModels.DeckSet
@@ -15,9 +15,13 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
     private let knownPill = UILabel()
     private let progressView = UIProgressView(progressViewStyle: .bar)
 
-    private let cardView = UIView()
-    private let frontLabel = UILabel()
-    private let backLabel = UILabel()
+    private let deckSlot = UIView()
+    /// Два слота колоды: роли меняются после свайпа (`topCard` / `bottomCard`). Не `!` + `[a,b]` из IUO — тип массива станет `[DeckCardSurface?]`.
+    /// Кто сейчас сверху (жесты, свайп).
+    private var topCard: DeckCardSurface?
+    /// Кто под верхней (колода); без данных скрыт.
+    private var bottomCard: DeckCardSurface?
+
     private let listenButton = UIButton(type: .system)
     private let forgetButton = UIButton(type: .system)
     private let rememberButton = UIButton(type: .system)
@@ -28,7 +32,6 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
     private let cardPan = UIPanGestureRecognizer()
 
     private var currentPayload: FlashcardStudyModels.StudyCardPayload?
-    private var isBackVisible = false
     private var isBusy = false
     private var isHorizontalCardDrag = false
     private var reviewCount = 0
@@ -60,7 +63,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
         configureBackground()
         configureTopBar()
         configurePillsAndProgress()
-        configureCard()
+        configureDeckSlot()
         configureCardPan()
         configureListen()
         configureBottomButtons()
@@ -167,46 +170,37 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
         btn.heightAnchor.constraint(equalToConstant: 40).isActive = true
     }
 
-    private func configureCard() {
-        cardView.translatesAutoresizingMaskIntoConstraints = false
-        cardView.backgroundColor = .white.withAlphaComponent(0.42)
-        cardView.layer.cornerRadius = 24
-        cardView.layer.borderWidth = cardDefaultBorderWidth
-        cardView.layer.borderColor = cardDefaultBorderColor
-        cardView.clipsToBounds = true
+    private func configureDeckSlot() {
+        let a = DeckCardSurface(textPurple: cardTextPurple)
+        let b = DeckCardSurface(textPurple: cardTextPurple)
+        topCard = a
+        bottomCard = b
 
-        for label in [frontLabel, backLabel] {
-            label.font = UIFont.systemFont(ofSize: 26, weight: .bold)
-            label.textColor = cardTextPurple
-            label.textAlignment = .center
-            label.numberOfLines = 0
-            label.translatesAutoresizingMaskIntoConstraints = false
+        deckSlot.translatesAutoresizingMaskIntoConstraints = false
+        deckSlot.backgroundColor = .clear
+        view.addSubview(deckSlot)
+
+        for s in [a, b] {
+            s.translatesAutoresizingMaskIntoConstraints = false
+            deckSlot.addSubview(s)
+            NSLayoutConstraint.activate([
+                s.topAnchor.constraint(equalTo: deckSlot.topAnchor),
+                s.leadingAnchor.constraint(equalTo: deckSlot.leadingAnchor),
+                s.trailingAnchor.constraint(equalTo: deckSlot.trailingAnchor),
+                s.bottomAnchor.constraint(equalTo: deckSlot.bottomAnchor)
+            ])
         }
-        backLabel.isHidden = true
+        deckSlot.insertSubview(b, belowSubview: a)
 
-        cardView.addSubview(frontLabel)
-        cardView.addSubview(backLabel)
-        view.addSubview(cardView)
-
-        let cardCenterY = cardView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -28)
+        let cardCenterY = deckSlot.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -28)
         cardCenterY.priority = UILayoutPriority(250)
 
         NSLayoutConstraint.activate([
-            cardView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 28),
-            cardView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -28),
-            cardView.heightAnchor.constraint(greaterThanOrEqualToConstant: 220),
-            cardView.topAnchor.constraint(greaterThanOrEqualTo: progressView.bottomAnchor, constant: 18),
-            cardCenterY,
-
-            frontLabel.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 28),
-            frontLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 20),
-            frontLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -20),
-            frontLabel.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -28),
-
-            backLabel.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 28),
-            backLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 20),
-            backLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -20),
-            backLabel.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -28)
+            deckSlot.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 28),
+            deckSlot.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -28),
+            deckSlot.heightAnchor.constraint(greaterThanOrEqualToConstant: 220),
+            deckSlot.topAnchor.constraint(greaterThanOrEqualTo: progressView.bottomAnchor, constant: 18),
+            cardCenterY
         ])
     }
 
@@ -215,8 +209,15 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
         cardTap.cancelsTouchesInView = false
         cardPan.addTarget(self, action: #selector(handleCardPan(_:)))
         cardPan.delegate = self
-        cardView.addGestureRecognizer(cardTap)
-        cardView.addGestureRecognizer(cardPan)
+        attachGesturesToTopCard()
+    }
+
+    private func attachGesturesToTopCard() {
+        guard let top = topCard else { return }
+        cardTap.view?.removeGestureRecognizer(cardTap)
+        cardPan.view?.removeGestureRecognizer(cardPan)
+        top.addGestureRecognizer(cardTap)
+        top.addGestureRecognizer(cardPan)
         cardTap.require(toFail: cardPan)
     }
 
@@ -226,6 +227,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
 
     @objc
     private func handleCardPan(_ g: UIPanGestureRecognizer) {
+        guard let top = topCard, g.view === top else { return }
         guard !isBusy, currentPayload != nil else {
             g.setTranslation(.zero, in: view)
             return
@@ -274,9 +276,8 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
                         initialSpringVelocity: 0.55,
                         options: [.curveEaseOut, .allowUserInteraction]
                     ) {
-                        self.cardView.transform = .identity
+                        self.topCard?.transform = .identity
                         self.resetCardBorder()
-                        self.updateLabelColorsForDrag(translationX: 0)
                     }
                 }
             }
@@ -286,46 +287,30 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
         }
     }
 
-    /// Живой сдвиг + лёгкий поворот (как в Quizlet).
     private func applyCardDragTransform(translationX tx: CGFloat) {
+        guard let top = topCard else { return }
         let w = max(view.bounds.width, 1)
         let maxAngle: CGFloat = .pi / 10
         let angle = (tx / w) * maxAngle * 2.8
         var tform = CGAffineTransform.identity
         tform = tform.translatedBy(x: tx, y: 0)
         tform = tform.rotated(by: angle)
-        cardView.transform = tform
+        top.transform = tform
     }
 
     private func updateCardBorderForDrag(translationX tx: CGFloat) {
-        if tx < -18 {
-            cardView.layer.borderColor = quizletOrange.cgColor
-            cardView.layer.borderWidth = 2.5
-        } else if tx > 18 {
-            cardView.layer.borderColor = rememberGreen.cgColor
-            cardView.layer.borderWidth = 2.5
-        } else {
-            resetCardBorder()
-        }
-        updateLabelColorsForDrag(translationX: tx)
-    }
-
-    private func updateLabelColorsForDrag(translationX tx: CGFloat) {
-        if tx < -18 {
-            frontLabel.textColor = quizletOrange
-            backLabel.textColor = quizletOrange
-        } else if tx > 18 {
-            frontLabel.textColor = rememberGreen
-            backLabel.textColor = rememberGreen
-        } else {
-            frontLabel.textColor = cardTextPurple
-            backLabel.textColor = cardTextPurple
-        }
+        guard let top = topCard else { return }
+        top.updateDragVisual(
+            translationX: tx,
+            orange: quizletOrange,
+            green: rememberGreen,
+            defaultBorder: UIColor(cgColor: cardDefaultBorderColor),
+            defaultWidth: cardDefaultBorderWidth
+        )
     }
 
     private func resetCardBorder() {
-        cardView.layer.borderWidth = cardDefaultBorderWidth
-        cardView.layer.borderColor = cardDefaultBorderColor
+        topCard?.resetBorder(defaultBorder: UIColor(cgColor: cardDefaultBorderColor), width: cardDefaultBorderWidth)
     }
 
     private func finalizeSwipeCommit(choice: FlashcardStudyModels.RememberChoice, exitSign: CGFloat) {
@@ -333,15 +318,12 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
         setInteractionEnabled(false)
         let w = view.bounds.width
         let extra: CGFloat = w * 0.65
-        UIView.animate(withDuration: 0.22, delay: 0, options: .curveEaseIn, animations: {
+        UIView.animate(withDuration: 0.32, delay: 0, options: [.curveEaseInOut, .allowUserInteraction], animations: {
             self.applyCardDragTransform(translationX: exitSign * extra)
-            self.cardView.alpha = 0.08
         }, completion: { [weak self] _ in
             guard let self else { return }
-            self.cardView.transform = .identity
             self.resetCardBorder()
-            self.updateLabelColorsForDrag(translationX: 0)
-            Task { [weak self] in await self?.handleAnswer(choice) }
+            self.afterSwipeFlyOff(choice: choice)
         })
 
         switch choice {
@@ -360,14 +342,8 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
     }
 
     private func flipCard() {
-        guard !isBusy, currentPayload != nil else { return }
-        let willShowBack = !isBackVisible
-        let options: UIView.AnimationOptions = willShowBack ? .transitionFlipFromRight : .transitionFlipFromLeft
-        UIView.transition(with: cardView, duration: 0.38, options: options, animations: {
-            self.isBackVisible = willShowBack
-            self.frontLabel.isHidden = self.isBackVisible
-            self.backLabel.isHidden = !self.isBackVisible
-        })
+        guard !isBusy, currentPayload != nil, let top = topCard else { return }
+        top.flip()
     }
 
     private func configureListen() {
@@ -388,7 +364,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
         view.addSubview(listenButton)
 
         NSLayoutConstraint.activate([
-            listenButton.topAnchor.constraint(equalTo: cardView.bottomAnchor, constant: 20),
+            listenButton.topAnchor.constraint(equalTo: deckSlot.bottomAnchor, constant: 20),
             listenButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
     }
@@ -442,21 +418,21 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
         loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(loadingIndicator)
         NSLayoutConstraint.activate([
-            loadingIndicator.centerXAnchor.constraint(equalTo: cardView.centerXAnchor),
-            loadingIndicator.centerYAnchor.constraint(equalTo: cardView.centerYAnchor)
+            loadingIndicator.centerXAnchor.constraint(equalTo: deckSlot.centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: deckSlot.centerYAnchor)
         ])
     }
 
     @objc
     private func forgetTapped() {
         bumpCounters(for: .dontRemember)
-        commitAnswer(.dontRemember, exitSign: -1)
+        commitAnswerWithFlyOff(.dontRemember, exitSign: -1)
     }
 
     @objc
     private func rememberTapped() {
         bumpCounters(for: .remember)
-        commitAnswer(.remember, exitSign: 1)
+        commitAnswerWithFlyOff(.remember, exitSign: 1)
     }
 
     private func bumpCounters(for choice: FlashcardStudyModels.RememberChoice) {
@@ -505,15 +481,15 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
     private func bootstrapSession() async {
         await MainActor.run { loadingIndicator.startAnimating(); setInteractionEnabled(false) }
         do {
-            let card = try await mockSession.fetchInitialCard()
+            let boot = try await mockSession.bootstrapDeck()
             await MainActor.run {
-                applyPayload(card)
-                cardView.alpha = 0
-                loadingIndicator.stopAnimating()
+                self.applyBootstrap(boot)
+                self.deckSlot.alpha = 0
+                self.loadingIndicator.stopAnimating()
                 UIView.animate(withDuration: 0.28) {
-                    self.cardView.alpha = 1
+                    self.deckSlot.alpha = 1
                 }
-                setInteractionEnabled(true)
+                self.setInteractionEnabled(true)
             }
         } catch {
             await MainActor.run {
@@ -526,77 +502,198 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
         }
     }
 
-    private func applyPayload(_ payload: FlashcardStudyModels.StudyCardPayload) {
-        currentPayload = payload
-        isBackVisible = false
-        frontLabel.isHidden = false
-        backLabel.isHidden = true
-        frontLabel.text = payload.front
-        backLabel.text = payload.back
-        frontLabel.textColor = cardTextPurple
-        backLabel.textColor = cardTextPurple
-        centerProgressLabel.text = "\(payload.position) / \(payload.total)"
-        let p = Float(payload.position) / Float(max(payload.total, 1))
-        progressView.setProgress(p, animated: true)
-        cardView.transform = .identity
-        resetCardBorder()
+    private func applyBootstrap(_ boot: FlashcardStudyModels.DeckBootstrap) {
+        guard let top = topCard, let bottom = bottomCard else { return }
+        let border = UIColor(cgColor: cardDefaultBorderColor)
+        top.configure(payload: boot.top, defaultBorder: border, borderWidth: cardDefaultBorderWidth)
+        currentPayload = boot.top
+        top.resetFlipState()
+        top.resetToIdentity()
+        top.isHidden = false
+
+        if let u = boot.under {
+            bottom.configure(payload: u, defaultBorder: border, borderWidth: cardDefaultBorderWidth)
+            bottom.resetFlipState()
+            bottom.applyDeckPose()
+            bottom.isHidden = false
+        } else {
+            bottom.isHidden = true
+        }
+
+        updateProgressUI(for: boot.top, progressAnimated: false)
+        deckSlot.insertSubview(bottom, belowSubview: top)
+        attachGesturesToTopCard()
     }
 
-    private func commitAnswer(_ choice: FlashcardStudyModels.RememberChoice, exitSign: CGFloat) {
+    private func updateProgressUI(for payload: FlashcardStudyModels.StudyCardPayload, progressAnimated: Bool = false) {
+        centerProgressLabel.text = "\(payload.position) / \(payload.total)"
+        let p = Float(payload.position) / Float(max(payload.total, 1))
+        progressView.setProgress(p, animated: progressAnimated)
+    }
+
+    private func commitAnswerWithFlyOff(_ choice: FlashcardStudyModels.RememberChoice, exitSign: CGFloat) {
         guard !isBusy, currentPayload != nil else { return }
         isBusy = true
         setInteractionEnabled(false)
         let w = view.bounds.width
-        UIView.animate(withDuration: 0.28, delay: 0, options: .curveEaseIn, animations: {
+        UIView.animate(withDuration: 0.32, delay: 0, options: [.curveEaseInOut, .allowUserInteraction], animations: {
             self.applyCardDragTransform(translationX: exitSign * (w * 0.55))
-            self.cardView.alpha = 0.15
         }, completion: { [weak self] _ in
             guard let self else { return }
-            self.cardView.transform = .identity
             self.resetCardBorder()
-            self.updateLabelColorsForDrag(translationX: 0)
-            Task { [weak self] in await self?.handleAnswer(choice) }
+            self.afterSwipeFlyOff(choice: choice)
         })
     }
 
-    private func handleAnswer(_ choice: FlashcardStudyModels.RememberChoice) async {
+    /// После уезда верхней: не возвращаем её на экран. Если под ней уже есть карта — сразу плавно поднимаем; ответ сервера только подставляет текст в нижний слот без анимации.
+    private func afterSwipeFlyOff(choice: FlashcardStudyModels.RememberChoice) {
+        guard let oldTop = topCard, let rising = bottomCard else {
+            Task { await handleAnswerAfterSwipeServerFirst(choice: choice) }
+            return
+        }
+
+        oldTop.resetBorder(defaultBorder: UIColor(cgColor: cardDefaultBorderColor), width: cardDefaultBorderWidth)
+        oldTop.isHidden = true
+        oldTop.resetToIdentity()
+        oldTop.alpha = 1
+
+        let canPromoteLocally = !rising.isHidden && rising.payload != nil
+
+        if canPromoteLocally {
+            rising.resetFlipState()
+            rising.resetBorder(defaultBorder: UIColor(cgColor: cardDefaultBorderColor), width: cardDefaultBorderWidth)
+            currentPayload = rising.payload
+
+            UIView.animate(withDuration: 0.36, delay: 0, options: [.curveEaseOut, .allowUserInteraction]) {
+                rising.resetToIdentity()
+            }
+
+            topCard = rising
+            bottomCard = oldTop
+            oldTop.isHidden = true
+
+            deckSlot.insertSubview(oldTop, belowSubview: rising)
+            if let pl = rising.payload {
+                updateProgressUI(for: pl, progressAnimated: false)
+            }
+            attachGesturesToTopCard()
+            isBusy = false
+            setInteractionEnabled(true)
+
+            Task { await submitAnswerAndApplyPrefetchOnly(choice: choice) }
+        } else {
+            Task { await handleAnswerAfterSwipeServerFirst(choice: choice) }
+        }
+    }
+
+    private func submitAnswerAndApplyPrefetchOnly(choice: FlashcardStudyModels.RememberChoice) async {
         do {
-            let result = try await mockSession.submitAnswer(choice)
+            let result = try await mockSession.submitDeckAnswer(choice)
             await MainActor.run {
                 switch result {
-                case .card(let next):
-                    self.cardView.transform = .identity
-                    self.cardView.alpha = 0
-                    self.applyPayload(next)
-                    UIView.animate(
-                        withDuration: 0.32,
-                        delay: 0,
-                        usingSpringWithDamping: 0.88,
-                        initialSpringVelocity: 0.4,
-                        options: [.curveEaseOut],
-                        animations: { self.cardView.alpha = 1 },
-                        completion: { _ in
-                            self.isBusy = false
-                            self.setInteractionEnabled(true)
-                        }
-                    )
+                case .continued(let prefetchedUnder):
+                    self.applyPrefetchToBottomCard(prefetchedUnder)
                 case .finished(let message):
-                    self.isBusy = false
-                    self.setInteractionEnabled(true)
+                    self.topCard?.isHidden = true
+                    self.bottomCard?.isHidden = true
                     self.showFinished(message)
                 }
             }
         } catch {
             await MainActor.run {
-                self.cardView.transform = .identity
-                self.cardView.alpha = 1
+                let a = UIAlertController(title: "Ошибка", message: error.localizedDescription, preferredStyle: .alert)
+                a.addAction(UIAlertAction(title: "OK", style: .default))
+                self.present(a, animated: true)
+            }
+        }
+    }
+
+    /// Редкий случай: нет нижней карточки в буфере — ждём сервер и раскладку как раньше (без пружины на тексте).
+    private func handleAnswerAfterSwipeServerFirst(choice: FlashcardStudyModels.RememberChoice) async {
+        do {
+            let result = try await mockSession.submitDeckAnswer(choice)
+            await MainActor.run {
+                switch result {
+                case .continued(let prefetchedUnder):
+                    self.promoteDeckAfterServer(prefetchedUnder: prefetchedUnder)
+                case .finished(let message):
+                    self.topCard?.isHidden = true
+                    self.bottomCard?.isHidden = true
+                    self.showFinished(message)
+                }
+            }
+        } catch {
+            await MainActor.run {
+                self.topCard?.isHidden = false
+                self.topCard?.alpha = 1
+                self.topCard?.transform = .identity
                 self.isBusy = false
                 self.setInteractionEnabled(true)
                 let a = UIAlertController(title: "Ошибка", message: error.localizedDescription, preferredStyle: .alert)
                 a.addAction(UIAlertAction(title: "OK", style: .default))
                 self.present(a, animated: true)
             }
+            return
         }
+        await MainActor.run {
+            self.isBusy = false
+            self.setInteractionEnabled(true)
+        }
+    }
+
+    private func applyPrefetchToBottomCard(_ prefetchedUnder: FlashcardStudyModels.StudyCardPayload?) {
+        guard let bottom = bottomCard else { return }
+        let border = UIColor(cgColor: cardDefaultBorderColor)
+        if let p = prefetchedUnder {
+            UIView.performWithoutAnimation {
+                bottom.configure(payload: p, defaultBorder: border, borderWidth: cardDefaultBorderWidth)
+                bottom.applyDeckPose()
+                bottom.isHidden = false
+            }
+        } else {
+            UIView.performWithoutAnimation {
+                bottom.isHidden = true
+            }
+        }
+    }
+
+    /// После ответа сервера, когда не было локального promote: одна анимация подъёма, текст на нижней — без анимации.
+    private func promoteDeckAfterServer(prefetchedUnder: FlashcardStudyModels.StudyCardPayload?) {
+        guard let oldTop = topCard, let rising = bottomCard else { return }
+
+        oldTop.isHidden = true
+        oldTop.resetToIdentity()
+        oldTop.resetFlipState()
+
+        rising.resetFlipState()
+        currentPayload = rising.payload
+
+        UIView.animate(withDuration: 0.36, delay: 0, options: [.curveEaseOut, .allowUserInteraction]) {
+            rising.resetToIdentity()
+        }
+
+        let border = UIColor(cgColor: cardDefaultBorderColor)
+        if let p = prefetchedUnder {
+            UIView.performWithoutAnimation {
+                oldTop.configure(payload: p, defaultBorder: border, borderWidth: cardDefaultBorderWidth)
+                oldTop.resetFlipState()
+                oldTop.applyDeckPose()
+                oldTop.isHidden = false
+            }
+        } else {
+            UIView.performWithoutAnimation {
+                oldTop.isHidden = true
+            }
+        }
+
+        topCard = rising
+        bottomCard = oldTop
+
+        deckSlot.insertSubview(oldTop, belowSubview: rising)
+        if let pl = rising.payload {
+            updateProgressUI(for: pl, progressAnimated: false)
+        }
+        attachGesturesToTopCard()
     }
 
     private func showFinished(_ message: String) {
@@ -613,10 +710,119 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
         listenButton.isEnabled = on
         backButton.isEnabled = on
         settingsButton.isEnabled = on
-        cardView.isUserInteractionEnabled = on
+        deckSlot.isUserInteractionEnabled = on
         cardTap.isEnabled = on
         cardPan.isEnabled = on
         forgetButton.alpha = on ? 1 : 0.45
         rememberButton.alpha = on ? 1 : 0.45
+    }
+}
+
+// MARK: - Одна карточка (лице / рубашка)
+
+private final class DeckCardSurface: UIView {
+
+    private let frontLabel = UILabel()
+    private let backLabel = UILabel()
+    private(set) var payload: FlashcardStudyModels.StudyCardPayload?
+    private var isBackVisible = false
+    private let textPurple: UIColor
+
+    init(textPurple: UIColor) {
+        self.textPurple = textPurple
+        super.init(frame: .zero)
+        backgroundColor = UIColor(red: 0.82, green: 0.86, blue: 0.97, alpha: 1.00)
+        layer.cornerRadius = 24
+        layer.borderWidth = 1.2
+        layer.borderColor = UIColor.white.withAlphaComponent(0.65).cgColor
+        clipsToBounds = true
+
+        for lb in [frontLabel, backLabel] {
+            lb.font = UIFont.systemFont(ofSize: 26, weight: .bold)
+            lb.textColor = textPurple
+            lb.textAlignment = .center
+            lb.numberOfLines = 0
+            lb.translatesAutoresizingMaskIntoConstraints = false
+        }
+        backLabel.isHidden = true
+        addSubview(frontLabel)
+        addSubview(backLabel)
+        NSLayoutConstraint.activate([
+            frontLabel.topAnchor.constraint(equalTo: topAnchor, constant: 28),
+            frontLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            frontLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            frontLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -28),
+            backLabel.topAnchor.constraint(equalTo: topAnchor, constant: 28),
+            backLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            backLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            backLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -28)
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func configure(payload: FlashcardStudyModels.StudyCardPayload, defaultBorder: UIColor, borderWidth: CGFloat) {
+        self.payload = payload
+        frontLabel.text = payload.front
+        backLabel.text = payload.back
+        resetFlipState()
+        layer.borderWidth = borderWidth
+        layer.borderColor = defaultBorder.cgColor
+        frontLabel.textColor = textPurple
+        backLabel.textColor = textPurple
+    }
+
+    func resetFlipState() {
+        isBackVisible = false
+        frontLabel.isHidden = false
+        backLabel.isHidden = true
+    }
+
+    func applyDeckPose() {
+        transform = CGAffineTransform(translationX: 0, y: 12).scaledBy(x: 0.94, y: 0.94)
+        alpha = 1
+    }
+
+    func resetToIdentity() {
+        transform = .identity
+    }
+
+    func updateDragVisual(translationX tx: CGFloat, orange: UIColor, green: UIColor, defaultBorder: UIColor, defaultWidth: CGFloat) {
+        if tx < -18 {
+            layer.borderColor = orange.cgColor
+            layer.borderWidth = 2.5
+            frontLabel.textColor = orange
+            backLabel.textColor = orange
+        } else if tx > 18 {
+            layer.borderColor = green.cgColor
+            layer.borderWidth = 2.5
+            frontLabel.textColor = green
+            backLabel.textColor = green
+        } else {
+            layer.borderWidth = defaultWidth
+            layer.borderColor = defaultBorder.cgColor
+            frontLabel.textColor = textPurple
+            backLabel.textColor = textPurple
+        }
+    }
+
+    func resetBorder(defaultBorder: UIColor, width: CGFloat) {
+        layer.borderWidth = width
+        layer.borderColor = defaultBorder.cgColor
+        frontLabel.textColor = textPurple
+        backLabel.textColor = textPurple
+    }
+
+    func flip() {
+        guard payload != nil else { return }
+        let willShowBack = !isBackVisible
+        let options: UIView.AnimationOptions = willShowBack ? .transitionFlipFromRight : .transitionFlipFromLeft
+        UIView.transition(with: self, duration: 0.38, options: options, animations: {
+            self.isBackVisible = willShowBack
+            self.frontLabel.isHidden = self.isBackVisible
+            self.backLabel.isHidden = !self.isBackVisible
+        })
     }
 }

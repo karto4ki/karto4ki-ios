@@ -16,8 +16,15 @@ enum FlashcardStudyModels {
         let total: Int
     }
 
-    enum NextCardResult: Equatable {
-        case card(StudyCardPayload)
+    /// Старт сессии: верхняя карточка + уже загруженная следующая «под колодой».
+    struct DeckBootstrap: Equatable {
+        let top: StudyCardPayload
+        let under: StudyCardPayload?
+    }
+
+    /// После ответа: карточка под новой верхней уже на руках; `prefetchedUnder` — следующая под ней (+1 к буферу).
+    enum DeckAdvanceResult: Equatable {
+        case continued(prefetchedUnder: StudyCardPayload?)
         case finished(message: String)
     }
 }
