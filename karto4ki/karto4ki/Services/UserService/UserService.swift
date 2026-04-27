@@ -4,13 +4,24 @@ final class UserService: UserServiceProtocol {
 
     private let sender = Sender.shared
     private let encoder = JSONEncoder()
+    private let userDefaultsManager: UserDefaultsManagerProtocol
+
+    init(userDefaultsManager: UserDefaultsManagerProtocol = UserDefaultsManager()) {
+        self.userDefaultsManager = userDefaultsManager
+    }
 
     func getMe() async throws -> PrivateUserProfile {
-        try await sender.request(
+        if let cached = userDefaultsManager.loadPrivateProfile() {
+            return cached
+        }
+
+        let profile: PrivateUserProfile = try await sender.request(
             endpoint: UserServiceEndpoints.me.rawValue,
             method: .get,
             authenticated: true
         )
+        userDefaultsManager.savePrivateProfile(profile)
+        return profile
     }
 
     func updateMe(_ request: UpdateProfileRequest) async throws -> PrivateUserProfile {
@@ -18,12 +29,14 @@ final class UserService: UserServiceProtocol {
         if let payload = String(data: body, encoding: .utf8) {
             print("📤 PUT /me payload: \(payload)")
         }
-        return try await sender.request(
+        let updated: PrivateUserProfile = try await sender.request(
             endpoint: UserServiceEndpoints.me.rawValue,
             method: .put,
             body: body,
             authenticated: true
         )
+        userDefaultsManager.savePrivateProfile(updated)
+        return updated
     }
 
     func deleteMe() async throws {
@@ -32,24 +45,29 @@ final class UserService: UserServiceProtocol {
             method: .delete,
             authenticated: true
         )
+        userDefaultsManager.clearSessionCaches()
     }
 
     func updateProfilePhoto(photoId: String) async throws -> PrivateUserProfile {
         let body = try encoder.encode(UpdatePhotoRequest(photoId: photoId))
-        return try await sender.request(
+        let updated: PrivateUserProfile = try await sender.request(
             endpoint: UserServiceEndpoints.profilePhoto.rawValue,
             method: .put,
             body: body,
             authenticated: true
         )
+        userDefaultsManager.savePrivateProfile(updated)
+        return updated
     }
 
     func deleteProfilePhoto() async throws -> PrivateUserProfile {
-        try await sender.request(
+        let updated: PrivateUserProfile = try await sender.request(
             endpoint: UserServiceEndpoints.profilePhoto.rawValue,
             method: .delete,
             authenticated: true
         )
+        userDefaultsManager.savePrivateProfile(updated)
+        return updated
     }
 
     func getAchievements() async throws -> UserAchievements {

@@ -10,6 +10,7 @@ import Foundation
 struct UserDefaultsManager: UserDefaultsManagerProtocol {
 
     private let defaults = UserDefaults.standard
+    private let profileKey = "privateUserProfile"
     
     func putOnboardingCompleted() {
         defaults.set(true, forKey: "onboardingCompleted")
@@ -31,9 +32,20 @@ struct UserDefaultsManager: UserDefaultsManagerProtocol {
         UserDefaults.standard.set(username, forKey: "username")
     }
 
+    func savePrivateProfile(_ profile: PrivateUserProfile) {
+        guard let data = try? JSONEncoder().encode(profile) else { return }
+        defaults.set(data, forKey: profileKey)
+    }
+
+    func loadPrivateProfile() -> PrivateUserProfile? {
+        guard let data = defaults.data(forKey: profileKey) else { return nil }
+        return try? JSONDecoder().decode(PrivateUserProfile.self, from: data)
+    }
+
     func clearSessionCaches() {
         defaults.removeObject(forKey: "email")
         defaults.removeObject(forKey: "name")
         defaults.removeObject(forKey: "username")
+        defaults.removeObject(forKey: profileKey)
     }
 }

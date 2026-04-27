@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - Responses
 
-struct PrivateUserProfile: Decodable {
+struct PrivateUserProfile: Codable {
     let id: String
     let name: String
     let username: String

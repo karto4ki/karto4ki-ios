@@ -12,7 +12,7 @@ final class AppCoordinator {
         let keychainManager = KeychainManager()
         let userDefaults = UserDefaultsManager()
         let identityService = IdentityService()
-        let userService = UserService()
+        let userService = UserService(userDefaultsManager: userDefaults)
         let fileStorageService = FileStorageService()
         context = Context(
             keychainManager: keychainManager,
