@@ -4,6 +4,7 @@ final class ProfileScreenInteractor: ProfileScreenBusinessLogic {
 
     private let presenter: ProfileScreenPresentationLogic
     private let userService: UserServiceProtocol
+    private let fileStorageService: FileStorageServiceProtocol
     private let errorHandler: ErrorHandlerProtocol
 
     private var latestProfile: PrivateUserProfile?
@@ -11,10 +12,12 @@ final class ProfileScreenInteractor: ProfileScreenBusinessLogic {
     init(
         presenter: ProfileScreenPresentationLogic,
         userService: UserServiceProtocol,
+        fileStorageService: FileStorageServiceProtocol,
         errorHandler: ErrorHandlerProtocol
     ) {
         self.presenter = presenter
         self.userService = userService
+        self.fileStorageService = fileStorageService
         self.errorHandler = errorHandler
     }
 
@@ -98,6 +101,29 @@ final class ProfileScreenInteractor: ProfileScreenBusinessLogic {
                     presenter.presentLoading(false)
                     AppCoordinator.shared.signOut()
                 }
+            } catch {
+                await MainActor.run {
+                    presenter.presentLoading(false)
+                }
+                await errorHandler.handle(error)
+            }
+        }
+    }
+
+    func uploadAvatarPhoto(jpegData: Data) {
+        presenter.presentLoading(true)
+        Task {
+            do {
+                let photoId = try await fileStorageService.uploadAvatarImage(
+                    data: jpegData,
+                    fileName: "avatar.jpg",
+                    mimeType: "image/jpeg"
+                )
+                let updated = try await userService.updateProfilePhoto(photoId: photoId)
+                await MainActor.run {
+                    latestProfile = updated
+                }
+                presenter.presentProfile(updated)
             } catch {
                 await MainActor.run {
                     presenter.presentLoading(false)

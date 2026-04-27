@@ -6,6 +6,8 @@ protocol ProfileScreenBusinessLogic: AnyObject {
     func updateDisplayNameAndUsername(name: String, username: String)
     func setNotificationEnabled(_ enabled: Bool)
     func deleteAccount()
+    /// JPEG после обрезки и сжатия (`AvatarImageProcessing`).
+    func uploadAvatarPhoto(jpegData: Data)
 }
 
 protocol ProfileScreenPresentationLogic: AnyObject {

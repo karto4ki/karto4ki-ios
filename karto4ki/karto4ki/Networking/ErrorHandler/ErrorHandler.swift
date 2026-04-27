@@ -74,8 +74,12 @@ final class ErrorHandler: ErrorHandlerProtocol {
 
     private func mapApiError(_ error: ApiError) -> String {
         switch error {
-        case .networkError:
-            return "Ошибка сети. Проверьте подключение к интернету"
+        case .networkError(let underlying):
+            let detail = (underlying as NSError).localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+            if detail.isEmpty {
+                return "Ошибка сети. Проверьте подключение к интернету"
+            }
+            return "Ошибка сети: \(detail)"
         case .invalidURL, .invalidResponse, .decodingError:
             return "Произошла ошибка. Попробуйте позже"
         case .noData:

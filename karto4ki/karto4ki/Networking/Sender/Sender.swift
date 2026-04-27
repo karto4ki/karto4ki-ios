@@ -9,26 +9,6 @@ final class Sender {
     private let keychainManager = KeychainManager()
     private let retryDelays: [UInt64] = [1_000_000_000, 3_000_000_000, 10_000_000_000]
 
-    private var baseURL: String {
-        #if targetEnvironment(simulator)
-        let preferredKey = "SERVER_BASE_URL_SIMULATOR"
-        #else
-        let preferredKey = "SERVER_BASE_URL_DEVICE"
-        #endif
-
-        if let preferred = Bundle.main.object(forInfoDictionaryKey: preferredKey) as? String,
-           !preferred.isEmpty {
-            return preferred
-        }
-
-        if let legacy = Bundle.main.object(forInfoDictionaryKey: "SERVER_BASE_URL") as? String,
-           !legacy.isEmpty {
-            return legacy
-        }
-
-        fatalError("SERVER_BASE_URL_* not configured in Info.plist")
-    }
-
     private init() {}
 
     // MARK: - Public
@@ -41,8 +21,29 @@ final class Sender {
         authenticated: Bool = false
     ) async throws -> T {
         let data = try await perform(
+            apiRoot: ServerBaseURL.primaryAPIRoot,
             endpoint: endpoint, method: method,
-            headers: headers, body: body,
+            headers: headers, payload: .json(body),
+            authenticated: authenticated
+        )
+        print("🔍 \(String(decoding: data, as: UTF8.self))")
+        return try decoder.decode(SuccessResponse<T>.self, from: data).data
+    }
+
+    /// `multipart/form-data` (например загрузка файлов в storage).
+    func requestMultipart<T: Decodable>(
+        endpoint: String,
+        method: HTTPMethod,
+        headers: [String: String] = [:],
+        multipartBody: Data,
+        boundary: String,
+        authenticated: Bool = false
+    ) async throws -> T {
+        let data = try await perform(
+            apiRoot: ServerBaseURL.fileStorageAPIRoot,
+            endpoint: endpoint, method: method,
+            headers: headers,
+            payload: .multipart(multipartBody, boundary: boundary),
             authenticated: authenticated
         )
         print("🔍 \(String(decoding: data, as: UTF8.self))")
@@ -57,29 +58,47 @@ final class Sender {
         authenticated: Bool = false
     ) async throws {
         _ = try await perform(
+            apiRoot: ServerBaseURL.primaryAPIRoot,
             endpoint: endpoint, method: method,
-            headers: headers, body: body,
+            headers: headers, payload: .json(body),
             authenticated: authenticated
         )
     }
 
     // MARK: - Private
 
+    private enum RequestPayload {
+        case json(Data?)
+        case multipart(Data, boundary: String)
+    }
+
     private func perform(
+        apiRoot: String,
         endpoint: String,
         method: HTTPMethod,
         headers: [String: String],
-        body: Data?,
+        payload: RequestPayload,
         authenticated: Bool,
         attempt: Int = 0
     ) async throws -> Data {
-        guard let url = URL(string: "\(baseURL)\(endpoint)") else {
+        let root = apiRoot.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let path = endpoint.hasPrefix("/") ? endpoint : "/" + endpoint
+        guard let url = URL(string: "\(root)\(path)") else {
             throw ApiError.invalidURL
         }
 
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        switch payload {
+        case .json(let body):
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = body
+        case .multipart(let body, let boundary):
+            request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+            request.httpBody = body
+            request.timeoutInterval = 120
+        }
 
         for (key, value) in headers {
             request.setValue(value, forHTTPHeaderField: key)
@@ -90,8 +109,6 @@ final class Sender {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
-        request.httpBody = body
-        
         do {
             let (data, response) = try await session.data(for: request)
 
@@ -115,8 +132,9 @@ final class Sender {
                 }
                 try await TokenManager.shared.refreshTokens()
                 return try await perform(
+                    apiRoot: apiRoot,
                     endpoint: endpoint, method: method,
-                    headers: headers, body: body,
+                    headers: headers, payload: payload,
                     authenticated: authenticated, attempt: attempt + 1
                 )
 
@@ -124,8 +142,9 @@ final class Sender {
                 guard attempt < retryDelays.count else { throw decodeError(data) }
                 try await Task.sleep(nanoseconds: retryDelays[attempt])
                 return try await perform(
+                    apiRoot: apiRoot,
                     endpoint: endpoint, method: method,
-                    headers: headers, body: body,
+                    headers: headers, payload: payload,
                     authenticated: authenticated, attempt: attempt + 1
                 )
 
@@ -139,8 +158,9 @@ final class Sender {
             guard attempt < retryDelays.count else { throw ApiError.networkError(error) }
             try await Task.sleep(nanoseconds: retryDelays[attempt])
             return try await perform(
+                apiRoot: apiRoot,
                 endpoint: endpoint, method: method,
-                headers: headers, body: body,
+                headers: headers, payload: payload,
                 authenticated: authenticated, attempt: attempt + 1
             )
         }

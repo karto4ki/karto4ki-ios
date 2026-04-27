@@ -13,11 +13,13 @@ final class AppCoordinator {
         let userDefaults = UserDefaultsManager()
         let identityService = IdentityService()
         let userService = UserService()
+        let fileStorageService = FileStorageService()
         context = Context(
             keychainManager: keychainManager,
             userDefaults: userDefaults,
             identityService: identityService,
             userService: userService,
+            fileStorageService: fileStorageService,
             errorHandler: ErrorHandler(keychainManager: keychainManager, userDefaults: userDefaults)
         )
     }

@@ -5,5 +5,6 @@ protocol ContextProtocol {
     var userDefaults: UserDefaultsManagerProtocol { get }
     var identityService: IdentityServiceProtocol { get }
     var userService: UserServiceProtocol { get }
+    var fileStorageService: FileStorageServiceProtocol { get }
     var errorHandler: ErrorHandlerProtocol { get }
 }

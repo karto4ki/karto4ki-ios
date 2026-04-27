@@ -20,6 +20,10 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Чтобы сделать фото для аватарки профиля.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Чтобы выбрать фото для аватарки из медиатеки.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Приложение подключается к локальному серверу для авторизации и работы с карточками.</string>
 	<key>NSBonjourServices</key>
@@ -27,7 +31,7 @@
 		<string>_http._tcp</string>
 	</array>
 	<key>SERVER_BASE_URL_DEVICE</key>
-	<string>http://192.168.0.33</string>
+	<string>http://192.168.0.39</string>
 	<key>SERVER_BASE_URL_SIMULATOR</key>
 	<string>http://localhost</string>
 	<key>UIAppFonts</key>

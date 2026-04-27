@@ -1,6 +1,7 @@
 import UIKit
+import PhotosUI
 
-final class ProfileScreenViewController: UIViewController {
+final class ProfileScreenViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, PHPickerViewControllerDelegate {
 
     private let interactor: ProfileScreenBusinessLogic
 
@@ -39,6 +40,7 @@ final class ProfileScreenViewController: UIViewController {
     private let logoutSubtitleLabel = UILabel()
 
     private var photoLoadTask: URLSessionDataTask?
+    private var currentPhotoURL: URL?
 
     private let profilePurple = UIColor(red: 0.45, green: 0.40, blue: 0.90, alpha: 1)
     private let glassCorner: CGFloat = 22
@@ -175,6 +177,12 @@ final class ProfileScreenViewController: UIViewController {
         editAvatarButton.addTarget(self, action: #selector(editTapped), for: .touchUpInside)
         editAvatarButton.translatesAutoresizingMaskIntoConstraints = false
         avatarWrap.addSubview(editAvatarButton)
+
+        avatarWrap.isUserInteractionEnabled = true
+        let avatarTap = UITapGestureRecognizer(target: self, action: #selector(avatarAreaTapped))
+        avatarTap.cancelsTouchesInView = false
+        avatarTap.delegate = self
+        avatarWrap.addGestureRecognizer(avatarTap)
         NSLayoutConstraint.activate([
             editAvatarButton.widthAnchor.constraint(equalToConstant: 36),
             editAvatarButton.heightAnchor.constraint(equalToConstant: 36),
@@ -433,6 +441,104 @@ final class ProfileScreenViewController: UIViewController {
     }
 
     @objc
+    private func avatarAreaTapped() {
+        let sheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let canPreview = currentPhotoURL != nil || avatarImageView.image != nil
+        if canPreview {
+            sheet.addAction(UIAlertAction(title: "Посмотреть аватарку", style: .default) { [weak self] _ in
+                self?.presentAvatarPreview()
+            })
+        }
+        sheet.addAction(UIAlertAction(title: "Сделать фото", style: .default) { [weak self] _ in
+            self?.presentCameraPicker()
+        })
+        sheet.addAction(UIAlertAction(title: "Медиатека", style: .default) { [weak self] _ in
+            self?.presentPhotoLibraryPicker()
+        })
+        sheet.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        if let pop = sheet.popoverPresentationController {
+            pop.sourceView = avatarWrap
+            pop.sourceRect = avatarWrap.bounds
+        }
+        present(sheet, animated: true)
+    }
+
+    private func presentAvatarPreview() {
+        if let url = currentPhotoURL {
+            present(AvatarPreviewViewController(remoteURL: url), animated: true)
+        } else if let img = avatarImageView.image {
+            present(AvatarPreviewViewController(localImage: img), animated: true)
+        }
+    }
+
+    private func presentCameraPicker() {
+        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+            let alert = UIAlertController(title: "Камера недоступна", message: nil, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = self
+        picker.allowsEditing = false
+        present(picker, animated: true)
+    }
+
+    private func presentPhotoLibraryPicker() {
+        var config = PHPickerConfiguration(photoLibrary: .shared())
+        config.filter = .images
+        config.selectionLimit = 1
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+
+    private func presentAvatarCrop(image: UIImage) {
+        let crop = AvatarCropViewController(
+            image: image,
+            onCancel: {},
+            onConfirm: { [weak self] cropped in
+                guard let self,
+                      let data = AvatarImageProcessing.jpegDataForUpload(fromSquareImage: cropped)
+                else { return }
+                self.interactor.uploadAvatarPhoto(jpegData: data)
+            }
+        )
+        present(crop, animated: true)
+    }
+
+    // MARK: - UIImagePickerControllerDelegate
+
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true)
+    }
+
+    func imagePickerController(
+        _ picker: UIImagePickerController,
+        didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
+    ) {
+        let image = (info[.originalImage] as? UIImage)
+        picker.dismiss(animated: true) { [weak self] in
+            guard let self, let image else { return }
+            self.presentAvatarCrop(image: image)
+        }
+    }
+
+    // MARK: - PHPickerViewControllerDelegate
+
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        dismiss(animated: true)
+        guard let item = results.first, item.itemProvider.canLoadObject(ofClass: UIImage.self) else { return }
+        item.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] obj, _ in
+            guard let self, let image = obj as? UIImage else { return }
+            DispatchQueue.main.async {
+                self.presentAvatarCrop(image: image)
+            }
+        }
+    }
+
+    @objc
     private func editTapped() {
         let sheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         sheet.addAction(UIAlertAction(title: "Изменить данные", style: .default) { [weak self] _ in
@@ -492,6 +598,16 @@ final class ProfileScreenViewController: UIViewController {
     }
 }
 
+// MARK: - UIGestureRecognizerDelegate
+
+extension ProfileScreenViewController: UIGestureRecognizerDelegate {
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        guard let view = touch.view else { return true }
+        return !view.isDescendant(of: editAvatarButton)
+    }
+}
+
 // MARK: - DisplayLogic
 
 extension ProfileScreenViewController: ProfileScreenDisplayLogic {
@@ -504,6 +620,7 @@ extension ProfileScreenViewController: ProfileScreenDisplayLogic {
 
         applyNotificationSwitchFromViewModel(viewModel.notificationEnabled)
 
+        currentPhotoURL = viewModel.photoURL
         loadAvatar(from: viewModel.photoURL)
     }
 

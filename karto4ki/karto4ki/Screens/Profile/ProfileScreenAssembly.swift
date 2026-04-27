@@ -6,6 +6,7 @@ struct ProfileScreenAssembly {
         let interactor = ProfileScreenInteractor(
             presenter: presenter,
             userService: context.userService,
+            fileStorageService: context.fileStorageService,
             errorHandler: context.errorHandler
         )
         let view = ProfileScreenViewController(interactor: interactor)
