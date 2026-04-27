@@ -20,6 +20,7 @@ final class DeckSetDetailViewController: UIViewController {
     private let statsContainer = UIView()
     private let statsStack = UIStackView()
 
+    private let startStudyButton = UIButton(type: .system)
     private let addToLibraryButton = UIButton(type: .system)
     private let cardsSectionTitle = UILabel()
     private let cardsStack = UIStackView()
@@ -54,6 +55,7 @@ final class DeckSetDetailViewController: UIViewController {
         configureTopBar()
         configureHeader()
         configureStats()
+        configureStartStudy()
         configureAddToLibrary()
         configureCardsSection()
         configureAddCard()
@@ -230,6 +232,28 @@ final class DeckSetDetailViewController: UIViewController {
         contentStack.addArrangedSubview(statsContainer)
     }
 
+    private func configureStartStudy() {
+        let playCfg = UIImage.SymbolConfiguration(pointSize: 12, weight: .semibold)
+        startStudyButton.setImage(UIImage(systemName: "play.fill", withConfiguration: playCfg), for: .normal)
+        startStudyButton.setTitle(" Начать обучение", for: .normal)
+        startStudyButton.setTitleColor(.white, for: .normal)
+        startStudyButton.tintColor = .white
+        startStudyButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        startStudyButton.backgroundColor = deckFolderTint.withAlphaComponent(0.55)
+        startStudyButton.layer.cornerRadius = glassCorner
+        startStudyButton.layer.borderWidth = 1
+        startStudyButton.layer.borderColor = UIColor.white.withAlphaComponent(0.45).cgColor
+        startStudyButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
+        startStudyButton.addTarget(self, action: #selector(startStudyTapped), for: .touchUpInside)
+
+        let hasCards = deck.total > 0
+        startStudyButton.isEnabled = hasCards
+        startStudyButton.alpha = hasCards ? 1 : 0.45
+
+        contentStack.addArrangedSubview(startStudyButton)
+        contentStack.setCustomSpacing(12, after: statsContainer)
+    }
+
     private func statLine(title: String, value: String) -> UIView {
         let t = UILabel()
         t.text = title
@@ -332,6 +356,17 @@ final class DeckSetDetailViewController: UIViewController {
             editButton.setTitle(" Редактировать", for: .normal)
         }
         rebuildCardRows()
+    }
+
+    @objc
+    private func startStudyTapped() {
+        let a = UIAlertController(
+            title: "Обучение",
+            message: "Режим изучения набора появится в следующих версиях.",
+            preferredStyle: .alert
+        )
+        a.addAction(UIAlertAction(title: "OK", style: .default))
+        present(a, animated: true)
     }
 
     @objc
