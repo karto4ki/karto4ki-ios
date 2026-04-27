@@ -277,9 +277,7 @@ final class LibraryScreenViewController: UIViewController, UIGestureRecognizerDe
 
     @objc
     private func newFolderTapped() {
-        let a = UIAlertController(title: nil, message: "Создание набора будет доступно позже.", preferredStyle: .alert)
-        a.addAction(UIAlertAction(title: "OK", style: .default))
-        present(a, animated: true)
+        (parent as? TabContainerViewController)?.selectAddDeckTab(animated: true)
     }
 
     @objc
