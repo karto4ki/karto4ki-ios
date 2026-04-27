@@ -211,6 +211,7 @@
 				CODE_SIGN_ENTITLEMENTS = karto4ki/karto4ki.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FV7B395QF2;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = karto4ki/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "карто4ки";
@@ -223,7 +224,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = su.brf.apps.karto4ki;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lzkgmr.karto4ki;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -240,6 +241,7 @@
 				CODE_SIGN_ENTITLEMENTS = karto4ki/karto4ki.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FV7B395QF2;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = karto4ki/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "карто4ки";
@@ -252,7 +254,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = su.brf.apps.karto4ki;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lzkgmr.karto4ki;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

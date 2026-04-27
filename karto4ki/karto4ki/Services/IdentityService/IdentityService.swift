@@ -1,68 +1,92 @@
-//
-//  IdentityService.swift
-//  karto4ki
-//
-//  Created by лизо4ка курунок on 11.02.2026.
-//
-
 import Foundation
 
 final class IdentityService: IdentityServiceProtocol {
-    
-    func sendCodeRequest<Request: Codable, Response: Codable>(_ request: Request,
-                                            _ endpoint: String,
-                                            _ responseType: Response.Type,
-                                            completion: @escaping (Result<SuccessResponse<Response>, any Error>) -> Void) {
-        let idempotencyKey = UUID().uuidString
-        let body = try? JSONEncoder().encode(request)
-        let headers = [
-            "Idempotency-Key": idempotencyKey,
-            "Content-Type": "application/json"
-        ]
-        Sender.send(endpoint: endpoint, method: .post, headers: headers, body: body, completion: completion)
+
+    private let sender = Sender.shared
+    private let encoder = JSONEncoder()
+
+    private func idempotencyHeaders() -> [String: String] {
+        ["Idempotency-Key": UUID().uuidString]
     }
-    
-    func sendRefreshTokensRequest(_ request: RefreshRequest,
-                                  completion: @escaping (Result<SuccessResponse<SuccessModels.Tokens>, any Error>) -> Void) {
-        let endpoint = IdentityServiceEndpoints.refreshToken.rawValue
-        let idempotencyKey = UUID().uuidString
-        
-        let body = try? JSONEncoder().encode(request)
-        
-        let headers = [
-            "Idempotency-Key": idempotencyKey,
-            "Content-Type": "application/json"
-        ]
-        
-        Sender.send(endpoint: endpoint, method: .post, headers: headers, body: body, completion: completion)
+
+    func sendCode(email: String) async throws -> SendCodeResponse {
+        let body = try encoder.encode(SendCodeRequest(email: email))
+        return try await sender.request(
+            endpoint: IdentityServiceEndpoints.sendEmailCode.rawValue,
+            method: .post,
+            headers: idempotencyHeaders(),
+            body: body
+        )
     }
-    
-    func sendVerifyCodeRequest(request: VerifyCodeRequest,
-                               completion: @escaping (Result<SuccessResponse<SuccessModels.VerifyData>, Error>) -> Void) {
-        let endpoint = IdentityServiceEndpoints.signupVerifyCode.rawValue
-        let idempotencyKey = UUID().uuidString
-        
-        let body = try? JSONEncoder().encode(request)
-        
-        let headers: [String: String] = [
-            "Idempotency-Key": idempotencyKey,
-            "Content-Type": "application/json"
-        ]
-        
-        Sender.send(endpoint: endpoint, method: .post, headers: headers, body: body, completion: completion)
+
+    func signIn(signinKey: String, code: String) async throws -> TokensResponse {
+        let body = try encoder.encode(SignInRequest(signinKey: signinKey, code: code))
+        return try await sender.request(
+            endpoint: IdentityServiceEndpoints.signIn.rawValue,
+            method: .post,
+            headers: idempotencyHeaders(),
+            body: body
+        )
     }
-    
-    func sendSignupRequest(_ request: SignupRequest, completion: @escaping (Result<SuccessResponse<SuccessModels.Tokens>, Error>) -> Void) {
-        let endpoint = IdentityServiceEndpoints.signup.rawValue
-        let idempotencyKey = UUID().uuidString
-        
-        let body = try? JSONEncoder().encode(request)
-        
-        let headers: [String: String] = [
-            "Idempotency-Key": idempotencyKey,
-            "Content-Type": "application/json"
-        ]
-        
-        Sender.send(endpoint: endpoint, method: .post, headers: headers, body: body, completion: completion)
+
+    func verifyCode(signupKey: String, code: String) async throws {
+        let body = try encoder.encode(VerifyCodeRequest(signupKey: signupKey, code: code))
+        try await sender.requestVoid(
+            endpoint: IdentityServiceEndpoints.verifyCode.rawValue,
+            method: .post,
+            headers: idempotencyHeaders(),
+            body: body
+        )
+    }
+
+    func signUp(signupKey: String, name: String, username: String) async throws -> TokensResponse {
+        let body = try encoder.encode(SignUpRequest(signupKey: signupKey, name: name, username: username))
+        return try await sender.request(
+            endpoint: IdentityServiceEndpoints.signUp.rawValue,
+            method: .post,
+            headers: idempotencyHeaders(),
+            body: body
+        )
+    }
+
+    func refreshToken(_ refreshToken: String) async throws -> TokensResponse {
+        let body = try encoder.encode(RefreshRequest(refreshToken: refreshToken))
+        return try await sender.request(
+            endpoint: IdentityServiceEndpoints.refreshToken.rawValue,
+            method: .post,
+            headers: idempotencyHeaders(),
+            body: body
+        )
+    }
+
+    func signInWithGoogle(idToken: String) async throws -> TokensResponse {
+        let body = try encoder.encode(OAuthRequest(idToken: idToken))
+        return try await sender.request(
+            endpoint: IdentityServiceEndpoints.googleAuth.rawValue,
+            method: .post,
+            headers: idempotencyHeaders(),
+            body: body
+        )
+    }
+
+    func signInWithApple(idToken: String) async throws -> TokensResponse {
+        let body = try encoder.encode(OAuthRequest(idToken: idToken))
+        return try await sender.request(
+            endpoint: IdentityServiceEndpoints.appleAuth.rawValue,
+            method: .post,
+            headers: idempotencyHeaders(),
+            body: body
+        )
+    }
+
+    func signOut(refreshToken: String) async throws {
+        let body = try encoder.encode(SignOutRequest(refreshToken: refreshToken))
+        try await sender.requestVoid(
+            endpoint: IdentityServiceEndpoints.signOut.rawValue,
+            method: .put,
+            headers: [:],
+            body: body,
+            authenticated: true
+        )
     }
 }

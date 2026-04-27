@@ -45,7 +45,7 @@ final class RegistrationConfirmViewController: UIViewController {
     }
     
     private func configureBackground() {
-        let background = BackgroundView(with: "background-10")
+        let background = BackgroundView()
         view.addSubview(background)
         background.pin(to: view)
         view.sendSubviewToBack(background)
@@ -75,7 +75,7 @@ final class RegistrationConfirmViewController: UIViewController {
         nameButton.addTarget(self, action: #selector(goBackName), for: .touchUpInside)
         var attrs = AttributeContainer()
         attrs.font = UIFont(name: "Musinka-Regular", size: 40) ?? .systemFont(ofSize: 40)
-        attrs.foregroundColor = UIColor(red: 255/255, green: 174/255, blue: 213/255, alpha: 1)
+        attrs.foregroundColor = UIColor(red: 187/255, green: 174/255, blue: 255/255, alpha: 1)
 
         config.attributedTitle = AttributedString("имя: \(name)", attributes: attrs)
         nameButton.configuration = config
@@ -100,7 +100,7 @@ final class RegistrationConfirmViewController: UIViewController {
         usernameButton.addTarget(self, action: #selector(goBackUsername), for: .touchUpInside)
         var attrs = AttributeContainer()
         attrs.font = UIFont(name: "Musinka-Regular", size: 40) ?? .systemFont(ofSize: 40)
-        attrs.foregroundColor = UIColor(red: 255/255, green: 174/255, blue: 213/255, alpha: 1)
+        attrs.foregroundColor = UIColor(red: 187/255, green: 174/255, blue: 255/255, alpha: 1)
 
         config.attributedTitle = AttributedString("ник: \(username)", attributes: attrs)
         usernameButton.configuration = config

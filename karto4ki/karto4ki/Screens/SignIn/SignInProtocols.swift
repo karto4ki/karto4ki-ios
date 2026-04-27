@@ -1,10 +1,3 @@
-//
-//  SignInProtocols.swift
-//  karto4ki
-//
-//  Created by лизо4ка курунок on 25.12.2025.
-//
-
 import Foundation
 
 protocol SignInBusinessLogic {
@@ -15,10 +8,10 @@ protocol SignInBusinessLogic {
     func googleSignInFailed(_ error: Error)
 }
 
-protocol SignInPresentationLogic {
-    
-}
+protocol SignInPresentationLogic {}
 
 protocol SignInWorkerLogic {
-    func sendCodeRequest(request: SendCodeRequest, completion: @escaping (Result<Void, Error>) -> Void)
+    func sendCode(email: String) async throws -> SendCodeResponse
+    func signInWithGoogle(idToken: String) async throws
+    func signInWithApple(idToken: String) async throws
 }

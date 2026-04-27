@@ -1,24 +1,12 @@
-//
-//  IdentityServiceProtocol.swift
-//  karto4ki
-//
-//  Created by лизо4ка курунок on 11.02.2026.
-//
-
 import Foundation
 
 protocol IdentityServiceProtocol {
-    func sendCodeRequest<Request: Codable, Response: Codable>(_ request: Request,
-                                                              _ endpoint: String,
-                                                              _ responseType: Response.Type,
-                                                              completion: @escaping (Result<SuccessResponse<Response>, Error>) -> Void)
-    
-    func sendRefreshTokensRequest(_ request: RefreshRequest,
-                                  completion: @escaping (Result<SuccessResponse<SuccessModels.Tokens>, Error>) -> Void)
-    
-    func sendVerifyCodeRequest(request: VerifyCodeRequest,
-                               completion: @escaping (Result<SuccessResponse<SuccessModels.VerifyData>, Error>) -> Void)
-    
-    func sendSignupRequest(_ request: SignupRequest, completion: @escaping (Result<SuccessResponse<SuccessModels.Tokens>, Error>) -> Void)
-                               
+    func sendCode(email: String) async throws -> SendCodeResponse
+    func signIn(signinKey: String, code: String) async throws -> TokensResponse
+    func verifyCode(signupKey: String, code: String) async throws
+    func signUp(signupKey: String, name: String, username: String) async throws -> TokensResponse
+    func refreshToken(_ refreshToken: String) async throws -> TokensResponse
+    func signInWithGoogle(idToken: String) async throws -> TokensResponse
+    func signInWithApple(idToken: String) async throws -> TokensResponse
+    func signOut(refreshToken: String) async throws
 }

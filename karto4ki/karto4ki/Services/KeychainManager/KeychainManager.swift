@@ -70,4 +70,10 @@ final class KeychainManager: KeychainManagerProtocol {
     func deleteTokens() -> Bool {
         return (delete(key: KeychainManager.Keys.accessToken.rawValue) && delete(key: KeychainManager.Keys.refreshToken.rawValue))
     }
+
+    func clearSessionSecrets() {
+        _ = delete(key: Keys.accessToken.rawValue)
+        _ = delete(key: Keys.refreshToken.rawValue)
+        _ = delete(key: Keys.signinCode.rawValue)
+    }
 }

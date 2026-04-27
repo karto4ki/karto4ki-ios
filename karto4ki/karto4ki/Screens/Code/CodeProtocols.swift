@@ -1,18 +1,10 @@
-//
-//  CodeProtocols.swift
-//  karto4ki
-//
-//  Created by лизо4ка курунок on 02.01.2026.
-//
-
-protocol CodePresentationLogic {
-    
-}
+protocol CodePresentationLogic {}
 
 protocol CodeBusinessLogic {
     func sendVerificationRequest(code: String)
 }
 
 protocol CodeWorkerLogic {
-    func sendVerificationRequest(code: String, completion: @escaping (Result<Void, Error>) -> Void)
+    func verifyForSignIn(signinKey: String, code: String) async throws
+    func verifyForSignUp(signupKey: String, code: String) async throws
 }

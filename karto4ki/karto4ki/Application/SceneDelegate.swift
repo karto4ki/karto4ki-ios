@@ -19,9 +19,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             print("Window is nil")
             return
         }
-
-        setAppearance()
         
+        setAppearance()
         AppCoordinator.shared.setWindow(window)
         AppCoordinator.shared.start()
     }

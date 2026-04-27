@@ -65,7 +65,7 @@ final class RegistrationViewController: UIViewController, UIGestureRecognizerDel
     }
 
     private func configureBackground() {
-        let background = BackgroundView(with: "background-10")
+        let background = BackgroundView()
         view.addSubview(background)
         background.pin(to: view)
         view.sendSubviewToBack(background)
@@ -129,7 +129,7 @@ final class RegistrationViewController: UIViewController, UIGestureRecognizerDel
 
         var attrs = AttributeContainer()
         attrs.font = UIFont(name: "Musinka-Regular", size: 40) ?? .systemFont(ofSize: 40)
-        attrs.foregroundColor = UIColor(red: 255/255, green: 174/255, blue: 213/255, alpha: 1)
+        attrs.foregroundColor = UIColor(red: 187/255, green: 174/255, blue: 255/255, alpha: 1)
 
         config.attributedTitle = AttributedString("имя: \(text)", attributes: attrs)
         nameButton.configuration = config
