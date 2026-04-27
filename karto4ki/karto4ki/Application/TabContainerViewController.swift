@@ -15,7 +15,7 @@ final class TabContainerViewController: UIViewController {
     private lazy var tabs: [TabItem] = [
         TabItem(icon: "house",          activeIcon: "house.fill")     { MainScreenAssembly.build() },
         TabItem(icon: "plus.circle",    activeIcon: "plus.circle.fill") { PlaceholderViewController() },
-        TabItem(icon: "books.vertical", activeIcon: "books.vertical.fill") { PlaceholderViewController() },
+        TabItem(icon: "books.vertical", activeIcon: "books.vertical.fill") { LibraryScreenAssembly.build() },
         TabItem(icon: "person",         activeIcon: "person.fill")    { ProfileScreenAssembly.build(context: self.appContext) }
     ]
 
