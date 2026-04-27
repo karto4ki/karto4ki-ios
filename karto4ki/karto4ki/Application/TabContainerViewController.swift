@@ -76,7 +76,7 @@ final class TabContainerViewController: UIViewController {
     // MARK: - Tab bar
 
     private func configureTabBar() {
-        tabBarContainer.backgroundColor = .white.withAlphaComponent(0.3)
+        tabBarContainer.backgroundColor = .clear
         tabBarContainer.layer.cornerRadius = 30
         tabBarContainer.clipsToBounds = true
 

@@ -466,16 +466,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
 
     @objc
     private func backTapped() {
-        let a = UIAlertController(
-            title: "Завершить?",
-            message: "Прогресс этой сессии будет остановлен.",
-            preferredStyle: .alert
-        )
-        a.addAction(UIAlertAction(title: "Отмена", style: .cancel))
-        a.addAction(UIAlertAction(title: "Выйти", style: .destructive) { [weak self] _ in
-            self?.dismiss(animated: true)
-        })
-        present(a, animated: true)
+        dismiss(animated: true)
     }
 
     private func bootstrapSession() async {
@@ -529,6 +520,13 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
         centerProgressLabel.text = "\(payload.position) / \(payload.total)"
         let p = Float(payload.position) / Float(max(payload.total, 1))
         progressView.setProgress(p, animated: progressAnimated)
+    }
+
+    /// Принудительно закрывает прогресс в 100% к моменту завершения сессии.
+    private func completeProgressUI() {
+        let total = max(currentPayload?.total ?? deck.total, 1)
+        centerProgressLabel.text = "\(total) / \(total)"
+        progressView.setProgress(1, animated: false)
     }
 
     private func commitAnswerWithFlyOff(_ choice: FlashcardStudyModels.RememberChoice, exitSign: CGFloat) {
@@ -594,6 +592,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
                 case .continued(let prefetchedUnder):
                     self.applyPrefetchToBottomCard(prefetchedUnder)
                 case .finished(let message):
+                    self.completeProgressUI()
                     self.topCard?.isHidden = true
                     self.bottomCard?.isHidden = true
                     self.showFinished(message)
@@ -617,6 +616,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
                 case .continued(let prefetchedUnder):
                     self.promoteDeckAfterServer(prefetchedUnder: prefetchedUnder)
                 case .finished(let message):
+                    self.completeProgressUI()
                     self.topCard?.isHidden = true
                     self.bottomCard?.isHidden = true
                     self.showFinished(message)
