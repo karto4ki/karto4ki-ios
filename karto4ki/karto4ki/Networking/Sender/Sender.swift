@@ -91,7 +91,7 @@ final class Sender {
         }
 
         request.httpBody = body
-
+        
         do {
             let (data, response) = try await session.data(for: request)
 
@@ -109,7 +109,7 @@ final class Sender {
                 else {
                     throw decodeError(data)
                 }
-                // Один цикл refresh + повтор; повторный 401 — конец сессии (см. ErrorHandler для `unauthorized`).
+                
                 guard attempt == 0 else {
                     throw final401Error(data)
                 }

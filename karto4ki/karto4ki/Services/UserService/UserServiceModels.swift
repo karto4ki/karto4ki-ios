@@ -52,10 +52,11 @@ struct UsernameExistsResponse: Decodable {
 
 // MARK: - Requests
 
+/// Тело `PUT /me`: бэкенд ожидает все три поля; `false` для уведомлений тоже должен попадать в JSON.
 struct UpdateProfileRequest: Encodable {
-    let name: String?
-    let username: String?
-    let notificationEnabled: Bool?
+    let name: String
+    let username: String
+    let notificationEnabled: Bool
 
     enum CodingKeys: String, CodingKey {
         case name, username
@@ -64,9 +65,9 @@ struct UpdateProfileRequest: Encodable {
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encodeIfPresent(name, forKey: .name)
-        try container.encodeIfPresent(username, forKey: .username)
-        try container.encodeIfPresent(notificationEnabled, forKey: .notificationEnabled)
+        try container.encode(name, forKey: .name)
+        try container.encode(username, forKey: .username)
+        try container.encode(notificationEnabled, forKey: .notificationEnabled)
     }
 }
 

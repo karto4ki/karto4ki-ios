@@ -15,6 +15,9 @@ final class UserService: UserServiceProtocol {
 
     func updateMe(_ request: UpdateProfileRequest) async throws -> PrivateUserProfile {
         let body = try encoder.encode(request)
+        if let payload = String(data: body, encoding: .utf8) {
+            print("📤 PUT /me payload: \(payload)")
+        }
         return try await sender.request(
             endpoint: UserServiceEndpoints.me.rawValue,
             method: .put,
