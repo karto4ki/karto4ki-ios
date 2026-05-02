@@ -106,12 +106,12 @@ final class AddDeckSetViewController: UIViewController {
         nameSection.translatesAutoresizingMaskIntoConstraints = false
 
         nameTitleLabel.text = "Название набора"
-        nameTitleLabel.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
-        nameTitleLabel.textColor = UIColor.white.withAlphaComponent(0.9)
+        nameTitleLabel.font = UIFont.systemFont(ofSize: 15, weight: .bold)
+        nameTitleLabel.textColor = UIColor.white
 
         nameField.attributedPlaceholder = NSAttributedString(
             string: "Введите название...",
-            attributes: [.foregroundColor: UIColor.white.withAlphaComponent(0.55)]
+            attributes: [.foregroundColor: UIColor.white.withAlphaComponent(0.7)]
         )
         nameField.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         nameField.textColor = .white
@@ -283,7 +283,7 @@ final class AddDeckSetViewController: UIViewController {
         cfg.imagePlacement = .leading
         cfg.imagePadding = 8
         cfg.baseForegroundColor = .white
-        cfg.background.backgroundColor = .white.withAlphaComponent(0.14)
+        cfg.background.backgroundColor = .white.withAlphaComponent(0.3)
         cfg.background.cornerRadius = 16
         cfg.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 14, bottom: 12, trailing: 14)
         cfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
@@ -410,8 +410,8 @@ private final class ManualCardEntryView: UIView, UITextViewDelegate {
 
         func caption(_ label: UILabel, text: String) {
             label.text = text
-            label.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
-            label.textColor = UIColor.white.withAlphaComponent(0.78)
+            label.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+            label.textColor = UIColor.white
         }
         caption(questionTitle, text: "Вопрос")
         caption(answerTitle, text: "Ответ")
@@ -450,7 +450,7 @@ private final class ManualCardEntryView: UIView, UITextViewDelegate {
         tv.backgroundColor = .white.withAlphaComponent(0.18)
         tv.layer.cornerRadius = 14
         tv.layer.borderWidth = 1
-        tv.layer.borderColor = UIColor.white.withAlphaComponent(0.4).cgColor
+        tv.layer.borderColor = UIColor.white.withAlphaComponent(0.7).cgColor
         tv.textColor = .white
         tv.font = UIFont.systemFont(ofSize: 15, weight: .medium)
         tv.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -522,7 +522,7 @@ private extension UITextView {
         lb.tag = Self.placeholderTag
         lb.text = text
         lb.font = self.font
-        lb.textColor = UIColor.white.withAlphaComponent(0.45)
+        lb.textColor = UIColor.white.withAlphaComponent(0.7)
         lb.numberOfLines = 0
         lb.translatesAutoresizingMaskIntoConstraints = false
         addSubview(lb)
