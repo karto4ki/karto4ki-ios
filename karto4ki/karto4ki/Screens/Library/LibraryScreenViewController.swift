@@ -1,6 +1,6 @@
 import UIKit
 
-final class LibraryScreenViewController: UIViewController {
+final class LibraryScreenViewController: UIViewController, UIGestureRecognizerDelegate {
 
     private let interactor: LibraryScreenBusinessLogic
 
@@ -9,7 +9,7 @@ final class LibraryScreenViewController: UIViewController {
 
     private let titleLabel = UILabel()
     private let topButtonsStack = UIStackView()
-    private let moreButton = UIButton(type: .system)
+    private let editButton = UIButton(type: .system)
     private let newFolderButton = UIButton(type: .system)
 
     private let searchField = UITextField()
@@ -21,6 +21,7 @@ final class LibraryScreenViewController: UIViewController {
     private let emptyLabel = UILabel()
 
     private let loadingIndicator = UIActivityIndicatorView(style: .medium)
+    private let outsideTap = UITapGestureRecognizer()
 
     private var allDecks: [LibraryModels.DeckSet] = []
     private var isEditingDecks = false
@@ -42,6 +43,7 @@ final class LibraryScreenViewController: UIViewController {
         navigationController?.setNavigationBarHidden(true, animated: false)
         configureBackground()
         configureScroll()
+        configureOutsideTap()
         configureHeader()
         configureSearch()
         configureStudyAll()
@@ -66,13 +68,15 @@ final class LibraryScreenViewController: UIViewController {
         scrollView.showsVerticalScrollIndicator = false
         scrollView.alwaysBounceVertical = true
         scrollView.keyboardDismissMode = .onDrag
+        scrollView.contentInset.bottom = 100
+        scrollView.verticalScrollIndicatorInsets.bottom = 100
         view.addSubview(scrollView)
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -76)
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
 
         contentStack.axis = .vertical
@@ -87,6 +91,13 @@ final class LibraryScreenViewController: UIViewController {
             contentStack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -20),
             contentStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -40)
         ])
+    }
+
+    private func configureOutsideTap() {
+        outsideTap.addTarget(self, action: #selector(handleOutsideTap))
+        outsideTap.cancelsTouchesInView = false
+        outsideTap.delegate = self
+        scrollView.addGestureRecognizer(outsideTap)
     }
 
     private func configureHeader() {
@@ -105,11 +116,12 @@ final class LibraryScreenViewController: UIViewController {
         styleCircleButton(newFolderButton, symbol: "folder.badge.plus")
         newFolderButton.addTarget(self, action: #selector(newFolderTapped), for: .touchUpInside)
 
-        styleCircleButton(moreButton, symbol: "ellipsis")
-        moreButton.addTarget(self, action: #selector(moreTapped), for: .touchUpInside)
+        styleCircleButton(editButton, symbol: "pencil")
+        editButton.addTarget(self, action: #selector(editTapped), for: .touchUpInside)
+        updateEditButtonIcon()
 
         topButtonsStack.addArrangedSubview(newFolderButton)
-        topButtonsStack.addArrangedSubview(moreButton)
+        topButtonsStack.addArrangedSubview(editButton)
 
         row.addSubview(titleLabel)
         row.addSubview(topButtonsStack)
@@ -267,34 +279,50 @@ final class LibraryScreenViewController: UIViewController {
 
     @objc
     private func newFolderTapped() {
-        let a = UIAlertController(title: nil, message: "Создание набора будет доступно позже.", preferredStyle: .alert)
-        a.addAction(UIAlertAction(title: "OK", style: .default))
-        present(a, animated: true)
+        (parent as? TabContainerViewController)?.selectAddDeckTab(animated: true)
     }
 
     @objc
-    private func moreTapped() {
-        let sheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        if isEditingDecks {
-            sheet.addAction(UIAlertAction(title: "Готово", style: .default) { [weak self] _ in
-                self?.setEditingDecks(false)
-            })
-        } else {
-            sheet.addAction(UIAlertAction(title: "Редактировать", style: .default) { [weak self] _ in
-                self?.setEditingDecks(true)
-            })
-        }
-        sheet.addAction(UIAlertAction(title: "Отмена", style: .cancel))
-        if let pop = sheet.popoverPresentationController {
-            pop.sourceView = moreButton
-            pop.sourceRect = moreButton.bounds
-        }
-        present(sheet, animated: true)
+    private func editTapped() {
+        setEditingDecks(!isEditingDecks)
     }
 
     private func setEditingDecks(_ editing: Bool) {
         isEditingDecks = editing
+        updateEditButtonIcon()
         rebuildDeckRows()
+    }
+
+    private func updateEditButtonIcon() {
+        let symbol = isEditingDecks ? "checkmark" : "pencil"
+        let cfg = UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold)
+        UIView.performWithoutAnimation {
+            editButton.setImage(UIImage(systemName: symbol, withConfiguration: cfg), for: .normal)
+            editButton.layoutIfNeeded()
+        }
+    }
+
+    @objc
+    private func handleOutsideTap(_ g: UITapGestureRecognizer) {
+        guard isEditingDecks else { return }
+        let pointInDeckStack = g.location(in: decksStack)
+        let tappedDeckRow = decksStack.arrangedSubviews.contains { row in
+            !row.isHidden && row.frame.contains(pointInDeckStack)
+        }
+        if tappedDeckRow { return }
+        setEditingDecks(false)
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        guard gestureRecognizer === outsideTap else { return true }
+        var v: UIView? = touch.view
+        while let current = v {
+            if current is UIControl {
+                return false
+            }
+            v = current.superview
+        }
+        return true
     }
 
     private func filteredDecks() -> [LibraryModels.DeckSet] {

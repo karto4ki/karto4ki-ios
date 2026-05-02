@@ -82,13 +82,15 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
     private func configureScrollView() {
         scrollView.showsVerticalScrollIndicator = false
         scrollView.alwaysBounceVertical = true
+        scrollView.contentInset.bottom = 100
+        scrollView.verticalScrollIndicatorInsets.bottom = 100
         view.addSubview(scrollView)
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -76)
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
 
         contentStack.axis = .vertical

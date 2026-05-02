@@ -14,7 +14,7 @@ final class TabContainerViewController: UIViewController {
 
     private lazy var tabs: [TabItem] = [
         TabItem(icon: "house",          activeIcon: "house.fill")     { MainScreenAssembly.build() },
-        TabItem(icon: "plus.circle",    activeIcon: "plus.circle.fill") { PlaceholderViewController() },
+        TabItem(icon: "plus.circle",    activeIcon: "plus.circle.fill") { AddDeckSetViewController() },
         TabItem(icon: "books.vertical", activeIcon: "books.vertical.fill") { LibraryScreenAssembly.build() },
         TabItem(icon: "person",         activeIcon: "person.fill")    { ProfileScreenAssembly.build(context: self.appContext) }
     ]
@@ -76,7 +76,9 @@ final class TabContainerViewController: UIViewController {
     // MARK: - Tab bar
 
     private func configureTabBar() {
-        tabBarContainer.backgroundColor = .clear
+        tabBarContainer.backgroundColor = UIColor(red: 0.86, green: 0.86, blue: 1.00, alpha: 0.9)
+        tabBarContainer.layer.borderColor = UIColor.white.cgColor
+        tabBarContainer.layer.borderWidth = 1
         tabBarContainer.layer.cornerRadius = 30
         tabBarContainer.clipsToBounds = true
 
@@ -119,7 +121,7 @@ final class TabContainerViewController: UIViewController {
         btn.setImage(img, for: .normal)
         btn.tintColor = isActive
             ? UIColor(red: 0.45, green: 0.40, blue: 0.90, alpha: 1)
-            : UIColor.white.withAlphaComponent(0.7)
+            : UIColor.white
     }
 
     // MARK: - Switching
@@ -127,6 +129,11 @@ final class TabContainerViewController: UIViewController {
     @objc
     private func tabTapped(_ sender: UIButton) {
         switchToTab(sender.tag, animated: true)
+    }
+
+    /// Переключение на вкладку «+» / экран создания набора (из библиотеки по кнопке папки).
+    func selectAddDeckTab(animated: Bool = true) {
+        switchToTab(1, animated: animated)
     }
 
     private func switchToTab(_ index: Int, animated: Bool) {
@@ -169,15 +176,6 @@ final class TabContainerViewController: UIViewController {
         }
 
         vc.didMove(toParent: self)
-    }
-}
-
-// MARK: - Placeholder
-
-private final class PlaceholderViewController: UIViewController {
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .clear
     }
 }
 

@@ -1,6 +1,6 @@
 import UIKit
 
-final class DeckSetDetailViewController: UIViewController {
+final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDelegate {
 
     private let deck: LibraryModels.DeckSet
     private let deckFolderTint: UIColor
@@ -27,6 +27,7 @@ final class DeckSetDetailViewController: UIViewController {
     private let cardsSectionTitle = UILabel()
     private let cardsStack = UIStackView()
     private let addCardButton = UIButton(type: .system)
+    private let outsideTap = UITapGestureRecognizer()
 
     private var flashcards: [DeckSetDetailModels.FlashcardRow] = []
     private var answerHiddenById: [UUID: Bool] = [:]
@@ -54,6 +55,7 @@ final class DeckSetDetailViewController: UIViewController {
 
         configureBackground()
         configureScroll()
+        configureOutsideTap()
         configureTopBar()
         configureHeader()
         configureStats()
@@ -101,6 +103,13 @@ final class DeckSetDetailViewController: UIViewController {
         ])
     }
 
+    private func configureOutsideTap() {
+        outsideTap.addTarget(self, action: #selector(handleOutsideTap))
+        outsideTap.cancelsTouchesInView = false
+        outsideTap.delegate = self
+        scrollView.addGestureRecognizer(outsideTap)
+    }
+
     private func configureTopBar() {
         let row = UIView()
         row.translatesAutoresizingMaskIntoConstraints = false
@@ -108,16 +117,10 @@ final class DeckSetDetailViewController: UIViewController {
         styleCircleButton(backButton, symbol: "chevron.left")
         backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
 
-        let editCfg = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
-        editButton.setImage(UIImage(systemName: "pencil", withConfiguration: editCfg), for: .normal)
-        editButton.setTitle(" Редактировать", for: .normal)
-        editButton.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
-        editButton.tintColor = .white
-        editButton.backgroundColor = .white.withAlphaComponent(0.22)
-        editButton.layer.cornerRadius = 20
-        editButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 14)
+        styleCircleButton(editButton, symbol: "pencil")
         editButton.addTarget(self, action: #selector(editTapped), for: .touchUpInside)
         editButton.isHidden = !deck.isUserOwned
+        updateEditButtonIcon()
 
         row.addSubview(backButton)
         row.addSubview(editButton)
@@ -367,16 +370,45 @@ final class DeckSetDetailViewController: UIViewController {
 
     @objc
     private func editTapped() {
-        isEditingCards.toggle()
-        let editCfg = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
-        if isEditingCards {
-            editButton.setImage(UIImage(systemName: "checkmark", withConfiguration: editCfg), for: .normal)
-            editButton.setTitle(" Готово", for: .normal)
-        } else {
-            editButton.setImage(UIImage(systemName: "pencil", withConfiguration: editCfg), for: .normal)
-            editButton.setTitle(" Редактировать", for: .normal)
-        }
+        setEditingCards(!isEditingCards)
+    }
+
+    private func setEditingCards(_ editing: Bool) {
+        isEditingCards = editing
+        updateEditButtonIcon()
         rebuildCardRows()
+    }
+
+    private func updateEditButtonIcon() {
+        let symbol = isEditingCards ? "checkmark" : "pencil"
+        let cfg = UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold)
+        UIView.performWithoutAnimation {
+            editButton.setImage(UIImage(systemName: symbol, withConfiguration: cfg), for: .normal)
+            editButton.layoutIfNeeded()
+        }
+    }
+
+    @objc
+    private func handleOutsideTap(_ g: UITapGestureRecognizer) {
+        guard isEditingCards else { return }
+        let pointInCardsStack = g.location(in: cardsStack)
+        let tappedCardRow = cardsStack.arrangedSubviews.contains { row in
+            !row.isHidden && row.frame.contains(pointInCardsStack)
+        }
+        if tappedCardRow { return }
+        setEditingCards(false)
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        guard gestureRecognizer === outsideTap else { return true }
+        var v: UIView? = touch.view
+        while let current = v {
+            if current is UIControl {
+                return false
+            }
+            v = current.superview
+        }
+        return true
     }
 
     @objc
