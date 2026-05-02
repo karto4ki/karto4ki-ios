@@ -76,7 +76,9 @@ final class TabContainerViewController: UIViewController {
     // MARK: - Tab bar
 
     private func configureTabBar() {
-        tabBarContainer.backgroundColor = .white.withAlphaComponent(0.3)
+        tabBarContainer.backgroundColor = UIColor(red: 0.86, green: 0.86, blue: 1.00, alpha: 0.9)
+        tabBarContainer.layer.borderColor = UIColor.white.cgColor
+        tabBarContainer.layer.borderWidth = 1
         tabBarContainer.layer.cornerRadius = 30
         tabBarContainer.clipsToBounds = true
 
@@ -119,7 +121,7 @@ final class TabContainerViewController: UIViewController {
         btn.setImage(img, for: .normal)
         btn.tintColor = isActive
             ? UIColor(red: 0.45, green: 0.40, blue: 0.90, alpha: 1)
-            : UIColor.white.withAlphaComponent(0.7)
+            : UIColor.white
     }
 
     // MARK: - Switching
