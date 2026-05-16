@@ -14,12 +14,14 @@ final class AppCoordinator {
         let identityService = IdentityService()
         let userService = UserService(userDefaultsManager: userDefaults)
         let fileStorageService = FileStorageService()
+        let cardService = CardService()
         context = Context(
             keychainManager: keychainManager,
             userDefaults: userDefaults,
             identityService: identityService,
             userService: userService,
             fileStorageService: fileStorageService,
+            cardService: cardService,
             errorHandler: ErrorHandler(keychainManager: keychainManager, userDefaults: userDefaults)
         )
     }
@@ -86,6 +88,35 @@ final class AppCoordinator {
         navigationController.setViewControllers([tabVC], animated: true)
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
+        // Фоновый prefetch сразу после входа: профиль + список наборов
+        Task { await prefetchOnLogin() }
+    }
+
+    /// Загружает профиль и наборы карточек сразу после авторизации.
+    /// Не блокирует UI — данные просто оседают в LocalDataStore и AppCacheStore,
+    /// экраны при открытии найдут свежий кэш и не пойдут в сеть.
+    private func prefetchOnLogin() async {
+        async let _ = prefetchProfile()
+        async let _ = prefetchSets()
+    }
+
+    private func prefetchProfile() async {
+        do {
+            let profile = try await context.userService.getMe()
+            await LocalDataStore.shared.saveProfile(profile)
+        } catch {
+            // Профиль будет загружен при первом открытии экрана профиля
+        }
+    }
+
+    private func prefetchSets() async {
+        guard AppCacheStore.setsExpired else { return }
+        do {
+            _ = try await context.cardService.getSets(offset: nil, limit: nil)
+            // getSets уже сохранил в LocalDataStore и обновил AppCacheStore
+        } catch {
+            // Библиотека будет загружена при открытии экрана
+        }
     }
 
     // MARK: - Sign Out
@@ -99,6 +130,9 @@ final class AppCoordinator {
             }
             context.keychainManager.clearSessionSecrets()
             context.userDefaults.clearSessionCaches()
+            // Сбрасываем все TTL-метки и SwiftData кэш
+            AppCacheStore.invalidateAll()
+            await LocalDataStore.shared.clearAll()
             await MainActor.run {
                 showSignIn()
             }

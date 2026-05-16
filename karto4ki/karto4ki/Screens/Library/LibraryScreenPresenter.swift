@@ -18,4 +18,11 @@ final class LibraryScreenPresenter: LibraryScreenPresentationLogic {
             view?.displayLoading(loading)
         }
     }
+
+    func presentError(_ message: String) {
+        Task { @MainActor in
+            view?.displayLoading(false)
+            view?.displayError(message)
+        }
+    }
 }

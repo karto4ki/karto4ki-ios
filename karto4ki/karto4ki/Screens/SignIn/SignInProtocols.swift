@@ -8,7 +8,13 @@ protocol SignInBusinessLogic {
     func googleSignInFailed(_ error: Error)
 }
 
-protocol SignInPresentationLogic {}
+protocol SignInPresentationLogic {
+    func presentError()
+}
+
+protocol SignInDisplayLogic: AnyObject {
+    func hideLoadingOverlay()
+}
 
 protocol SignInWorkerLogic {
     func sendCode(email: String) async throws -> SendCodeResponse

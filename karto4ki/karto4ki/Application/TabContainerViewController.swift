@@ -13,9 +13,16 @@ final class TabContainerViewController: UIViewController {
     private let appContext: ContextProtocol
 
     private lazy var tabs: [TabItem] = [
-        TabItem(icon: "house",          activeIcon: "house.fill")     { MainScreenAssembly.build() },
-        TabItem(icon: "plus.circle",    activeIcon: "plus.circle.fill") { AddDeckSetViewController() },
-        TabItem(icon: "books.vertical", activeIcon: "books.vertical.fill") { LibraryScreenAssembly.build() },
+        TabItem(icon: "house",          activeIcon: "house.fill")     { MainScreenAssembly.build(cardService: self.appContext.cardService) },
+        TabItem(icon: "plus.circle",    activeIcon: "plus.circle.fill") {
+            AddDeckSetViewController(cardService: self.appContext.cardService) { [weak self] in
+                // После создания набора — переключаемся на библиотеку и перезагружаем
+                self?.switchToLibraryAndReload()
+            }
+        },
+        TabItem(icon: "books.vertical", activeIcon: "books.vertical.fill") {
+            LibraryScreenAssembly.build(cardService: self.appContext.cardService)
+        },
         TabItem(icon: "person",         activeIcon: "person.fill")    { ProfileScreenAssembly.build(context: self.appContext) }
     ]
 
@@ -134,6 +141,16 @@ final class TabContainerViewController: UIViewController {
     /// Переключение на вкладку «+» / экран создания набора (из библиотеки по кнопке папки).
     func selectAddDeckTab(animated: Bool = true) {
         switchToTab(1, animated: animated)
+    }
+
+    /// После создания набора — сбрасываем кэш AddDeckSet, идём в библиотеку и перезагружаем.
+    private func switchToLibraryAndReload() {
+        // Сбросить кэш AddDeckSet, чтобы при следующем открытии форма была чистой
+        cachedVCs[1] = nil
+        switchToTab(2, animated: true)
+        if let libraryVC = cachedVCs[2] as? LibraryScreenViewController {
+            libraryVC.interactor.reloadLibrary()
+        }
     }
 
     private func switchToTab(_ index: Int, animated: Bool) {

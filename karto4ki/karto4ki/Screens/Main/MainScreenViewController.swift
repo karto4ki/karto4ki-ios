@@ -63,6 +63,12 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
         interactor.loadData()
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // Обновляем карусель при каждом появлении экрана (возврат с вкладки библиотеки, после изучения и т.д.)
+        interactor.loadData()
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         updateDeckPanelLayoutIfNeeded()

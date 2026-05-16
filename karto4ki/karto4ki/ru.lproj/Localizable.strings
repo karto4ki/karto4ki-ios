@@ -1,0 +1,165 @@
+// MARK: - Common
+"common.ok"       = "OK";
+"common.cancel"   = "Отмена";
+"common.save"     = "Сохранить";
+"common.delete"   = "Удалить";
+"common.create"   = "Создать";
+"common.error"    = "Ошибка";
+"common.done"     = "Готово";
+"common.add"      = "Добавить";
+"common.or"       = "или";
+"common.question" = "Вопрос";
+"common.answer"   = "Ответ";
+"common.change"   = "Изменить";
+"common.author"          = "Автор: %@";
+"common.created"         = "Создан: %@";
+"common.created_today"   = "создано сегодня";
+"common.created_yesterday"= "создано вчера";
+"common.created_date"    = "создано %@";
+
+// MARK: - Sign In
+"signin.title"            = "Добро пожаловать";
+"signin.email_label"      = "Введите почту";
+"signin.email_placeholder"= "email";
+"signin.continue_apple"   = "Продолжить с Apple ID";
+"signin.continue_google"  = "Продолжить с Google";
+"signin.get_code"         = "Получить код";
+
+// MARK: - Registration
+"registration.name_word"      = "имя";
+"registration.username_word"  = "ник";
+"registration.name_label"     = "имя";
+"registration.username_label" = "ник";
+"registration.name_value"     = "имя: %@";
+"registration.username_value" = "ник: %@";
+"registration.confirm"        = "подтвердить→";
+"registration.enter_prompt"   = "введите";
+
+// MARK: - Code
+"code.title"        = "Введите код";
+"code.subtitle"     = "Мы отправили вам проверочный код. Введите его ниже.";
+"code.resend_prefix"= "Отправить код повторно через";
+"code.resend"       = "Отправить повторно";
+
+// MARK: - Onboarding
+"onboarding.page1.title"    = "Учитесь эффективнее с флеш-карточками";
+"onboarding.page1.subtitle" = "Флеш-карточки помогают структурировать информацию и быстрее запоминать материал — от языков до экзаменов и новых навыков.";
+"onboarding.page2.title"    = "Создавайте карточки автоматически";
+"onboarding.page2.subtitle" = "Загружайте конспекты, документы или фото — приложение выделит ключевые термины и создаст карточки за вас.";
+"onboarding.page3.title"    = "Запоминание,\nа не заучивание";
+"onboarding.page3.subtitle" = "Вопросы переформулируются, чтобы вы запоминали смысл, а не конкретную формулировку.";
+"onboarding.page4.title"    = "Всё для учебы\nв одном месте";
+"onboarding.page4.subtitle" = "Создавайте наборы карточек, отслеживайте прогресс и делитесь материалами с другими пользователями.";
+"onboarding.continue"       = "Продолжить";
+
+// MARK: - Main / Streak
+"main.search_placeholder"     = "найдите карточки...";
+"main.streak_empty"           = "учитесь каждый день, чтобы поддерживать стрик";
+"main.streak_active_format"   = "у вас стрик уже %d %@";
+"main.day.one"                = "день";
+"main.day.few"                = "дня";
+"main.day.many"               = "дней";
+
+// MARK: - Carousel
+"carousel.author"             = "* автор: %@";
+"carousel.card_count_format"  = "* %d %@";
+"carousel.card.one"           = "карточка";
+"carousel.card.few"           = "карточки";
+"carousel.card.many"          = "карточек";
+"carousel.learned"            = "изученные: %d";
+"carousel.not_learned"        = "не изученные: %d";
+"carousel.with_errors"        = "с ошибками: %d";
+
+// MARK: - Library
+"library.title"                  = "Библиотека";
+"library.study_all_full"         = "Изучать все карточки";
+"library.study_all_short"        = "Изучать все";
+"library.study_all_coming_soon"  = "Режим совместного повторения всех наборов появится в следующих версиях.";
+"library.empty"                  = "Ваша библиотека пока пустая.\nДобавьте новые наборы!";
+"library.delete_deck"            = "Удалить набор?";
+"library.search_empty"           = "По запросу «%@» ничего не найдено";
+"library.search_results"         = "Результаты поиска «%@»";
+"library.deck_from_you"          = "от @вас";
+"library.deck_from_other"        = "от @другого пользователя";
+"library.add_to_library_title"   = "Добавить в библиотеку?";
+"library.add_to_library_message" = "«%@» будет скопирован в вашу библиотеку.";
+"library.add_to_library_button"  = "Добавить";
+"library.search_error"           = "Ошибка поиска";
+"library.clone_error"            = "Не удалось добавить набор: %@";
+"library.progress"               = "выучено: %d из %d";
+
+// MARK: - Deck Detail
+"deckdetail.study_remember"        = "Помню / Не помню";
+"deckdetail.study_type_answer"     = "Ввести ответ";
+"deckdetail.stat_learned"          = "Изучено карточек";
+"deckdetail.stat_unlearned"        = "Не изучено";
+"deckdetail.stat_total"            = "Всего карточек";
+"deckdetail.stat_pct"              = "Процент изучения";
+"deckdetail.add_to_library"        = "Добавить в библиотеку";
+"deckdetail.cards"                 = "Карточки";
+"deckdetail.type_answer_coming_soon" = "Режим ввода ответа появится в следующих версиях.";
+"deckdetail.added_title"           = "Добавлено";
+"deckdetail.added_message"         = "Набор скопирован в вашу библиотеку.";
+"deckdetail.new_card"              = "Новая карточка";
+"deckdetail.edit_card"             = "Изменить карточку";
+"deckdetail.delete_card"           = "Удалить карточку?";
+"deckdetail.author_community"      = "сообщество";
+
+// MARK: - Study
+"study.listen"              = "слушать";
+"study.dont_remember"       = "не помню";
+"study.remember"            = "помню";
+"study.tts_coming_soon"     = "Озвучивание карточек появится позже.\nНабор: «%@»";
+"study.settings_coming_soon"= "Настройки режима повторения появятся позже.";
+"study.deck_empty"          = "Набор пустой — добавьте карточки.";
+"study.session_finished"    = "Вы прошли все карточки в этом наборе.";
+
+// MARK: - Add Deck
+"adddeck.title"              = "Добавление набора карточек";
+"adddeck.name_title"         = "Название набора";
+"adddeck.name_placeholder"   = "Введите название...";
+"adddeck.ai_title"           = "Создать с помощью ИИ";
+"adddeck.ai_subtitle"        = "Загрузите файл, а мы сами создадим карточки на его основе";
+"adddeck.upload_title"       = "Загрузите файл";
+"adddeck.upload_hint"        = "PDF, DOCX, TXT или изображение до 20 МБ";
+"adddeck.or_manual"          = "или добавьте вручную";
+"adddeck.manual_title"       = "Добавить карточки вручную";
+"adddeck.add_card"           = "Добавить карточку";
+"adddeck.create_set"         = "Создать набор";
+"adddeck.generating"         = "Генерируем карточки...";
+"adddeck.generated_message"  = "Карточки сгенерированы на основе «%@». Проверьте и отредактируйте их при необходимости.";
+"adddeck.name_required"      = "Введите название набора.";
+"adddeck.service_unavailable"= "Сервис карточек недоступен.";
+"adddeck.created_message"    = "Набор «%@» создан.";
+"adddeck.question_placeholder"= "Введите вопрос...";
+"adddeck.answer_placeholder"  = "Введите ответ...";
+
+// MARK: - Profile
+"profile.title"                  = "Профиль";
+"profile.email"                  = "Почта";
+"profile.notifications_title"    = "Уведомления";
+"profile.notifications_subtitle" = "Получать напоминания об обучении и стриках";
+"profile.language_title"         = "Язык приложения";
+"profile.language_ru"            = "Русский";
+"profile.language_en"            = "English";
+"profile.language_changed_title" = "Язык изменён";
+"profile.language_changed_message"= "Перезапустите приложение, чтобы изменения вступили в силу.";
+"profile.testmode_title"         = "Тест-режим";
+"profile.testmode_subtitle"      = "Использовать тестовые данные вместо реальных";
+"profile.testmode_badge"         = "ТЕСТ";
+"profile.logout_title"           = "Выйти из аккаунта";
+"profile.logout_subtitle"        = "Разлогиниться и выйти из профиля";
+"profile.avatar_preview"         = "Посмотреть аватарку";
+"profile.avatar_camera"          = "Сделать фото";
+"profile.avatar_library"         = "Медиатека";
+"profile.camera_unavailable"     = "Камера недоступна";
+"profile.edit_data"              = "Изменить данные";
+"profile.name_placeholder"       = "Имя";
+"profile.username_placeholder"   = "Никнейм";
+"profile.delete_account_action"  = "Удалить аккаунт";
+"profile.delete_account_title"   = "Удалить аккаунт?";
+"profile.delete_account_message" = "Профиль и данные будут удалены без возможности восстановления.";
+"profile.signout_title"          = "Выйти из аккаунта?";
+"profile.signout_action"         = "Выйти";
+"profile.email_unspecified"      = "не указан";
+"profile.member_since"           = "с %@";

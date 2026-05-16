@@ -3,6 +3,13 @@ import UIKit
 /// Экран «Добавление набора карточек»: ИИ-загрузка + ручные карточки (без переключателя «по одной / пакетом»).
 final class AddDeckSetViewController: UIViewController {
 
+    // MARK: - Dependencies
+
+    private let cardService: CardServiceProtocol
+    private let onSetCreated: (() -> Void)?
+
+    // MARK: - UI
+
     private let scrollView = UIScrollView()
     private let contentStack = UIStackView()
 
@@ -23,10 +30,38 @@ final class AddDeckSetViewController: UIViewController {
     private let addAnotherCardButton = UIButton(type: .system)
     private let createSetButton = UIButton(type: .system)
 
+    private lazy var loadingOverlay: UIView = {
+        let overlay = UIView()
+        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.45)
+        overlay.isHidden = true
+        let spinner = UIActivityIndicatorView(style: .large)
+        spinner.color = .white
+        spinner.startAnimating()
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        overlay.addSubview(spinner)
+        NSLayoutConstraint.activate([
+            spinner.centerXAnchor.constraint(equalTo: overlay.centerXAnchor),
+            spinner.centerYAnchor.constraint(equalTo: overlay.centerYAnchor)
+        ])
+        return overlay
+    }()
+
     private let profilePurple = UIColor(red: 0.45, green: 0.40, blue: 0.90, alpha: 1)
     private let glassCorner: CGFloat = 22
     private let questionLimit = 500
     private let answerLimit = 1000
+
+    // MARK: - Init
+
+    init(cardService: CardServiceProtocol, onSetCreated: (() -> Void)? = nil) {
+        self.cardService = cardService
+        self.onSetCreated = onSetCreated
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,6 +75,18 @@ final class AddDeckSetViewController: UIViewController {
         configureManualSection()
         configureCreateButton()
         appendManualCardBlock()
+        configureLoadingOverlay()
+    }
+
+    private func configureLoadingOverlay() {
+        view.addSubview(loadingOverlay)
+        loadingOverlay.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            loadingOverlay.topAnchor.constraint(equalTo: view.topAnchor),
+            loadingOverlay.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            loadingOverlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            loadingOverlay.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
     }
 
     private func configureBackground() {
@@ -53,15 +100,14 @@ final class AddDeckSetViewController: UIViewController {
         scrollView.showsVerticalScrollIndicator = false
         scrollView.alwaysBounceVertical = true
         scrollView.keyboardDismissMode = .interactive
-        scrollView.contentInset.bottom = 100
-        scrollView.verticalScrollIndicatorInsets.bottom = 100
         view.addSubview(scrollView)
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            // Прибиваем к keyboardLayoutGuide — скролл автоматически сжимается при появлении клавиатуры
+            scrollView.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor)
         ])
 
         contentStack.axis = .vertical
@@ -359,25 +405,74 @@ final class AddDeckSetViewController: UIViewController {
     @objc
     private func createSetTapped() {
         let name = (nameField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        if name.isEmpty {
+        guard !name.isEmpty else {
             let a = UIAlertController(title: nil, message: "Введите название набора.", preferredStyle: .alert)
             a.addAction(UIAlertAction(title: "OK", style: .default))
             present(a, animated: true)
             return
         }
-        let a = UIAlertController(
-            title: nil,
-            message: "Создание набора «\(name)» будет доступно после подключения API.",
-            preferredStyle: .alert
-        )
-        a.addAction(UIAlertAction(title: "OK", style: .default))
-        present(a, animated: true)
+
+        // Собираем заполненные карточки
+        let cards = collectCards()
+        guard !cards.isEmpty else {
+            let a = UIAlertController(title: nil, message: "Добавьте хотя бы одну карточку.", preferredStyle: .alert)
+            a.addAction(UIAlertAction(title: "OK", style: .default))
+            present(a, animated: true)
+            return
+        }
+
+        view.endEditing(true)
+        loadingOverlay.isHidden = false
+        createSetButton.isEnabled = false
+
+        Task {
+            do {
+                // 1. Создаём набор
+                let setRequest = CreateCardSetRequestAPI(name: name, description: nil, isPublic: false)
+                let createdSet = try await cardService.createSet(setRequest, idempotencyKey: UUID().uuidString)
+
+                // 2. Создаём карточки последовательно
+                for card in cards {
+                    let cardRequest = CreateCardRequestAPI(front: card.front, back: card.back, imageUrl: nil)
+                    _ = try await cardService.createCard(
+                        setId: createdSet.id,
+                        request: cardRequest,
+                        idempotencyKey: UUID().uuidString
+                    )
+                }
+
+                await MainActor.run {
+                    self.loadingOverlay.isHidden = true
+                    self.createSetButton.isEnabled = true
+                    self.onSetCreated?()
+                }
+            } catch {
+                await MainActor.run {
+                    self.loadingOverlay.isHidden = true
+                    self.createSetButton.isEnabled = true
+                    let a = UIAlertController(
+                        title: "Ошибка",
+                        message: "Не удалось создать набор. Попробуйте ещё раз.",
+                        preferredStyle: .alert
+                    )
+                    a.addAction(UIAlertAction(title: "OK", style: .default))
+                    self.present(a, animated: true)
+                }
+            }
+        }
+    }
+
+    /// Собирает карточки из всех `ManualCardEntryView` со заполненным вопросом и ответом.
+    private func collectCards() -> [(front: String, back: String)] {
+        manualCardsStack.arrangedSubviews
+            .compactMap { $0 as? ManualCardEntryView }
+            .compactMap { $0.cardPair }
     }
 }
 
 // MARK: - Ручная карточка
 
-private final class ManualCardEntryView: UIView, UITextViewDelegate {
+final class ManualCardEntryView: UIView, UITextViewDelegate {
 
     private let questionLimit: Int
     private let answerLimit: Int
@@ -458,6 +553,14 @@ private final class ManualCardEntryView: UIView, UITextViewDelegate {
         tv.isScrollEnabled = false
         tv.text = ""
         tv.addPlaceholderIfNeeded(placeholder)
+    }
+
+    /// Возвращает пару (вопрос, ответ) если оба поля заполнены.
+    var cardPair: (front: String, back: String)? {
+        let front = (questionView.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let back  = (answerView.text  ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !front.isEmpty, !back.isEmpty else { return nil }
+        return (front, back)
     }
 
     private func updateCounters() {

@@ -40,6 +40,24 @@ final class SignInViewController: UIViewController, UITextFieldDelegate, UIGestu
 
     private let orRow = UIView()
 
+    private lazy var loadingOverlay: UIView = {
+        let overlay = UIView()
+        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.45)
+        overlay.isHidden = true
+
+        let spinner = UIActivityIndicatorView(style: .large)
+        spinner.color = .white
+        spinner.startAnimating()
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+
+        overlay.addSubview(spinner)
+        NSLayoutConstraint.activate([
+            spinner.centerXAnchor.constraint(equalTo: overlay.centerXAnchor),
+            spinner.centerYAnchor.constraint(equalTo: overlay.centerYAnchor)
+        ])
+        return overlay
+    }()
+
     init(interactor: SignInBusinessLogic) {
         self.interactor = interactor
         super.init(nibName: nil, bundle: nil)
@@ -66,6 +84,22 @@ final class SignInViewController: UIViewController, UITextFieldDelegate, UIGestu
         configureWelcomeLabel()
         configureHeart()
         configureCardsLogoView()
+        configureLoadingOverlay()
+    }
+
+    private func configureLoadingOverlay() {
+        view.addSubview(loadingOverlay)
+        loadingOverlay.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            loadingOverlay.topAnchor.constraint(equalTo: view.topAnchor),
+            loadingOverlay.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            loadingOverlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            loadingOverlay.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+    }
+
+    private func showLoadingOverlay() {
+        loadingOverlay.isHidden = false
     }
 
     private func configureBackground() {
@@ -250,6 +284,8 @@ extension SignInViewController: ASAuthorizationControllerDelegate, ASAuthorizati
         let identityToken = credential.identityToken.flatMap { String(data: $0, encoding: .utf8) }
         let authCode = credential.authorizationCode.flatMap { String(data: $0, encoding: .utf8) }
 
+        showLoadingOverlay()
+
         interactor.signInWithApple(
             userId: userId,
             email: email,
@@ -264,13 +300,24 @@ extension SignInViewController: ASAuthorizationControllerDelegate, ASAuthorizati
     }
 }
 
+extension SignInViewController: SignInDisplayLogic {
+
+    func hideLoadingOverlay() {
+        DispatchQueue.main.async {
+            self.loadingOverlay.isHidden = true
+        }
+    }
+}
+
 extension SignInViewController {
 
     @objc
     private func signInWithGoogleTapped() {
         guard let presentingVC = view.window?.rootViewController ?? self as UIViewController? else { return }
 
-        GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
+        GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { [weak self] result, error in
+            guard let self else { return }
+
             if let error = error {
                 self.interactor.googleSignInFailed(error)
                 return
@@ -281,6 +328,8 @@ extension SignInViewController {
             let user = result.user
             let idToken = user.idToken?.tokenString
             let accessToken = user.accessToken.tokenString
+
+            DispatchQueue.main.async { self.showLoadingOverlay() }
 
             self.interactor.signInWithGoogle(
                 idToken: idToken,

@@ -3,6 +3,7 @@ import UIKit
 final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDelegate {
 
     private let deck: LibraryModels.DeckSet
+    private let cardService: CardServiceProtocol
     private let deckFolderTint: UIColor
 
     private let scrollView = UIScrollView()
@@ -28,16 +29,26 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
     private let cardsStack = UIStackView()
     private let addCardButton = UIButton(type: .system)
     private let outsideTap = UITapGestureRecognizer()
+    private let loadingIndicator = UIActivityIndicatorView(style: .medium)
 
     private var flashcards: [DeckSetDetailModels.FlashcardRow] = []
     private var answerHiddenById: [UUID: Bool] = [:]
     private var isEditingCards = false
+    private var studyButtonsEnabled = false
+    private var hasAppearedOnce = false
+
+    // Лейблы-значения в блоке статистики — обновляются при изменении кол-ва карточек
+    private let statLearnedLabel  = UILabel()
+    private let statUnlearnedLabel = UILabel()
+    private let statTotalLabel    = UILabel()
+    private let statPctLabel      = UILabel()
 
     private let profilePurple = UIColor(red: 0.45, green: 0.40, blue: 0.90, alpha: 1)
     private let glassCorner: CGFloat = 22
 
-    init(deck: LibraryModels.DeckSet) {
+    init(deck: LibraryModels.DeckSet, cardService: CardServiceProtocol) {
         self.deck = deck
+        self.cardService = cardService
         self.deckFolderTint = LibraryModels.FolderPalette.folderColor(colorIndex: deck.colorIndex)
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .fullScreen
@@ -50,8 +61,6 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.setNavigationBarHidden(true, animated: false)
-        flashcards = Self.buildMockCards(for: deck)
-        for c in flashcards { answerHiddenById[c.id] = false }
 
         configureBackground()
         configureScroll()
@@ -63,7 +72,22 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         configureAddToLibrary()
         configureCardsSection()
         configureAddCard()
+        configureLoading()
+
+        loadCards()
     }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if hasAppearedOnce {
+            // Повторное появление (например, возврат из режима изучения) — обновляем карточки и статистику
+            loadCards()
+        } else {
+            hasAppearedOnce = true
+        }
+    }
+
+    // MARK: - Background & Layout
 
     private func configureBackground() {
         let bg = BackgroundView()
@@ -77,7 +101,6 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         scrollView.alwaysBounceVertical = true
         scrollView.keyboardDismissMode = .onDrag
         scrollView.backgroundColor = .clear
-        // Контент доходит до низа экрана, а отступ снизу защищает от перекрытия плавающим таббаром.
         scrollView.contentInset.bottom = 92
         scrollView.verticalScrollIndicatorInsets.bottom = 92
         view.addSubview(scrollView)
@@ -109,6 +132,19 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         outsideTap.delegate = self
         scrollView.addGestureRecognizer(outsideTap)
     }
+
+    private func configureLoading() {
+        loadingIndicator.hidesWhenStopped = true
+        loadingIndicator.color = .white
+        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(loadingIndicator)
+        NSLayoutConstraint.activate([
+            loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }
+
+    // MARK: - Top bar
 
     private func configureTopBar() {
         let row = UIView()
@@ -154,6 +190,8 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         btn.heightAnchor.constraint(equalToConstant: 40).isActive = true
     }
 
+    // MARK: - Header
+
     private func configureHeader() {
         folderIcon.image = UIImage(systemName: "folder.fill")
         folderIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 36, weight: .semibold)
@@ -177,7 +215,7 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         subtitleLabel.textColor = UIColor.white.withAlphaComponent(0.88)
         subtitleLabel.numberOfLines = 0
 
-        let authorName = deck.isUserOwned ? "lzkgmr" : "сообщество"
+        let authorName = deck.isUserOwned ? "вы" : (deck.authorName ?? "сообщество")
         authorLabel.text = "Автор: \(authorName)"
         authorLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         authorLabel.textColor = UIColor.white.withAlphaComponent(0.78)
@@ -207,6 +245,8 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         contentStack.addArrangedSubview(headerRow)
     }
 
+    // MARK: - Stats
+
     private func configureStats() {
         statsContainer.backgroundColor = .white.withAlphaComponent(0.22)
         statsContainer.layer.cornerRadius = glassCorner
@@ -218,17 +258,10 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         statsStack.spacing = 10
         statsStack.translatesAutoresizingMaskIntoConstraints = false
 
-        let learned = deck.learned
-        let unlearned = max(0, deck.total - deck.learned)
-        let pct: Int = {
-            guard deck.total > 0 else { return 0 }
-            return Int(round(Double(learned) / Double(deck.total) * 100))
-        }()
-
-        statsStack.addArrangedSubview(statLine(title: "Изучено карточек", value: "\(learned)"))
-        statsStack.addArrangedSubview(statLine(title: "Не изучено", value: "\(unlearned)"))
-        statsStack.addArrangedSubview(statLine(title: "Всего карточек", value: "\(deck.total)"))
-        statsStack.addArrangedSubview(statLine(title: "Процент изучения", value: "\(pct)%"))
+        statsStack.addArrangedSubview(statLine(title: "Изучено карточек",  valueLabel: statLearnedLabel))
+        statsStack.addArrangedSubview(statLine(title: "Не изучено",        valueLabel: statUnlearnedLabel))
+        statsStack.addArrangedSubview(statLine(title: "Всего карточек",    valueLabel: statTotalLabel))
+        statsStack.addArrangedSubview(statLine(title: "Процент изучения",  valueLabel: statPctLabel))
 
         statsContainer.addSubview(statsStack)
         NSLayoutConstraint.activate([
@@ -239,7 +272,42 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         ])
 
         contentStack.addArrangedSubview(statsContainer)
+        updateStats()
     }
+
+    /// Пересчитывает статистику по текущему массиву flashcards и обновляет лейблы.
+    private func updateStats() {
+        let total    = flashcards.count
+        // Считаем из актуальных статусов карточек, а не из deck.learned (закэшированного при открытии экрана)
+        let learned  = flashcards.filter { $0.isLearned }.count
+        let unlearned = max(0, total - learned)
+        let pct: Int  = total > 0 ? Int(round(Double(learned) / Double(total) * 100)) : 0
+
+        statLearnedLabel.text   = "\(learned)"
+        statUnlearnedLabel.text = "\(unlearned)"
+        statTotalLabel.text     = "\(total)"
+        statPctLabel.text       = "\(pct)%"
+    }
+
+    private func statLine(title: String, valueLabel: UILabel) -> UIView {
+        let t = UILabel()
+        t.text = title
+        t.font = UIFont.systemFont(ofSize: 13, weight: .medium)
+        t.textColor = UIColor.white.withAlphaComponent(0.8)
+
+        valueLabel.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
+        valueLabel.textColor = .white
+        valueLabel.textAlignment = .right
+        valueLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        let row = UIStackView(arrangedSubviews: [t, valueLabel])
+        row.axis = .horizontal
+        row.alignment = .center
+        row.distribution = .fill
+        return row
+    }
+
+    // MARK: - Study buttons
 
     private func configureStudyEntryButtons() {
         studyActionsStack.axis = .vertical
@@ -266,11 +334,8 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         typeAnswerButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
         typeAnswerButton.addTarget(self, action: #selector(typeAnswerStudyTapped), for: .touchUpInside)
 
-        let hasCards = deck.total > 0
-        rememberNotRememberButton.isEnabled = hasCards
-        typeAnswerButton.isEnabled = hasCards
-        rememberNotRememberButton.alpha = hasCards ? 1 : 0.45
-        typeAnswerButton.alpha = hasCards ? 1 : 0.45
+        // Начально неактивны — включатся после загрузки карточек
+        setStudyButtonsEnabled(false)
 
         studyActionsStack.addArrangedSubview(rememberNotRememberButton)
         studyActionsStack.addArrangedSubview(typeAnswerButton)
@@ -278,25 +343,15 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         contentStack.setCustomSpacing(12, after: statsContainer)
     }
 
-    private func statLine(title: String, value: String) -> UIView {
-        let t = UILabel()
-        t.text = title
-        t.font = UIFont.systemFont(ofSize: 13, weight: .medium)
-        t.textColor = UIColor.white.withAlphaComponent(0.8)
-
-        let v = UILabel()
-        v.text = value
-        v.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
-        v.textColor = .white
-        v.textAlignment = .right
-        v.setContentCompressionResistancePriority(.required, for: .horizontal)
-
-        let row = UIStackView(arrangedSubviews: [t, v])
-        row.axis = .horizontal
-        row.alignment = .center
-        row.distribution = .fill
-        return row
+    private func setStudyButtonsEnabled(_ enabled: Bool) {
+        studyButtonsEnabled = enabled
+        rememberNotRememberButton.isEnabled = enabled
+        typeAnswerButton.isEnabled = enabled
+        rememberNotRememberButton.alpha = enabled ? 1 : 0.45
+        typeAnswerButton.alpha = enabled ? 1 : 0.45
     }
+
+    // MARK: - Add to library
 
     private func configureAddToLibrary() {
         addToLibraryButton.isHidden = deck.isUserOwned
@@ -311,6 +366,8 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         addToLibraryButton.addTarget(self, action: #selector(addToLibraryTapped), for: .touchUpInside)
         contentStack.addArrangedSubview(addToLibraryButton)
     }
+
+    // MARK: - Cards section
 
     private func configureCardsSection() {
         cardsSectionTitle.text = "Карточки"
@@ -337,9 +394,9 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
                 answerHidden: hidden,
                 accentColor: deckFolderTint
             )
-            row.onDeleteTap = { [weak self] in self?.confirmDeleteCard(id: card.id) }
+            row.onDeleteTap = { [weak self] in self?.confirmDeleteCard(card) }
             row.onMoreTap = { [weak self] source in
-                self?.presentCardMenu(cardId: card.id, sourceView: source)
+                self?.presentCardMenu(card: card, sourceView: source)
             }
             row.onEyeTap = { [weak self] in self?.toggleAnswerVisibility(cardId: card.id) }
             cardsStack.addArrangedSubview(row)
@@ -363,15 +420,40 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         contentStack.addArrangedSubview(addCardButton)
     }
 
-    @objc
-    private func backTapped() {
+    // MARK: - Load cards from API
+
+    private func loadCards() {
+        loadingIndicator.startAnimating()
+        Task {
+            do {
+                let response = try await cardService.getCards(setId: deck.id.uuidString.lowercased(), offset: nil, limit: nil)
+                let rows = response.cards.map { DeckSetDetailModels.FlashcardRow(from: $0) }
+                await MainActor.run {
+                    flashcards = rows
+                    for c in flashcards { answerHiddenById[c.id] = true }
+                    loadingIndicator.stopAnimating()
+                    setStudyButtonsEnabled(!flashcards.isEmpty)
+                    updateStats()
+                    rebuildCardRows()
+                }
+            } catch {
+                await MainActor.run {
+                    loadingIndicator.stopAnimating()
+                    showError("Не удалось загрузить карточки")
+                }
+            }
+        }
+    }
+
+    // MARK: - Actions
+
+    @objc private func backTapped() {
+        // Инвалидируем TTL сетов — библиотека сделает свежий сетевой запрос и покажет актуальные learnedCount
+        AppCacheStore.invalidateSets()
         dismiss(animated: true)
     }
 
-    @objc
-    private func editTapped() {
-        setEditingCards(!isEditingCards)
-    }
+    @objc private func editTapped() { setEditingCards(!isEditingCards) }
 
     private func setEditingCards(_ editing: Bool) {
         isEditingCards = editing
@@ -388,8 +470,7 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         }
     }
 
-    @objc
-    private func handleOutsideTap(_ g: UITapGestureRecognizer) {
+    @objc private func handleOutsideTap(_ g: UITapGestureRecognizer) {
         guard isEditingCards else { return }
         let pointInCardsStack = g.location(in: cardsStack)
         let tappedCardRow = cardsStack.arrangedSubviews.contains { row in
@@ -403,23 +484,19 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         guard gestureRecognizer === outsideTap else { return true }
         var v: UIView? = touch.view
         while let current = v {
-            if current is UIControl {
-                return false
-            }
+            if current is UIControl { return false }
             v = current.superview
         }
         return true
     }
 
-    @objc
-    private func rememberNotRememberStudyTapped() {
-        let study = FlashcardStudyViewController(deck: deck)
+    @objc private func rememberNotRememberStudyTapped() {
+        let study = FlashcardStudyViewController(deck: deck, cardService: cardService)
         study.modalPresentationStyle = .fullScreen
         present(study, animated: true)
     }
 
-    @objc
-    private func typeAnswerStudyTapped() {
+    @objc private func typeAnswerStudyTapped() {
         let a = UIAlertController(
             title: "Ввести ответ",
             message: "Режим ввода ответа появится в следующих версиях.",
@@ -429,35 +506,94 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         present(a, animated: true)
     }
 
-    @objc
-    private func addToLibraryTapped() {
-        let a = UIAlertController(
-            title: "В библиотеку",
-            message: "Добавление чужого набора в библиотеку будет доступно после подключения API.",
-            preferredStyle: .alert
-        )
-        a.addAction(UIAlertAction(title: "OK", style: .default))
-        present(a, animated: true)
+    // MARK: - Add to library (clone set)
+
+    @objc private func addToLibraryTapped() {
+        addToLibraryButton.isEnabled = false
+        addToLibraryButton.alpha = 0.6
+        Task {
+            do {
+                _ = try await cardService.cloneSet(setId: deck.id.uuidString.lowercased())
+                await MainActor.run {
+                    addToLibraryButton.isEnabled = true
+                    addToLibraryButton.alpha = 1
+                    let a = UIAlertController(
+                        title: "Готово",
+                        message: "Набор добавлен в вашу библиотеку.",
+                        preferredStyle: .alert
+                    )
+                    a.addAction(UIAlertAction(title: "OK", style: .default))
+                    present(a, animated: true)
+                }
+            } catch {
+                await MainActor.run {
+                    addToLibraryButton.isEnabled = true
+                    addToLibraryButton.alpha = 1
+                    showError("Не удалось добавить набор в библиотеку")
+                }
+            }
+        }
     }
 
-    @objc
-    private func addCardTapped() {
-        let a = UIAlertController(title: nil, message: "Создание карточки появится в следующей версии.", preferredStyle: .alert)
-        a.addAction(UIAlertAction(title: "OK", style: .default))
-        present(a, animated: true)
+    // MARK: - Add card
+
+    @objc private func addCardTapped() {
+        let alert = UIAlertController(title: "Новая карточка", message: nil, preferredStyle: .alert)
+        alert.addTextField { tf in
+            tf.placeholder = "Вопрос (лицо)"
+            tf.autocapitalizationType = .sentences
+            tf.returnKeyType = .next
+        }
+        alert.addTextField { tf in
+            tf.placeholder = "Ответ (оборот)"
+            tf.autocapitalizationType = .sentences
+            tf.returnKeyType = .done
+        }
+        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Добавить", style: .default) { [weak self, weak alert] _ in
+            guard let self else { return }
+            let front = alert?.textFields?[0].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let back  = alert?.textFields?[1].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            guard !front.isEmpty, !back.isEmpty else {
+                self.showError("Заполните оба поля карточки")
+                return
+            }
+            self.createCard(front: front, back: back)
+        })
+        present(alert, animated: true)
     }
 
-    private func presentCardMenu(cardId: UUID, sourceView: UIView) {
-        _ = cardId
+    private func createCard(front: String, back: String) {
+        Task {
+            do {
+                let request = CreateCardRequestAPI(front: front, back: back, imageUrl: nil)
+                let api = try await cardService.createCard(
+                    setId: deck.id.uuidString.lowercased(),
+                    request: request,
+                    idempotencyKey: UUID().uuidString
+                )
+                let row = DeckSetDetailModels.FlashcardRow(from: api)
+                await MainActor.run {
+                    flashcards.append(row)
+                    answerHiddenById[row.id] = true
+                    setStudyButtonsEnabled(true)
+                    updateStats()
+                    rebuildCardRows()
+                    // Библиотека должна показать обновлённое кол-во карточек
+                    AppCacheStore.invalidateSets()
+                }
+            } catch {
+                await MainActor.run { showError("Не удалось добавить карточку") }
+            }
+        }
+    }
+
+    // MARK: - Card menu (edit)
+
+    private func presentCardMenu(card: DeckSetDetailModels.FlashcardRow, sourceView: UIView) {
         let sheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         sheet.addAction(UIAlertAction(title: "Изменить", style: .default) { [weak self] _ in
-            let a = UIAlertController(
-                title: "Изменить",
-                message: "Экран редактирования карточки будет позже.",
-                preferredStyle: .alert
-            )
-            a.addAction(UIAlertAction(title: "OK", style: .default))
-            self?.present(a, animated: true)
+            self?.presentEditCard(card)
         })
         sheet.addAction(UIAlertAction(title: "Отмена", style: .cancel))
         if let pop = sheet.popoverPresentationController {
@@ -467,20 +603,101 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         present(sheet, animated: true)
     }
 
+    private func presentEditCard(_ card: DeckSetDetailModels.FlashcardRow) {
+        let alert = UIAlertController(title: "Изменить карточку", message: nil, preferredStyle: .alert)
+        alert.addTextField { tf in
+            tf.text = card.question
+            tf.placeholder = "Вопрос (лицо)"
+            tf.autocapitalizationType = .sentences
+        }
+        alert.addTextField { tf in
+            tf.text = card.answer
+            tf.placeholder = "Ответ (оборот)"
+            tf.autocapitalizationType = .sentences
+        }
+        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Сохранить", style: .default) { [weak self, weak alert] _ in
+            guard let self else { return }
+            let front = alert?.textFields?[0].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let back  = alert?.textFields?[1].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            guard !front.isEmpty, !back.isEmpty else {
+                self.showError("Заполните оба поля карточки")
+                return
+            }
+            self.updateCard(card, front: front, back: back)
+        })
+        present(alert, animated: true)
+    }
+
+    private func updateCard(_ card: DeckSetDetailModels.FlashcardRow, front: String, back: String) {
+        Task {
+            do {
+                let request = UpdateCardRequestAPI(front: front, back: back, imageUrl: nil)
+                let api = try await cardService.updateCard(cardId: card.apiId, request: request)
+                await MainActor.run {
+                    if let idx = flashcards.firstIndex(where: { $0.id == card.id }) {
+                        flashcards[idx].question = api.front
+                        flashcards[idx].answer = api.back
+                    }
+                    rebuildCardRows()
+                }
+            } catch {
+                await MainActor.run { showError("Не удалось обновить карточку") }
+            }
+        }
+    }
+
+    // MARK: - Delete card
+
+    private func confirmDeleteCard(_ card: DeckSetDetailModels.FlashcardRow) {
+        let a = UIAlertController(title: "Удалить карточку?", message: card.question, preferredStyle: .alert)
+        a.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        a.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            self?.deleteCard(card)
+        })
+        present(a, animated: true)
+    }
+
+    private func deleteCard(_ card: DeckSetDetailModels.FlashcardRow) {
+        // Сразу убираем из UI (оптимистичный update)
+        flashcards.removeAll { $0.id == card.id }
+        answerHiddenById[card.id] = nil
+        setStudyButtonsEnabled(!flashcards.isEmpty)
+        updateStats()
+        rebuildCardRows()
+        AppCacheStore.invalidateSets()
+
+        Task {
+            do {
+                try await cardService.deleteCard(cardId: card.apiId)
+            } catch {
+                // Если удаление с сервера не прошло — возвращаем карточку обратно
+                await MainActor.run {
+                    flashcards.append(card)
+                    answerHiddenById[card.id] = true
+                    setStudyButtonsEnabled(true)
+                    updateStats()
+                    rebuildCardRows()
+                    AppCacheStore.invalidateSets()
+                    showError("Не удалось удалить карточку")
+                }
+            }
+        }
+    }
+
+    // MARK: - Eye toggle
+
     private func toggleAnswerVisibility(cardId: UUID) {
-        let cur = answerHiddenById[cardId] ?? false
+        let cur = answerHiddenById[cardId] ?? true
         answerHiddenById[cardId] = !cur
         rebuildCardRows()
     }
 
-    private func confirmDeleteCard(id: UUID) {
-        let a = UIAlertController(title: "Удалить карточку?", message: nil, preferredStyle: .alert)
-        a.addAction(UIAlertAction(title: "Отмена", style: .cancel))
-        a.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
-            self?.flashcards.removeAll { $0.id == id }
-            self?.answerHiddenById[id] = nil
-            self?.rebuildCardRows()
-        })
+    // MARK: - Helpers
+
+    private func showError(_ message: String) {
+        let a = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        a.addAction(UIAlertAction(title: "OK", style: .default))
         present(a, animated: true)
     }
 
@@ -491,18 +708,5 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
             return (parts[0], parts[1])
         }
         return (raw, "")
-    }
-
-    /// До API: ограниченный список карточек для прокрутки.
-    private static func buildMockCards(for deck: LibraryModels.DeckSet) -> [DeckSetDetailModels.FlashcardRow] {
-        let n = min(deck.total, 60)
-        guard n > 0 else { return [] }
-        return (1...n).map { i in
-            DeckSetDetailModels.FlashcardRow(
-                id: UUID(),
-                question: "Пример вопроса \(i)",
-                answer: "Пример ответа \(i)"
-            )
-        }
     }
 }

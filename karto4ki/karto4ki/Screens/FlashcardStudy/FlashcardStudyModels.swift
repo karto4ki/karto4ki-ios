@@ -11,8 +11,9 @@ enum FlashcardStudyModels {
         let id: String
         let front: String
         let back: String
-        /// Позиция в текущей сессии (1…total).
-        let position: Int
+        /// Сколько карточек уже отмечено «помню» в текущей сессии.
+        let rememberedCount: Int
+        /// Общее количество карточек в сессии.
         let total: Int
     }
 
@@ -22,9 +23,11 @@ enum FlashcardStudyModels {
         let under: StudyCardPayload?
     }
 
-    /// После ответа: карточка под новой верхней уже на руках; `prefetchedUnder` — следующая под ней (+1 к буферу).
+    /// После ответа:
+    /// - `newTop` — карточка, которая теперь на вершине (нужна для «server-first» пути, когда нижний слот был пустым).
+    /// - `prefetchedUnder` — карточка под новой верхней (загружается в нижний слот колоды).
     enum DeckAdvanceResult: Equatable {
-        case continued(prefetchedUnder: StudyCardPayload?)
+        case continued(newTop: StudyCardPayload, prefetchedUnder: StudyCardPayload?)
         case finished(message: String)
     }
 }
