@@ -20,6 +20,7 @@ final class LocalDataStore {
     // MARK: - Profile
 
     func saveProfile(_ profile: PrivateUserProfile) async {
+        print(profile)
         await MainActor.run {
             let ctx = container.mainContext
             let id = profile.id
@@ -50,7 +51,12 @@ final class LocalDataStore {
         await MainActor.run {
             let ctx = container.mainContext
             let desc = FetchDescriptor<SDUserProfile>()
-            return try? ctx.fetch(desc).first?.toPrivateUserProfile()
+
+            guard let models = try? ctx.fetch(desc) else {
+                return nil
+            }
+
+            return models.first?.toPrivateUserProfile()
         }
     }
 

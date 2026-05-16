@@ -3,9 +3,11 @@ import UIKit
 final class MainScreenInteractor: MainScreenBusinessLogic {
 
     private let presenter: MainScreenPresentationLogic
+    private let cardService: CardServiceProtocol
 
-    init(presenter: MainScreenPresentationLogic) {
+    init(presenter: MainScreenPresentationLogic, cardService: CardServiceProtocol) {
         self.presenter = presenter
+        self.cardService = cardService
     }
 
     func loadData() {
@@ -25,17 +27,55 @@ final class MainScreenInteractor: MainScreenBusinessLogic {
             .init(dayName: "вс", date: "22.02", isActive: false, isCurrent: false)
         ]
 
-        let carousel: [MainScreenModels.DeckCarouselItem] = [
-            .init(
-                deck: .init(title: "Коллоквиум по ios", author: "lzkgmr", cardCount: 32),
-                progress: .init(percent: 26, learned: 8, notLearned: 19, withErrors: 10)
-            ),
-            .init(
-                deck: .init(title: "Английский B2", author: "kurunon", cardCount: 54),
-                progress: .init(percent: 61, learned: 22, notLearned: 18, withErrors: 14)
-            )
-        ]
+        Task {
+            let carousel = await buildCarousel()
+            await MainActor.run {
+                presenter.presentData(friends: friends, streakDays: streakDays, deckCarousel: carousel)
+            }
+        }
+    }
 
-        presenter.presentData(friends: friends, streakDays: streakDays, deckCarousel: carousel)
+    // MARK: - Private
+
+    private func buildCarousel() async -> [MainScreenModels.DeckCarouselItem] {
+        let apiSets = await LocalDataStore.shared.loadCardSets() ?? []
+        guard !apiSets.isEmpty else { return [] }
+
+        let decks = apiSets.map { LibraryModels.DeckSet(from: $0) }
+        let sorted = DeckAccessStore.sorted(decks)
+
+        var items: [MainScreenModels.DeckCarouselItem] = []
+        for deck in sorted {
+            var author: String
+            if deck.authorName == nil {
+                let profile = await LocalDataStore.shared.loadProfile()
+                author = profile?.name ?? ""
+            } else {
+                author = deck.authorName ?? ""
+            }
+            let setId = deck.id.uuidString.lowercased()
+            if let stats = try? await cardService.getSetStats(setId: setId) {
+                items.append(MainScreenModels.DeckCarouselItem(
+                    deck: .init(
+                        title: deck.title,
+                        author: author,
+                        cardCount: stats.totalCards
+                    ),
+                    progress: .init(
+                        percent: Int(stats.masteryPercentage),
+                        learned: stats.learnedCards,
+                        notLearned: stats.newCards,
+                        withErrors: stats.learningCards
+                    )
+                ))
+            } else {
+                let pct = deck.total > 0 ? Int(round(Double(deck.learned) / Double(deck.total) * 100)) : 0
+                items.append(MainScreenModels.DeckCarouselItem(
+                    deck: .init(title: deck.title, author: author, cardCount: deck.total),
+                    progress: .init(percent: pct, learned: deck.learned, notLearned: deck.total - deck.learned, withErrors: 0)
+                ))
+            }
+        }
+        return items
     }
 }

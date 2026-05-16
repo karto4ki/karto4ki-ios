@@ -13,7 +13,7 @@ final class TabContainerViewController: UIViewController {
     private let appContext: ContextProtocol
 
     private lazy var tabs: [TabItem] = [
-        TabItem(icon: "house",          activeIcon: "house.fill")     { MainScreenAssembly.build() },
+        TabItem(icon: "house",          activeIcon: "house.fill")     { MainScreenAssembly.build(cardService: self.appContext.cardService) },
         TabItem(icon: "plus.circle",    activeIcon: "plus.circle.fill") {
             AddDeckSetViewController(cardService: self.appContext.cardService) { [weak self] in
                 // После создания набора — переключаемся на библиотеку и перезагружаем

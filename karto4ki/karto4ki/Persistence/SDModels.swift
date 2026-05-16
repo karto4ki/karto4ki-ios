@@ -79,7 +79,7 @@ final class SDCardSet {
             learnedCount: learnedCount,
             isPublic: isPublic,
             createdAt: createdAt,
-            author: authorId.isEmpty ? nil : AuthorInfoAPI(
+            author: authorName.isEmpty ? nil : AuthorInfoAPI(
                 id: authorId,
                 username: authorUsername.isEmpty ? nil : authorUsername,
                 name: authorName,

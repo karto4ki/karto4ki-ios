@@ -49,7 +49,11 @@ enum LibraryModels {
             // Цвет — стабильный хэш от id, чтобы не прыгал при перезагрузке
             self.colorIndex = abs(api.id.hashValue) % 4
             self.isUserOwned = true
-            self.authorName = api.author?.name
+            // Предпочитаем username; если он пустой или nil — берём name, но не показываем email
+            let name = api.author?.name
+            let username = api.author?.username
+            let nameIsEmail = name?.contains("@") == true
+            self.authorName = username?.isEmpty == false ? username : (nameIsEmail ? nil : name)
             // Парсим дату создания (ISO8601)
             let formatter = ISO8601DateFormatter()
             formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
