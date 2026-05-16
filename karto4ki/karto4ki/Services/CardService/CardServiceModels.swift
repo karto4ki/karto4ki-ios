@@ -10,7 +10,7 @@ struct CardSetAPI: Decodable {
     let learnedCount: Int
     let isPublic: Bool
     let createdAt: String
-    let author: AuthorInfoAPI
+    let author: AuthorInfoAPI?
 
     enum CodingKeys: String, CodingKey {
         case id, name, description, author
@@ -29,7 +29,7 @@ struct CardSetDetailAPI: Decodable {
     let learnedCount: Int
     let isPublic: Bool
     let createdAt: String
-    let author: AuthorInfoAPI
+    let author: AuthorInfoAPI?
     let cards: [CardPreviewAPI]
 
     enum CodingKeys: String, CodingKey {
@@ -70,7 +70,7 @@ struct CardPreviewAPI: Decodable {
 
 struct AuthorInfoAPI: Decodable {
     let id: String
-    let username: String
+    let username: String?
     let name: String
     let photo: String?
 }
@@ -79,12 +79,45 @@ struct CardSetsResponseAPI: Decodable {
     let sets: [CardSetAPI]
     let offset: Int
     let count: Int
+
+    private enum CodingKeys: String, CodingKey { case sets, offset, count }
+
+    // Go маршалит nil-срез как JSON null; `decodeIfPresent` корректно даёт [] в обоих случаях.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        sets   = try c.decodeIfPresent([CardSetAPI].self, forKey: .sets)  ?? []
+        offset = try c.decodeIfPresent(Int.self,          forKey: .offset) ?? 0
+        count  = try c.decodeIfPresent(Int.self,          forKey: .count)  ?? 0
+    }
+
+    /// Прямой инициализатор для создания из кэша (кастомный init(from:) подавляет memberwise).
+    init(sets: [CardSetAPI], offset: Int, count: Int) {
+        self.sets   = sets
+        self.offset = offset
+        self.count  = count
+    }
 }
 
 struct CardsResponseAPI: Decodable {
     let cards: [CardAPI]
     let offset: Int
     let count: Int
+
+    private enum CodingKeys: String, CodingKey { case cards, offset, count }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        cards  = try c.decodeIfPresent([CardAPI].self, forKey: .cards)  ?? []
+        offset = try c.decodeIfPresent(Int.self,       forKey: .offset) ?? 0
+        count  = try c.decodeIfPresent(Int.self,       forKey: .count)  ?? 0
+    }
+
+    /// Прямой инициализатор для создания из кэша (кастомный init(from:) подавляет memberwise).
+    init(cards: [CardAPI], offset: Int, count: Int) {
+        self.cards  = cards
+        self.offset = offset
+        self.count  = count
+    }
 }
 
 struct StudySessionAPI: Decodable {
@@ -103,14 +136,18 @@ struct StudySessionAPI: Decodable {
 struct AnswerResultAPI: Decodable {
     let cardId: String
     let newStatus: String
-    let nextReview: String?
+    let nextReview: String
     let streak: Int
+    let errorCount: Int
+    let lastRating: Int
 
     enum CodingKeys: String, CodingKey {
         case streak
         case cardId     = "card_id"
         case newStatus  = "new_status"
         case nextReview = "next_review"
+        case errorCount = "error_count"
+        case lastRating = "last_rating"
     }
 }
 
@@ -232,12 +269,13 @@ struct StartStudyRequestAPI: Encodable {
 
 struct SubmitAnswerRequestAPI: Encodable {
     let cardId: String
-    let isCorrect: Bool
+    /// 0 — забыл, 1 — помню (CardRating на бэкенде)
+    let rating: Int
     let timeSpentMs: Int?
 
     enum CodingKeys: String, CodingKey {
         case cardId      = "card_id"
-        case isCorrect   = "is_correct"
+        case rating
         case timeSpentMs = "time_spent_ms"
     }
 }

@@ -2,7 +2,8 @@ import UIKit
 
 final class LibraryScreenViewController: UIViewController, UIGestureRecognizerDelegate {
 
-    private let interactor: LibraryScreenBusinessLogic
+    let interactor: LibraryScreenBusinessLogic
+    private let cardService: CardServiceProtocol
 
     private let scrollView = UIScrollView()
     private let contentStack = UIStackView()
@@ -29,8 +30,9 @@ final class LibraryScreenViewController: UIViewController, UIGestureRecognizerDe
     private let profilePurple = UIColor(red: 0.45, green: 0.40, blue: 0.90, alpha: 1)
     private let glassCorner: CGFloat = 22
 
-    init(interactor: LibraryScreenBusinessLogic) {
+    init(interactor: LibraryScreenBusinessLogic, cardService: CardServiceProtocol) {
         self.interactor = interactor
+        self.cardService = cardService
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -225,7 +227,7 @@ final class LibraryScreenViewController: UIViewController, UIGestureRecognizerDe
         emptyIcon.translatesAutoresizingMaskIntoConstraints = false
 
         emptyLabel.text = "Ваша библиотека пока пустая.\nДобавьте новые наборы!"
-        emptyLabel.textColor = .white.withAlphaComponent(0.92)
+        emptyLabel.textColor = profilePurple.withAlphaComponent(0.85)
         emptyLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         emptyLabel.textAlignment = .center
         emptyLabel.numberOfLines = 0
@@ -353,7 +355,7 @@ final class LibraryScreenViewController: UIViewController, UIGestureRecognizerDe
     }
 
     private func openDeck(_ deck: LibraryModels.DeckSet) {
-        let detail = DeckSetDetailViewController(deck: deck)
+        let detail = DeckSetDetailViewController(deck: deck, cardService: cardService)
         present(detail, animated: true)
     }
 
@@ -396,5 +398,11 @@ extension LibraryScreenViewController: LibraryScreenDisplayLogic {
             loadingIndicator.stopAnimating()
             scrollView.alpha = 1
         }
+    }
+
+    func displayError(_ message: String) {
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }

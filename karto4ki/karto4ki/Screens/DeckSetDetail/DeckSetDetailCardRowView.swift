@@ -154,7 +154,7 @@ final class DeckSetDetailCardRowView: UIView {
         indexBadge.backgroundColor = accentColor
         questionBody.text = row.question
         answerBody.text = row.answer
-        answerBody.alpha = answerHidden ? 0.35 : 1
+        answerBody.textColor = answerHidden ? .clear : .white
         let eyeCfg = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
         let sym = answerHidden ? "eye.slash" : "eye"
         eyeButton.setImage(UIImage(systemName: sym, withConfiguration: eyeCfg), for: .normal)

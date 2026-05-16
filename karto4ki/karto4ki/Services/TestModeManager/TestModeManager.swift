@@ -108,7 +108,7 @@ extension TestModeManager {
     }
 
     func mockAnswerResult(for cardId: String) -> AnswerResultAPI {
-        AnswerResultAPI(cardId: cardId, newStatus: "learned", nextReview: nil, streak: 1)
+        AnswerResultAPI(cardId: cardId, newStatus: "learned", nextReview: ISO8601DateFormatter().string(from: Date()), streak: 1, errorCount: 0, lastRating: 1)
     }
 
     func mockCreatedSet(name: String) -> CardSetAPI {

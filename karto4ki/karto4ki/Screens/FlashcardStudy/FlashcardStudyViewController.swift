@@ -5,7 +5,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
 
     private let deck: LibraryModels.DeckSet
     private let deckTint: UIColor
-    private let mockSession: FlashcardStudyMockSession
+    private let realSession: FlashcardStudyRealSession
 
     private let backButton = UIButton(type: .system)
     private let settingsButton = UIButton(type: .system)
@@ -34,8 +34,10 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
     private var currentPayload: FlashcardStudyModels.StudyCardPayload?
     private var isBusy = false
     private var isHorizontalCardDrag = false
-    private var reviewCount = 0
-    private var knownCount = 0
+    /// Сколько карточек отмечено «помню» в текущей сессии (локальный счётчик, синхронизируется с сервером).
+    private var localRememberedCount = 0
+    /// Общее количество карточек сессии (устанавливается при bootstrap).
+    private var totalCards = 0
 
     private let cardTextPurple = UIColor(red: 0.32, green: 0.22, blue: 0.52, alpha: 1)
     private let forgetRed = UIColor(red: 0.92, green: 0.32, blue: 0.38, alpha: 1)
@@ -45,10 +47,10 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
     private let cardDefaultBorderColor = UIColor.white.withAlphaComponent(0.65).cgColor
     private let cardDefaultBorderWidth: CGFloat = 1.2
 
-    init(deck: LibraryModels.DeckSet) {
+    init(deck: LibraryModels.DeckSet, cardService: CardServiceProtocol) {
         self.deck = deck
         self.deckTint = LibraryModels.FolderPalette.folderColor(colorIndex: deck.colorIndex)
-        self.mockSession = FlashcardStudyMockSession(deckId: deck.id, deckTitle: deck.title, deckTotal: deck.total)
+        self.realSession = FlashcardStudyRealSession(cardService: cardService, setId: deck.id.uuidString)
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .fullScreen
     }
@@ -116,8 +118,8 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
         pillsRow.distribution = .equalSpacing
         pillsRow.translatesAutoresizingMaskIntoConstraints = false
 
-        stylePill(reviewPill, initialText: "0", background: quizletOrange)
-        stylePill(knownPill, initialText: "0", background: rememberGreen)
+        stylePill(reviewPill, initialText: "—", background: quizletOrange)   // осталось выучить
+        stylePill(knownPill,  initialText: "0", background: rememberGreen)  // уже помню
 
         pillsRow.addArrangedSubview(reviewPill)
         pillsRow.addArrangedSubview(knownPill)
@@ -326,14 +328,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
             self.afterSwipeFlyOff(choice: choice)
         })
 
-        switch choice {
-        case .dontRemember:
-            reviewCount += 1
-            reviewPill.text = "\(reviewCount)"
-        case .remember:
-            knownCount += 1
-            knownPill.text = "\(knownCount)"
-        }
+        bumpCounters(for: choice)
     }
 
     @objc
@@ -436,14 +431,10 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
     }
 
     private func bumpCounters(for choice: FlashcardStudyModels.RememberChoice) {
-        switch choice {
-        case .dontRemember:
-            reviewCount += 1
-            reviewPill.text = "\(reviewCount)"
-        case .remember:
-            knownCount += 1
-            knownPill.text = "\(knownCount)"
+        if choice == .remember {
+            localRememberedCount += 1
         }
+        refreshProgressUI()
     }
 
     @objc
@@ -472,7 +463,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
     private func bootstrapSession() async {
         await MainActor.run { loadingIndicator.startAnimating(); setInteractionEnabled(false) }
         do {
-            let boot = try await mockSession.bootstrapDeck()
+            let boot = try await realSession.bootstrapDeck()
             await MainActor.run {
                 self.applyBootstrap(boot)
                 self.deckSlot.alpha = 0
@@ -511,22 +502,33 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
             bottom.isHidden = true
         }
 
-        updateProgressUI(for: boot.top, progressAnimated: false)
+        syncProgress(from: boot.top)
         deckSlot.insertSubview(bottom, belowSubview: top)
         attachGesturesToTopCard()
     }
 
-    private func updateProgressUI(for payload: FlashcardStudyModels.StudyCardPayload, progressAnimated: Bool = false) {
-        centerProgressLabel.text = "\(payload.position) / \(payload.total)"
-        let p = Float(payload.position) / Float(max(payload.total, 1))
-        progressView.setProgress(p, animated: progressAnimated)
+    /// Обновляет пилюли, прогресс-бар и центральный лейбл по локальным счётчикам.
+    private func refreshProgressUI(animated: Bool = true) {
+        guard totalCards > 0 else { return }
+        let remaining = totalCards - localRememberedCount
+        reviewPill.text = "\(remaining)"
+        knownPill.text  = "\(localRememberedCount)"
+        centerProgressLabel.text = "\(localRememberedCount) / \(totalCards)"
+        let p = Float(localRememberedCount) / Float(totalCards)
+        progressView.setProgress(p, animated: animated)
     }
 
-    /// Принудительно закрывает прогресс в 100% к моменту завершения сессии.
+    /// Синхронизирует локальные счётчики с данными из payload (вызывается при bootstrap и при promote).
+    private func syncProgress(from payload: FlashcardStudyModels.StudyCardPayload) {
+        totalCards = payload.total
+        localRememberedCount = payload.rememberedCount
+        refreshProgressUI(animated: false)
+    }
+
+    /// Финальный прогресс 100% при завершении сессии.
     private func completeProgressUI() {
-        let total = max(currentPayload?.total ?? deck.total, 1)
-        centerProgressLabel.text = "\(total) / \(total)"
-        progressView.setProgress(1, animated: false)
+        localRememberedCount = totalCards
+        refreshProgressUI(animated: false)
     }
 
     private func commitAnswerWithFlyOff(_ choice: FlashcardStudyModels.RememberChoice, exitSign: CGFloat) {
@@ -572,7 +574,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
 
             deckSlot.insertSubview(oldTop, belowSubview: rising)
             if let pl = rising.payload {
-                updateProgressUI(for: pl, progressAnimated: false)
+                syncProgress(from: pl)
             }
             attachGesturesToTopCard()
             isBusy = false
@@ -586,11 +588,14 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
 
     private func submitAnswerAndApplyPrefetchOnly(choice: FlashcardStudyModels.RememberChoice) async {
         do {
-            let result = try await mockSession.submitDeckAnswer(choice)
+            let result = try await realSession.submitDeckAnswer(choice)
             await MainActor.run {
                 switch result {
-                case .continued(let prefetchedUnder):
+                case .continued(_, let prefetchedUnder):
+                    // newTop уже на экране (был в нижнем слоте, уже промоутирован) — используем только prefetch
                     self.applyPrefetchToBottomCard(prefetchedUnder)
+                    // Синхронизируем счётчик с сервером на случай расхождения
+                    if let p = prefetchedUnder { self.syncProgress(from: p) }
                 case .finished(let message):
                     self.completeProgressUI()
                     self.topCard?.isHidden = true
@@ -607,14 +612,14 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
         }
     }
 
-    /// Редкий случай: нет нижней карточки в буфере — ждём сервер и раскладку как раньше (без пружины на тексте).
+    /// «Server-first» путь: нижний слот был пустым — ждём сервер, потом конфигурируем новую верхнюю карточку.
     private func handleAnswerAfterSwipeServerFirst(choice: FlashcardStudyModels.RememberChoice) async {
         do {
-            let result = try await mockSession.submitDeckAnswer(choice)
+            let result = try await realSession.submitDeckAnswer(choice)
             await MainActor.run {
                 switch result {
-                case .continued(let prefetchedUnder):
-                    self.promoteDeckAfterServer(prefetchedUnder: prefetchedUnder)
+                case .continued(let newTop, let prefetchedUnder):
+                    self.promoteDeckAfterServer(newTop: newTop, prefetchedUnder: prefetchedUnder)
                 case .finished(let message):
                     self.completeProgressUI()
                     self.topCard?.isHidden = true
@@ -657,22 +662,31 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
         }
     }
 
-    /// После ответа сервера, когда не было локального promote: одна анимация подъёма, текст на нижней — без анимации.
-    private func promoteDeckAfterServer(prefetchedUnder: FlashcardStudyModels.StudyCardPayload?) {
+    /// «Server-first» promote: конфигурируем новую верхнюю карточку данными от сервера,
+    /// затем подгружаем prefetch в нижний слот.
+    private func promoteDeckAfterServer(newTop: FlashcardStudyModels.StudyCardPayload,
+                                        prefetchedUnder: FlashcardStudyModels.StudyCardPayload?) {
         guard let oldTop = topCard, let rising = bottomCard else { return }
 
         oldTop.isHidden = true
         oldTop.resetToIdentity()
         oldTop.resetFlipState()
 
-        rising.resetFlipState()
-        currentPayload = rising.payload
+        let border = UIColor(cgColor: cardDefaultBorderColor)
+
+        // rising (нижний слот) был пустым — конфигурируем его данными новой верхней карточки
+        UIView.performWithoutAnimation {
+            rising.configure(payload: newTop, defaultBorder: border, borderWidth: cardDefaultBorderWidth)
+            rising.resetFlipState()
+            rising.applyDeckPose()   // начальная поза для анимации подъёма
+            rising.isHidden = false  // был скрыт — теперь показываем
+        }
+        currentPayload = newTop
 
         UIView.animate(withDuration: 0.36, delay: 0, options: [.curveEaseOut, .allowUserInteraction]) {
             rising.resetToIdentity()
         }
 
-        let border = UIColor(cgColor: cardDefaultBorderColor)
         if let p = prefetchedUnder {
             UIView.performWithoutAnimation {
                 oldTop.configure(payload: p, defaultBorder: border, borderWidth: cardDefaultBorderWidth)
@@ -690,9 +704,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
         bottomCard = oldTop
 
         deckSlot.insertSubview(oldTop, belowSubview: rising)
-        if let pl = rising.payload {
-            updateProgressUI(for: pl, progressAnimated: false)
-        }
+        syncProgress(from: newTop)
         attachGesturesToTopCard()
     }
 

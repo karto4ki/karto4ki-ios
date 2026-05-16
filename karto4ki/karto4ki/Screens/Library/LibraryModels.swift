@@ -28,6 +28,8 @@ enum LibraryModels {
         var colorIndex: Int
         /// Набор текущего пользователя; для чужих — кнопка «В библиотеку».
         var isUserOwned: Bool
+        /// Имя автора набора (может быть nil для старых записей).
+        var authorName: String?
 
         var progress: CGFloat {
             guard total > 0 else { return 0 }
@@ -35,10 +37,28 @@ enum LibraryModels {
         }
 
         enum CodingKeys: String, CodingKey {
-            case id, title, learned, total, addedAt, colorIndex, isUserOwned
+            case id, title, learned, total, addedAt, colorIndex, isUserOwned, authorName
         }
 
-        init(id: UUID, title: String, learned: Int, total: Int, addedAt: Date, colorIndex: Int, isUserOwned: Bool = true) {
+        /// Создаёт DeckSet из API-ответа.
+        init(from api: CardSetAPI) {
+            self.id = UUID(uuidString: api.id) ?? UUID()
+            self.title = api.name
+            self.learned = api.learnedCount
+            self.total = api.cardCount
+            // Цвет — стабильный хэш от id, чтобы не прыгал при перезагрузке
+            self.colorIndex = abs(api.id.hashValue) % 4
+            self.isUserOwned = true
+            self.authorName = api.author?.name
+            // Парсим дату создания (ISO8601)
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            self.addedAt = formatter.date(from: api.createdAt)
+                ?? ISO8601DateFormatter().date(from: api.createdAt)
+                ?? Date()
+        }
+
+        init(id: UUID, title: String, learned: Int, total: Int, addedAt: Date, colorIndex: Int, isUserOwned: Bool = true, authorName: String? = nil) {
             self.id = id
             self.title = title
             self.learned = learned
@@ -46,6 +66,7 @@ enum LibraryModels {
             self.addedAt = addedAt
             self.colorIndex = colorIndex
             self.isUserOwned = isUserOwned
+            self.authorName = authorName
         }
 
         init(from decoder: Decoder) throws {
@@ -57,6 +78,7 @@ enum LibraryModels {
             addedAt = try c.decode(Date.self, forKey: .addedAt)
             colorIndex = try c.decode(Int.self, forKey: .colorIndex)
             isUserOwned = try c.decodeIfPresent(Bool.self, forKey: .isUserOwned) ?? true
+            authorName = try c.decodeIfPresent(String.self, forKey: .authorName)
         }
 
         func encode(to encoder: Encoder) throws {
@@ -68,6 +90,7 @@ enum LibraryModels {
             try c.encode(addedAt, forKey: .addedAt)
             try c.encode(colorIndex, forKey: .colorIndex)
             try c.encode(isUserOwned, forKey: .isUserOwned)
+            try c.encodeIfPresent(authorName, forKey: .authorName)
         }
     }
 

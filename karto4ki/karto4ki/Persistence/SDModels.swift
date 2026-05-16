@@ -64,10 +64,10 @@ final class SDCardSet {
         learnedCount = api.learnedCount
         isPublic = api.isPublic
         createdAt = api.createdAt
-        authorId = api.author.id
-        authorUsername = api.author.username
-        authorName = api.author.name
-        authorPhoto = api.author.photo
+        authorId = api.author?.id ?? ""
+        authorUsername = api.author?.username ?? ""
+        authorName = api.author?.name ?? ""
+        authorPhoto = api.author?.photo
     }
 
     func toCardSetAPI() -> CardSetAPI {
@@ -79,9 +79,9 @@ final class SDCardSet {
             learnedCount: learnedCount,
             isPublic: isPublic,
             createdAt: createdAt,
-            author: AuthorInfoAPI(
+            author: authorId.isEmpty ? nil : AuthorInfoAPI(
                 id: authorId,
-                username: authorUsername,
+                username: authorUsername.isEmpty ? nil : authorUsername,
                 name: authorName,
                 photo: authorPhoto
             )
