@@ -355,6 +355,7 @@ final class LibraryScreenViewController: UIViewController, UIGestureRecognizerDe
     }
 
     private func openDeck(_ deck: LibraryModels.DeckSet) {
+        DeckAccessStore.markOpened(deckId: deck.id)
         let detail = DeckSetDetailViewController(deck: deck, cardService: cardService)
         present(detail, animated: true)
     }
@@ -382,7 +383,7 @@ final class LibraryScreenViewController: UIViewController, UIGestureRecognizerDe
 extension LibraryScreenViewController: LibraryScreenDisplayLogic {
 
     func displayDecks(_ viewModel: LibraryModels.ViewModel) {
-        allDecks = viewModel.decks
+        allDecks = DeckAccessStore.sorted(viewModel.decks)
         if viewModel.isEmpty {
             isEditingDecks = false
         }

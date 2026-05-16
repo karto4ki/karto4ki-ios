@@ -26,7 +26,6 @@ final class FlashcardStudyMockSession {
     }
 
     func bootstrapDeck() async throws -> FlashcardStudyModels.DeckBootstrap {
-        try await Self.networkDelay()
         topCardIndex = 0
         guard let top = cards.first else {
             throw NSError(domain: "FlashcardStudyMock", code: 1,
@@ -37,7 +36,6 @@ final class FlashcardStudyMockSession {
     }
 
     func submitDeckAnswer(_ choice: FlashcardStudyModels.RememberChoice) async throws -> FlashcardStudyModels.DeckAdvanceResult {
-        try await Self.networkDelay()
         let newTopIndex = topCardIndex + 1
         if newTopIndex >= cards.count {
             return .finished(message: "Вы прошли все карточки.")
@@ -47,10 +45,6 @@ final class FlashcardStudyMockSession {
         let prefetchIdx = topCardIndex + 1
         let under: FlashcardStudyModels.StudyCardPayload? = prefetchIdx < cards.count ? cards[prefetchIdx] : nil
         return .continued(newTop: newTop, prefetchedUnder: under)
-    }
-
-    private static func networkDelay() async throws {
-        try await Task.sleep(nanoseconds: UInt64.random(in: 180_000_000...380_000_000))
     }
 
     private static let samplePool: [(String, String)] = [
