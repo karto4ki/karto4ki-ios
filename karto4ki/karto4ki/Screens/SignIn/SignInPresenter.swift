@@ -8,5 +8,9 @@
 import Foundation
 
 final class SignInPresenter: SignInPresentationLogic {
-    var view: SignInViewController?
+    weak var view: SignInDisplayLogic?
+
+    func presentError() {
+        view?.hideLoadingOverlay()
+    }
 }

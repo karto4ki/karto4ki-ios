@@ -10,7 +10,7 @@ final class FileStorageService: FileStorageServiceProtocol {
         func appendLine(_ s: String) { body.append(Data(s.utf8)) }
 
         appendLine("--\(boundary)\r\n")
-        appendLine("Content-Disposition: form-data; name=\"type\"\r\n\r\n")
+        appendLine("Content-Disposition: form-data; name=\"file_type\"\r\n\r\n")
         appendLine("avatar\r\n")
 
         appendLine("--\(boundary)\r\n")

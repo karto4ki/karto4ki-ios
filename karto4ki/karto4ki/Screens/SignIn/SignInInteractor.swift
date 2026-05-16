@@ -45,6 +45,7 @@ final class SignInInteractor: SignInBusinessLogic {
 
     func signInWithGoogle(idToken: String?, accessToken: String) {
         guard let idToken else {
+            presenter.presentError()
             Task { await errorHandler.handle(SignInFlowError.missingGoogleIdToken) }
             return
         }
@@ -55,6 +56,7 @@ final class SignInInteractor: SignInBusinessLogic {
                     AppCoordinator.shared.showMainScreen()
                 }
             } catch {
+                presenter.presentError()
                 await errorHandler.handle(error)
             }
         }
@@ -62,6 +64,7 @@ final class SignInInteractor: SignInBusinessLogic {
 
     func signInWithApple(userId: String, email: String?, fullName: PersonNameComponents?, identityToken: String?, authorizationCode: String?) {
         guard let identityToken else {
+            presenter.presentError()
             Task { await errorHandler.handle(SignInFlowError.missingAppleIdentityToken) }
             return
         }
@@ -72,16 +75,19 @@ final class SignInInteractor: SignInBusinessLogic {
                     AppCoordinator.shared.showMainScreen()
                 }
             } catch {
+                presenter.presentError()
                 await errorHandler.handle(error)
             }
         }
     }
 
     func appleSignInFailed(_ error: Error) {
+        presenter.presentError()
         Task { await errorHandler.handle(error) }
     }
 
     func googleSignInFailed(_ error: Error) {
+        presenter.presentError()
         Task { await errorHandler.handle(error) }
     }
 }

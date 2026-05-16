@@ -1,0 +1,165 @@
+// MARK: - Common
+"common.ok"       = "OK";
+"common.cancel"   = "Cancel";
+"common.save"     = "Save";
+"common.delete"   = "Delete";
+"common.create"   = "Create";
+"common.error"    = "Error";
+"common.done"     = "Done";
+"common.add"      = "Add";
+"common.or"       = "or";
+"common.question" = "Question";
+"common.answer"   = "Answer";
+"common.change"   = "Edit";
+"common.author"           = "Author: %@";
+"common.created"          = "Created: %@";
+"common.created_today"    = "created today";
+"common.created_yesterday"= "created yesterday";
+"common.created_date"     = "created %@";
+
+// MARK: - Sign In
+"signin.title"             = "Welcome";
+"signin.email_label"       = "Enter your email";
+"signin.email_placeholder" = "email";
+"signin.continue_apple"    = "Continue with Apple ID";
+"signin.continue_google"   = "Continue with Google";
+"signin.get_code"          = "Get Code";
+
+// MARK: - Registration
+"registration.name_word"      = "name";
+"registration.username_word"  = "username";
+"registration.name_label"     = "name";
+"registration.username_label" = "username";
+"registration.name_value"     = "name: %@";
+"registration.username_value" = "username: %@";
+"registration.confirm"        = "confirm→";
+"registration.enter_prompt"   = "enter";
+
+// MARK: - Code
+"code.title"         = "Enter code";
+"code.subtitle"      = "We sent you a verification code. Enter it below.";
+"code.resend_prefix" = "Resend code in";
+"code.resend"        = "Resend";
+
+// MARK: - Onboarding
+"onboarding.page1.title"    = "Learn more effectively with flashcards";
+"onboarding.page1.subtitle" = "Flashcards help you structure information and memorise material faster — from languages to exams and new skills.";
+"onboarding.page2.title"    = "Create cards automatically";
+"onboarding.page2.subtitle" = "Upload notes, documents or photos — the app will pick out key terms and create cards for you.";
+"onboarding.page3.title"    = "Memorisation,\nnot rote learning";
+"onboarding.page3.subtitle" = "Questions are rephrased so you remember the meaning, not the exact wording.";
+"onboarding.page4.title"    = "Everything for studying\nin one place";
+"onboarding.page4.subtitle" = "Create flashcard sets, track your progress and share materials with other users.";
+"onboarding.continue"       = "Continue";
+
+// MARK: - Main / Streak
+"main.search_placeholder"   = "find flashcards...";
+"main.streak_empty"         = "study every day to keep your streak";
+"main.streak_active_format" = "your streak is already %d %@";
+"main.day.one"              = "day";
+"main.day.few"              = "days";
+"main.day.many"             = "days";
+
+// MARK: - Carousel
+"carousel.author"            = "* author: %@";
+"carousel.card_count_format" = "* %d %@";
+"carousel.card.one"          = "card";
+"carousel.card.few"          = "cards";
+"carousel.card.many"         = "cards";
+"carousel.learned"           = "learned: %d";
+"carousel.not_learned"       = "not learned: %d";
+"carousel.with_errors"       = "with errors: %d";
+
+// MARK: - Library
+"library.title"                  = "Library";
+"library.study_all_full"         = "Study all flashcards";
+"library.study_all_short"        = "Study all";
+"library.study_all_coming_soon"  = "Combined review mode for all sets will be available in future versions.";
+"library.empty"                  = "Your library is empty.\nAdd new sets!";
+"library.delete_deck"            = "Delete set?";
+"library.search_empty"           = "No results for \"%@\"";
+"library.search_results"         = "Search results for \"%@\"";
+"library.deck_from_you"          = "from @you";
+"library.deck_from_other"        = "from @another user";
+"library.add_to_library_title"   = "Add to Library?";
+"library.add_to_library_message" = "\"%@\" will be copied to your library.";
+"library.add_to_library_button"  = "Add";
+"library.search_error"           = "Search Error";
+"library.clone_error"            = "Failed to add set: %@";
+"library.progress"               = "learned: %d of %d";
+
+// MARK: - Deck Detail
+"deckdetail.study_remember"          = "Remember / Don't Remember";
+"deckdetail.study_type_answer"       = "Type Answer";
+"deckdetail.stat_learned"            = "Cards Learned";
+"deckdetail.stat_unlearned"          = "Not Learned";
+"deckdetail.stat_total"              = "Total Cards";
+"deckdetail.stat_pct"                = "Learning Progress";
+"deckdetail.add_to_library"          = "Add to Library";
+"deckdetail.cards"                   = "Cards";
+"deckdetail.type_answer_coming_soon" = "Type answer mode will be available in future versions.";
+"deckdetail.added_title"             = "Added";
+"deckdetail.added_message"           = "Set copied to your library.";
+"deckdetail.new_card"                = "New Card";
+"deckdetail.edit_card"               = "Edit Card";
+"deckdetail.delete_card"             = "Delete Card?";
+"deckdetail.author_community"        = "community";
+
+// MARK: - Study
+"study.listen"               = "listen";
+"study.dont_remember"        = "don't remember";
+"study.remember"             = "remember";
+"study.tts_coming_soon"      = "Text-to-speech will be available later.\nSet: \"%@\"";
+"study.settings_coming_soon" = "Review mode settings will be available later.";
+"study.deck_empty"           = "The set is empty — add some cards.";
+"study.session_finished"     = "You've reviewed all cards in this set.";
+
+// MARK: - Add Deck
+"adddeck.title"               = "Add Flashcard Set";
+"adddeck.name_title"          = "Set Name";
+"adddeck.name_placeholder"    = "Enter name...";
+"adddeck.ai_title"            = "Create with AI";
+"adddeck.ai_subtitle"         = "Upload a file and we'll create flashcards from it";
+"adddeck.upload_title"        = "Upload File";
+"adddeck.upload_hint"         = "PDF, DOCX, TXT or image up to 20 MB";
+"adddeck.or_manual"           = "or add manually";
+"adddeck.manual_title"        = "Add Cards Manually";
+"adddeck.add_card"            = "Add Card";
+"adddeck.create_set"          = "Create Set";
+"adddeck.generating"          = "Generating cards...";
+"adddeck.generated_message"   = "Cards generated from \"%@\". Review and edit them as needed.";
+"adddeck.name_required"       = "Please enter a set name.";
+"adddeck.service_unavailable" = "Card service is unavailable.";
+"adddeck.created_message"     = "Set \"%@\" created.";
+"adddeck.question_placeholder"= "Enter question...";
+"adddeck.answer_placeholder"  = "Enter answer...";
+
+// MARK: - Profile
+"profile.title"                   = "Profile";
+"profile.email"                   = "Email";
+"profile.notifications_title"     = "Notifications";
+"profile.notifications_subtitle"  = "Receive reminders about learning and streaks";
+"profile.language_title"          = "App Language";
+"profile.language_ru"             = "Русский";
+"profile.language_en"             = "English";
+"profile.language_changed_title"  = "Language changed";
+"profile.language_changed_message"= "Please restart the app for the change to take effect.";
+"profile.testmode_title"          = "Test Mode";
+"profile.testmode_subtitle"       = "Use test data instead of real data";
+"profile.testmode_badge"          = "TEST";
+"profile.logout_title"            = "Sign Out";
+"profile.logout_subtitle"         = "Sign out and exit your profile";
+"profile.avatar_preview"          = "View Avatar";
+"profile.avatar_camera"           = "Take Photo";
+"profile.avatar_library"          = "Photo Library";
+"profile.camera_unavailable"      = "Camera Unavailable";
+"profile.edit_data"               = "Edit Profile";
+"profile.name_placeholder"        = "Name";
+"profile.username_placeholder"    = "Username";
+"profile.delete_account_action"   = "Delete Account";
+"profile.delete_account_title"    = "Delete Account?";
+"profile.delete_account_message"  = "Your profile and data will be permanently deleted.";
+"profile.signout_title"           = "Sign Out?";
+"profile.signout_action"          = "Sign Out";
+"profile.email_unspecified"       = "not specified";
+"profile.member_since"            = "since %@";
