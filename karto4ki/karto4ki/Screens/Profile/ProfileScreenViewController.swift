@@ -34,6 +34,11 @@ final class ProfileScreenViewController: UIViewController, UIImagePickerControll
     private let notificationsSubtitleLabel = UILabel()
     private let notificationSwitch = UISwitch()
 
+    // MARK: — Language card
+    private let languageCard = UIView()
+    private let languageTitleLabel = UILabel()
+    private let languageValueLabel = UILabel()
+
     // MARK: — Logout card
     private let logoutCard = UIView()
     private let logoutTitleLabel = UILabel()
@@ -80,9 +85,10 @@ final class ProfileScreenViewController: UIViewController, UIImagePickerControll
         configureProfileHeaderCard()
         configureEmailCard()
         configureNotificationsCard()
+        configureLanguageCard()
         configureLogoutCard()
         configureLoadingIndicator()
-        glassCardsForLoading = [profileHeaderCard, emailCard, notificationsCard, logoutCard]
+        glassCardsForLoading = [profileHeaderCard, emailCard, notificationsCard, languageCard, logoutCard]
     }
 
     private func configureBackground() {
@@ -121,7 +127,7 @@ final class ProfileScreenViewController: UIViewController, UIImagePickerControll
     }
 
     private func configureTitle() {
-        titleLabel.text = "Профиль"
+        titleLabel.text = L10n.Profile.title
         titleLabel.font = Fonts.futuraB22
         titleLabel.textColor = .white
         titleLabel.textAlignment = .left
@@ -232,7 +238,7 @@ final class ProfileScreenViewController: UIViewController, UIImagePickerControll
         contentStack.addArrangedSubview(emailCard)
 
         let icon = iconBadge(symbol: "envelope.fill", background: profilePurple)
-        emailTitleLabel.text = "Почта"
+        emailTitleLabel.text = L10n.Profile.email
         emailTitleLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
         emailTitleLabel.textColor = .white
         emailValueLabel.font = UIFont.systemFont(ofSize: 15, weight: .regular)
@@ -257,11 +263,11 @@ final class ProfileScreenViewController: UIViewController, UIImagePickerControll
         contentStack.addArrangedSubview(notificationsCard)
 
         let icon = iconBadge(symbol: "bell.fill", background: profilePurple)
-        notificationsTitleLabel.text = "Уведомления"
+        notificationsTitleLabel.text = L10n.Profile.notificationsTitle
         notificationsTitleLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
         notificationsTitleLabel.textColor = .white
 
-        notificationsSubtitleLabel.text = "Получать напоминания об обучении и стриках"
+        notificationsSubtitleLabel.text = L10n.Profile.notificationsSubtitle
         notificationsSubtitleLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         notificationsSubtitleLabel.textColor = UIColor.white.withAlphaComponent(0.72)
         notificationsSubtitleLabel.numberOfLines = 0
@@ -289,6 +295,44 @@ final class ProfileScreenViewController: UIViewController, UIImagePickerControll
         embedCardContent(row, in: notificationsCard, inset: UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 14))
     }
 
+    private func configureLanguageCard() {
+        styleCloudCardLikeMain(languageCard)
+        contentStack.addArrangedSubview(languageCard)
+
+        let icon = iconBadge(symbol: "globe", background: profilePurple)
+
+        languageTitleLabel.text = L10n.Profile.languageTitle
+        languageTitleLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
+        languageTitleLabel.textColor = .white
+
+        let isRu = currentAppLanguage == "ru"
+        languageValueLabel.text = isRu ? L10n.Profile.languageRu : L10n.Profile.languageEn
+        languageValueLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
+        languageValueLabel.textColor = UIColor.white.withAlphaComponent(0.72)
+
+        let chevron = UIImageView(image: UIImage(systemName: "chevron.right",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)))
+        chevron.tintColor = UIColor.white.withAlphaComponent(0.55)
+        chevron.translatesAutoresizingMaskIntoConstraints = false
+        chevron.setContentHuggingPriority(.required, for: .horizontal)
+
+        let textCol = UIStackView(arrangedSubviews: [languageTitleLabel, languageValueLabel])
+        textCol.axis = .vertical
+        textCol.spacing = 4
+        textCol.alignment = .leading
+
+        let row = UIStackView(arrangedSubviews: [icon, textCol, chevron])
+        row.axis = .horizontal
+        row.spacing = 14
+        row.alignment = .center
+
+        embedCardContent(row, in: languageCard, inset: UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16))
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(languageTapped))
+        languageCard.addGestureRecognizer(tap)
+        languageCard.isUserInteractionEnabled = true
+    }
+
     private func configureLogoutCard() {
         styleLogoutCloudCardLikeMain(logoutCard)
         contentStack.addArrangedSubview(logoutCard)
@@ -299,11 +343,11 @@ final class ProfileScreenViewController: UIViewController, UIImagePickerControll
             iconTint: .white
         )
 
-        logoutTitleLabel.text = "Выйти из аккаунта"
+        logoutTitleLabel.text = L10n.Profile.logoutTitle
         logoutTitleLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
         logoutTitleLabel.textColor = UIColor(red: 0.95, green: 0.25, blue: 0.32, alpha: 1)
 
-        logoutSubtitleLabel.text = "Разлогиниться и выйти из профиля"
+        logoutSubtitleLabel.text = L10n.Profile.logoutSubtitle
         logoutSubtitleLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         logoutSubtitleLabel.textColor = UIColor(red: 0.92, green: 0.38, blue: 0.44, alpha: 0.95)
         logoutSubtitleLabel.numberOfLines = 0
@@ -447,17 +491,17 @@ final class ProfileScreenViewController: UIViewController, UIImagePickerControll
         let sheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         let canPreview = currentPhotoURL != nil || avatarImageView.image != nil
         if canPreview {
-            sheet.addAction(UIAlertAction(title: "Посмотреть аватарку", style: .default) { [weak self] _ in
+            sheet.addAction(UIAlertAction(title: L10n.Profile.avatarPreview, style: .default) { [weak self] _ in
                 self?.presentAvatarPreview()
             })
         }
-        sheet.addAction(UIAlertAction(title: "Сделать фото", style: .default) { [weak self] _ in
+        sheet.addAction(UIAlertAction(title: L10n.Profile.avatarCamera, style: .default) { [weak self] _ in
             self?.presentCameraPicker()
         })
-        sheet.addAction(UIAlertAction(title: "Медиатека", style: .default) { [weak self] _ in
+        sheet.addAction(UIAlertAction(title: L10n.Profile.avatarLibrary, style: .default) { [weak self] _ in
             self?.presentPhotoLibraryPicker()
         })
-        sheet.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        sheet.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
         if let pop = sheet.popoverPresentationController {
             pop.sourceView = avatarWrap
             pop.sourceRect = avatarWrap.bounds
@@ -475,8 +519,8 @@ final class ProfileScreenViewController: UIViewController, UIImagePickerControll
 
     private func presentCameraPicker() {
         guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
-            let alert = UIAlertController(title: "Камера недоступна", message: nil, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            let alert = UIAlertController(title: L10n.Profile.cameraUnavailable, message: nil, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
             present(alert, animated: true)
             return
         }
@@ -543,13 +587,13 @@ final class ProfileScreenViewController: UIViewController, UIImagePickerControll
     @objc
     private func editTapped() {
         let sheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        sheet.addAction(UIAlertAction(title: "Изменить данные", style: .default) { [weak self] _ in
+        sheet.addAction(UIAlertAction(title: L10n.Profile.editData, style: .default) { [weak self] _ in
             self?.presentEditProfileAlert()
         })
-        sheet.addAction(UIAlertAction(title: "Удалить аккаунт", style: .destructive) { [weak self] _ in
+        sheet.addAction(UIAlertAction(title: L10n.Profile.deleteAccountAction, style: .destructive) { [weak self] _ in
             self?.presentDeleteAccountConfirmation()
         })
-        sheet.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        sheet.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
         if let pop = sheet.popoverPresentationController {
             pop.sourceView = editAvatarButton
             pop.sourceRect = editAvatarButton.bounds
@@ -558,11 +602,11 @@ final class ProfileScreenViewController: UIViewController, UIImagePickerControll
     }
 
     private func presentEditProfileAlert() {
-        let alert = UIAlertController(title: "Изменить данные", message: nil, preferredStyle: .alert)
-        alert.addTextField { $0.placeholder = "Имя"; $0.text = self.nameValueLabel.text }
-        alert.addTextField { $0.placeholder = "Никнейм"; $0.text = self.usernameValueLabel.text?.replacingOccurrences(of: "@", with: "") }
-        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Сохранить", style: .default) { [weak self] _ in
+        let alert = UIAlertController(title: L10n.Profile.editData, message: nil, preferredStyle: .alert)
+        alert.addTextField { $0.placeholder = L10n.Profile.namePlaceholder; $0.text = self.nameValueLabel.text }
+        alert.addTextField { $0.placeholder = L10n.Profile.usernamePlaceholder; $0.text = self.usernameValueLabel.text?.replacingOccurrences(of: "@", with: "") }
+        alert.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
+        alert.addAction(UIAlertAction(title: L10n.Common.save, style: .default) { [weak self] _ in
             guard let self,
                   let name = alert.textFields?[0].text,
                   let username = alert.textFields?[1].text
@@ -574,26 +618,50 @@ final class ProfileScreenViewController: UIViewController, UIImagePickerControll
 
     private func presentDeleteAccountConfirmation() {
         let alert = UIAlertController(
-            title: "Удалить аккаунт?",
-            message: "Профиль и данные будут удалены без возможности восстановления.",
+            title: L10n.Profile.deleteAccountTitle,
+            message: L10n.Profile.deleteAccountMessage,
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+        alert.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
+        alert.addAction(UIAlertAction(title: L10n.Common.delete, style: .destructive) { [weak self] _ in
             self?.interactor.deleteAccount()
         })
         present(alert, animated: true)
     }
 
     @objc
+    private func languageTapped() {
+        let current = currentAppLanguage
+        let sheet = UIAlertController(title: L10n.Profile.languageTitle, message: nil, preferredStyle: .actionSheet)
+        let ruTitle = (current == "ru" ? "✓ " : "") + L10n.Profile.languageRu
+        let enTitle = (current == "en" ? "✓ " : "") + L10n.Profile.languageEn
+        sheet.addAction(UIAlertAction(title: ruTitle, style: .default) { _ in
+            guard currentAppLanguage != "ru" else { return }
+            setAppLanguage("ru")
+            AppCoordinator.shared.reloadForLanguageChange()
+        })
+        sheet.addAction(UIAlertAction(title: enTitle, style: .default) { _ in
+            guard currentAppLanguage != "en" else { return }
+            setAppLanguage("en")
+            AppCoordinator.shared.reloadForLanguageChange()
+        })
+        sheet.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
+        if let pop = sheet.popoverPresentationController {
+            pop.sourceView = languageCard
+            pop.sourceRect = languageCard.bounds
+        }
+        present(sheet, animated: true)
+    }
+
+    @objc
     private func signOutTapped() {
         let alert = UIAlertController(
-            title: "Выйти из аккаунта?",
+            title: L10n.Profile.signOutTitle,
             message: nil,
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Выйти", style: .destructive) { [weak self] _ in
+        alert.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
+        alert.addAction(UIAlertAction(title: L10n.Profile.signOutAction, style: .destructive) { [weak self] _ in
             self?.interactor.signOut()
         })
         present(alert, animated: true)
@@ -617,7 +685,7 @@ extension ProfileScreenViewController: ProfileScreenDisplayLogic {
     func displayProfile(_ viewModel: ProfileScreenModels.ViewModel) {
         nameValueLabel.text = viewModel.name
         usernameValueLabel.text = "@" + viewModel.username
-        emailValueLabel.text = viewModel.emailDisplay == "не указан" ? "—" : viewModel.emailDisplay
+        emailValueLabel.text = viewModel.emailDisplay == L10n.Profile.emailUnspecified ? "—" : viewModel.emailDisplay
         initialsLabel.text = viewModel.initials
 
         applyNotificationSwitchFromViewModel(viewModel.notificationEnabled)
@@ -632,12 +700,14 @@ extension ProfileScreenViewController: ProfileScreenDisplayLogic {
             glassCardsForLoading.forEach { $0.alpha = 0.5 }
             editAvatarButton.isEnabled = false
             logoutCard.isUserInteractionEnabled = false
+            languageCard.isUserInteractionEnabled = false
             notificationSwitch.isEnabled = false
         } else {
             loadingIndicator.stopAnimating()
             glassCardsForLoading.forEach { $0.alpha = 1 }
             editAvatarButton.isEnabled = true
             logoutCard.isUserInteractionEnabled = true
+            languageCard.isUserInteractionEnabled = true
             notificationSwitch.isEnabled = true
         }
     }

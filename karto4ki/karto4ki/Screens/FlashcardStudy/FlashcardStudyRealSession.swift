@@ -36,7 +36,7 @@ final class FlashcardStudyRealSession {
             throw NSError(
                 domain: "FlashcardStudy",
                 code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "Нет карточек для изучения"]
+                userInfo: [NSLocalizedDescriptionKey: L10n.Study.deckEmpty]
             )
         }
 
@@ -54,7 +54,7 @@ final class FlashcardStudyRealSession {
     func submitDeckAnswer(_ choice: FlashcardStudyModels.RememberChoice) async throws -> FlashcardStudyModels.DeckAdvanceResult {
         guard !sessionId.isEmpty, !remainingCards.isEmpty else {
             throw NSError(domain: "FlashcardStudy", code: 2,
-                          userInfo: [NSLocalizedDescriptionKey: "Сессия не инициализирована"])
+                          userInfo: [NSLocalizedDescriptionKey: L10n.Study.deckEmpty])
         }
 
         // Синхронно обновляем пул ДО сетевого вызова —
@@ -77,7 +77,7 @@ final class FlashcardStudyRealSession {
 
         // Все выучены?
         if remainingCards.isEmpty {
-            return .finished(message: "Отлично! Все карточки выучены! 🎉")
+            return .finished(message: L10n.Study.sessionFinished)
         }
 
         let total = allCards.count

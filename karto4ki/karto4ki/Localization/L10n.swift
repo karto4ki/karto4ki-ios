@@ -19,6 +19,17 @@ var l10nBundle: Bundle {
     return .main
 }
 
+/// Saves the chosen language code ("ru" or "en") and resets the bundle cache.
+func setAppLanguage(_ lang: String) {
+    UserDefaults.standard.set(lang, forKey: "AppLanguage")
+    _l10nBundle = nil
+}
+
+var currentAppLanguage: String {
+    UserDefaults.standard.string(forKey: "AppLanguage")
+        ?? (Locale.current.language.languageCode?.identifier == "ru" ? "ru" : "en")
+}
+
 func L(_ key: String) -> String {
     NSLocalizedString(key, bundle: l10nBundle, comment: "")
 }
@@ -60,6 +71,8 @@ enum L10n {
         static var question: String { L("common.question") }
         static var answer:   String { L("common.answer") }
         static var change:   String { L("common.change") }
+        static var chooseSource: String { L("common.choose_source") }
+        static var files:        String { L("common.files") }
         static func author(_ name: String) -> String { Lf("common.author", name) }
         static func created(_ date: String) -> String { Lf("common.created", date) }
         static var createdToday:     String { L("common.created_today") }
@@ -108,6 +121,7 @@ enum L10n {
 
     enum Main {
         static var searchPlaceholder: String { L("main.search_placeholder") }
+        static var statsPlaceholder:  String { L("main.stats_placeholder") }
         static var streakEmpty:       String { L("main.streak_empty") }
 
         static func streakActive(_ count: Int) -> String {
@@ -142,12 +156,16 @@ enum L10n {
     }
 
     enum Library {
-        static var title:             String { L("library.title") }
-        static var studyAllFull:      String { L("library.study_all_full") }
+        static var title:                 String { L("library.title") }
+        static var newFolderTitle:        String { L("library.new_folder_title") }
+        static var newFolderMessage:      String { L("library.new_folder_message") }
+        static var newFolderPlaceholder:  String { L("library.new_folder_placeholder") }
+        static var studyAllFull:          String { L("library.study_all_full") }
         static var studyAllShort:     String { L("library.study_all_short") }
         static var studyAllComingSoon: String { L("library.study_all_coming_soon") }
         static var empty:             String { L("library.empty") }
         static var deleteDeck:        String { L("library.delete_deck") }
+        static var deleteFolder:      String { L("library.delete_folder") }
         static func searchEmpty(_ q: String) -> String  { Lf("library.search_empty", q) }
         static func searchResults(_ q: String) -> String { Lf("library.search_results", q) }
         static var deckFromYou:       String { L("library.deck_from_you") }
@@ -161,6 +179,8 @@ enum L10n {
     }
 
     enum DeckDetail {
+        static var cardFrontPlaceholder: String { L("deckdetail.card_front_placeholder") }
+        static var cardBackPlaceholder:  String { L("deckdetail.card_back_placeholder") }
         static var studyRemember:        String { L("deckdetail.study_remember") }
         static var studyTypeAnswer:      String { L("deckdetail.study_type_answer") }
         static var statLearned:          String { L("deckdetail.stat_learned") }
@@ -176,6 +196,8 @@ enum L10n {
         static var editCard:             String { L("deckdetail.edit_card") }
         static var deleteCard:           String { L("deckdetail.delete_card") }
         static var authorCommunity:      String { L("deckdetail.author_community") }
+        static var authorYou:            String { L("deckdetail.author_you") }
+        static var fillBothFields:       String { L("deckdetail.fill_both_fields") }
     }
 
     enum Study {
@@ -203,10 +225,17 @@ enum L10n {
         static var generating:         String { L("adddeck.generating") }
         static func generatedMessage(_ f: String) -> String { Lf("adddeck.generated_message", f) }
         static var nameRequired:       String { L("adddeck.name_required") }
+        static var cardsRequired:      String { L("adddeck.cards_required") }
         static var serviceUnavailable: String { L("adddeck.service_unavailable") }
         static func createdMessage(_ n: String) -> String { Lf("adddeck.created_message", n) }
         static var questionPlaceholder: String { L("adddeck.question_placeholder") }
         static var answerPlaceholder:  String { L("adddeck.answer_placeholder") }
+    }
+
+    enum AIGeneration {
+        static var title:      String { L("aigeneration.title") }
+        static var subtitle:   String { L("aigeneration.subtitle") }
+        static var errorTitle: String { L("aigeneration.error_title") }
     }
 
     enum Profile {

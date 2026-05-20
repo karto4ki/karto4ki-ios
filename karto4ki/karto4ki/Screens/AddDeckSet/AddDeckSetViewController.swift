@@ -100,6 +100,8 @@ final class AddDeckSetViewController: UIViewController {
         scrollView.showsVerticalScrollIndicator = false
         scrollView.alwaysBounceVertical = true
         scrollView.keyboardDismissMode = .interactive
+        scrollView.contentInset.bottom = 100
+        scrollView.verticalScrollIndicatorInsets.bottom = 100
         view.addSubview(scrollView)
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -125,7 +127,7 @@ final class AddDeckSetViewController: UIViewController {
     }
 
     private func configureTop() {
-        screenTitleLabel.text = "Добавление набора карточек"
+        screenTitleLabel.text = L10n.AddDeck.title
         screenTitleLabel.font = Fonts.futuraB17
         screenTitleLabel.textColor = .white
         screenTitleLabel.numberOfLines = 0
@@ -151,12 +153,12 @@ final class AddDeckSetViewController: UIViewController {
         wrapGlass(nameSection)
         nameSection.translatesAutoresizingMaskIntoConstraints = false
 
-        nameTitleLabel.text = "Название набора"
+        nameTitleLabel.text = L10n.AddDeck.nameTitle
         nameTitleLabel.font = UIFont.systemFont(ofSize: 15, weight: .bold)
         nameTitleLabel.textColor = UIColor.white
 
         nameField.attributedPlaceholder = NSAttributedString(
-            string: "Введите название...",
+            string: L10n.AddDeck.namePlaceholder,
             attributes: [.foregroundColor: UIColor.white.withAlphaComponent(0.7)]
         )
         nameField.font = UIFont.systemFont(ofSize: 16, weight: .medium)
@@ -190,11 +192,11 @@ final class AddDeckSetViewController: UIViewController {
         wrapGlass(aiSection)
         aiSection.translatesAutoresizingMaskIntoConstraints = false
 
-        aiTitleLabel.text = "Создать с помощью ИИ"
+        aiTitleLabel.text = L10n.AddDeck.aiTitle
         aiTitleLabel.font = UIFont.systemFont(ofSize: 15, weight: .bold)
         aiTitleLabel.textColor = .white
 
-        aiSubtitleLabel.text = "Загрузите файл, а мы сами создадим карточки на его основе"
+        aiSubtitleLabel.text = L10n.AddDeck.aiSubtitle
         aiSubtitleLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         aiSubtitleLabel.textColor = UIColor.white.withAlphaComponent(0.82)
         aiSubtitleLabel.numberOfLines = 0
@@ -232,12 +234,12 @@ final class AddDeckSetViewController: UIViewController {
         ])
 
         let uploadTitle = UILabel()
-        uploadTitle.text = "Загрузите файл"
+        uploadTitle.text = L10n.AddDeck.uploadTitle
         uploadTitle.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         uploadTitle.textColor = .white
 
         let uploadHint = UILabel()
-        uploadHint.text = "PDF, DOCX, TXT или изображение до 20 МБ"
+        uploadHint.text = L10n.AddDeck.uploadHint
         uploadHint.font = UIFont.systemFont(ofSize: 12, weight: .regular)
         uploadHint.textColor = UIColor.white.withAlphaComponent(0.72)
         uploadHint.numberOfLines = 0
@@ -296,7 +298,7 @@ final class AddDeckSetViewController: UIViewController {
         lineR.setHeight(1)
 
         let mid = UILabel()
-        mid.text = "или добавьте вручную"
+        mid.text = L10n.AddDeck.orManual
         mid.font = UIFont.systemFont(ofSize: 13, weight: .medium)
         mid.textColor = UIColor.white.withAlphaComponent(0.78)
         mid.setContentHuggingPriority(.required, for: .horizontal)
@@ -312,7 +314,7 @@ final class AddDeckSetViewController: UIViewController {
     }
 
     private func configureManualSection() {
-        manualTitleLabel.text = "Добавить карточки вручную"
+        manualTitleLabel.text = L10n.AddDeck.manualTitle
         manualTitleLabel.font = UIFont.systemFont(ofSize: 15, weight: .bold)
         manualTitleLabel.textColor = .white
         contentStack.addArrangedSubview(manualTitleLabel)
@@ -325,7 +327,7 @@ final class AddDeckSetViewController: UIViewController {
 
         var cfg = UIButton.Configuration.plain()
         cfg.image = UIImage(systemName: "plus.circle.fill")
-        cfg.title = "Добавить карточку"
+        cfg.title = L10n.AddDeck.addCard
         cfg.imagePlacement = .leading
         cfg.imagePadding = 8
         cfg.baseForegroundColor = .white
@@ -355,7 +357,7 @@ final class AddDeckSetViewController: UIViewController {
     }
 
     private func configureCreateButton() {
-        createSetButton.setTitle("Создать набор", for: .normal)
+        createSetButton.setTitle(L10n.AddDeck.createSet, for: .normal)
         createSetButton.setTitleColor(.white, for: .normal)
         createSetButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .bold)
         createSetButton.backgroundColor = profilePurple
@@ -390,10 +392,10 @@ final class AddDeckSetViewController: UIViewController {
     private func uploadTapped() {
         let a = UIAlertController(
             title: nil,
-            message: "Загрузка файлов и генерация карточек появятся после подключения API.",
+            message: L10n.AddDeck.serviceUnavailable,
             preferredStyle: .alert
         )
-        a.addAction(UIAlertAction(title: "OK", style: .default))
+        a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
         present(a, animated: true)
     }
 
@@ -406,8 +408,8 @@ final class AddDeckSetViewController: UIViewController {
     private func createSetTapped() {
         let name = (nameField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else {
-            let a = UIAlertController(title: nil, message: "Введите название набора.", preferredStyle: .alert)
-            a.addAction(UIAlertAction(title: "OK", style: .default))
+            let a = UIAlertController(title: nil, message: L10n.AddDeck.nameRequired, preferredStyle: .alert)
+            a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
             present(a, animated: true)
             return
         }
@@ -415,8 +417,8 @@ final class AddDeckSetViewController: UIViewController {
         // Собираем заполненные карточки
         let cards = collectCards()
         guard !cards.isEmpty else {
-            let a = UIAlertController(title: nil, message: "Добавьте хотя бы одну карточку.", preferredStyle: .alert)
-            a.addAction(UIAlertAction(title: "OK", style: .default))
+            let a = UIAlertController(title: nil, message: L10n.AddDeck.cardsRequired, preferredStyle: .alert)
+            a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
             present(a, animated: true)
             return
         }
@@ -451,11 +453,11 @@ final class AddDeckSetViewController: UIViewController {
                     self.loadingOverlay.isHidden = true
                     self.createSetButton.isEnabled = true
                     let a = UIAlertController(
-                        title: "Ошибка",
-                        message: "Не удалось создать набор. Попробуйте ещё раз.",
+                        title: L10n.Common.error,
+                        message: error.localizedDescription,
                         preferredStyle: .alert
                     )
-                    a.addAction(UIAlertAction(title: "OK", style: .default))
+                    a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
                     self.present(a, animated: true)
                 }
             }
@@ -508,11 +510,11 @@ final class ManualCardEntryView: UIView, UITextViewDelegate {
             label.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
             label.textColor = UIColor.white
         }
-        caption(questionTitle, text: "Вопрос")
-        caption(answerTitle, text: "Ответ")
+        caption(questionTitle, text: L10n.Common.question)
+        caption(answerTitle, text: L10n.Common.answer)
 
-        styleField(questionView, placeholder: "Введите вопрос...")
-        styleField(answerView, placeholder: "Введите ответ...")
+        styleField(questionView, placeholder: L10n.AddDeck.questionPlaceholder)
+        styleField(answerView, placeholder: L10n.AddDeck.answerPlaceholder)
         questionView.delegate = self
         answerView.delegate = self
         questionView.tag = 0
@@ -576,7 +578,7 @@ final class ManualCardEntryView: UIView, UITextViewDelegate {
             textView.text = String(textView.text.prefix(limit))
         }
         if (textView.text ?? "").isEmpty {
-            let ph = textView.tag == 0 ? "Введите вопрос..." : "Введите ответ..."
+            let ph = textView.tag == 0 ? L10n.AddDeck.questionPlaceholder : L10n.AddDeck.answerPlaceholder
             textView.addPlaceholderIfNeeded(ph)
         } else {
             textView.removePlaceholderIfNeeded()

@@ -23,6 +23,9 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
     private let streakMessageIcon = UIImageView()
     private let streakMessageLabel = UILabel()
 
+    // MARK: - Плейсхолдер (когда библиотека пустая)
+    private let statsPlaceholderCard = UIView()
+
     // MARK: - Deck (свайп — смена страницы без «ведения» пальцем)
     private let carouselSection = UIStackView()
     private let carouselClipContainer = UIView()
@@ -60,6 +63,7 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
         configureStreakCard()
         configureStreakMessageCard()
         configureCarouselSection()
+        configureStatsPlaceholder()
         interactor.loadData()
     }
 
@@ -138,7 +142,7 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
         searchField.autocapitalizationType = .none
 
         searchField.attributedPlaceholder = NSAttributedString(
-            string: "найдите карточки...",
+            string: L10n.Main.searchPlaceholder,
             attributes: [.foregroundColor: UIColor.white.withAlphaComponent(0.7)]
         )
         searchField.font = Fonts.futuraB14
@@ -355,20 +359,9 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
 
     private func updateStreakMessage(currentStreakDayCount: Int) {
         if currentStreakDayCount == 0 {
-            streakMessageLabel.text = "учитесь каждый день, чтобы поддерживать стрик"
+            streakMessageLabel.text = L10n.Main.streakEmpty
         } else {
-            streakMessageLabel.text = "у вас стрик уже \(currentStreakDayCount) \(Self.russianDayWord(for: currentStreakDayCount))"
-        }
-    }
-
-    private static func russianDayWord(for n: Int) -> String {
-        let n100 = n % 100
-        let n10 = n % 10
-        if n100 >= 11 && n100 <= 14 { return "дней" }
-        switch n10 {
-        case 1: return "день"
-        case 2, 3, 4: return "дня"
-        default: return "дней"
+            streakMessageLabel.text = L10n.Main.streakActive(currentStreakDayCount)
         }
     }
 
@@ -469,14 +462,41 @@ final class MainScreenViewController: UIViewController, UITextFieldDelegate, UIG
     }
 
     private func resetDeckPanelAfterDataLoad() {
+        let isEmpty = deckCarouselItems.isEmpty
+        carouselSection.isHidden = isEmpty
+        statsPlaceholderCard.isHidden = !isEmpty
+
         deckCarouselIndex = 0
         lastDeckPanelLayoutWidth = 0
         view.layoutIfNeeded()
         updateDeckPanelLayoutIfNeeded()
-        if deckCarouselItems.isEmpty {
-            return
-        }
+        if isEmpty { return }
         showDeckPage(index: 0, animated: false)
+    }
+
+    // MARK: - Stats placeholder
+
+    private func configureStatsPlaceholder() {
+        styleCard(statsPlaceholderCard)
+        statsPlaceholderCard.isHidden = true
+
+        let label = UILabel()
+        label.text = L10n.Main.statsPlaceholder
+        label.font = Fonts.futuraB17
+        label.textColor = .white.withAlphaComponent(0.6)
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+
+        statsPlaceholderCard.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: statsPlaceholderCard.topAnchor, constant: 36),
+            label.bottomAnchor.constraint(equalTo: statsPlaceholderCard.bottomAnchor, constant: -36),
+            label.leadingAnchor.constraint(equalTo: statsPlaceholderCard.leadingAnchor, constant: 20),
+            label.trailingAnchor.constraint(equalTo: statsPlaceholderCard.trailingAnchor, constant: -20)
+        ])
+
+        contentStack.addArrangedSubview(statsPlaceholderCard)
     }
 
     // MARK: - Helpers

@@ -187,10 +187,6 @@ final class TabContainerViewController: UIViewController {
             vc.view.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor)
         ])
 
-        if animated {
-            vc.view.alpha = 0
-            UIView.animate(withDuration: 0.2) { vc.view.alpha = 1 }
-        }
 
         vc.didMove(toParent: self)
     }
