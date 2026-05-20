@@ -7,13 +7,13 @@ final class MainScreenPresenter: MainScreenPresentationLogic {
     func presentData(
         friends: [MainScreenModels.Friend],
         streakDays: [MainScreenModels.StreakDay],
+        currentStreak: Int,
         deckCarousel: [MainScreenModels.DeckCarouselItem]
     ) {
-        let streakCount = MainScreenModels.currentStreakLength(days: streakDays)
         let viewModel = MainScreenModels.ViewModel(
             friends: friends,
             streakDays: streakDays,
-            currentStreakDayCount: streakCount,
+            currentStreakDayCount: currentStreak,
             deckCarousel: deckCarousel
         )
         view?.displayData(viewModel)

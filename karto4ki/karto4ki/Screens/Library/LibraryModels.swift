@@ -102,4 +102,30 @@ enum LibraryModels {
         let decks: [DeckSet]
         let isEmpty: Bool
     }
+
+    enum Item {
+        case deck(DeckSet)
+        case folder(LibraryFolder)
+
+        var id: UUID {
+            switch self {
+            case .deck(let d): return d.id
+            case .folder(let f): return f.id
+            }
+        }
+
+        var lastActivity: Date? {
+            switch self {
+            case .deck(let d): return DeckAccessStore.lastOpened(deckId: d.id)
+            case .folder(let f): return FolderStore.lastActivity(for: f)
+            }
+        }
+
+        var creationDate: Date {
+            switch self {
+            case .deck(let d): return d.addedAt
+            case .folder(let f): return f.createdAt
+            }
+        }
+    }
 }

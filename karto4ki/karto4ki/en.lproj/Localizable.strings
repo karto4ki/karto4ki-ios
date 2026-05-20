@@ -1,5 +1,7 @@
 // MARK: - Common
-"common.ok"       = "OK";
+"common.ok"            = "OK";
+"common.choose_source" = "Choose source";
+"common.files"         = "Files";
 "common.cancel"   = "Cancel";
 "common.save"     = "Save";
 "common.delete"   = "Delete";
@@ -54,6 +56,7 @@
 
 // MARK: - Main / Streak
 "main.search_placeholder"   = "find flashcards...";
+"main.stats_placeholder"    = "Your stats will appear here";
 "main.streak_empty"         = "study every day to keep your streak";
 "main.streak_active_format" = "your streak is already %d %@";
 "main.day.one"              = "day";
@@ -72,11 +75,15 @@
 
 // MARK: - Library
 "library.title"                  = "Library";
+"library.new_folder_title"       = "New Folder";
+"library.new_folder_message"     = "Enter a name";
+"library.new_folder_placeholder" = "Folder name";
 "library.study_all_full"         = "Study all flashcards";
 "library.study_all_short"        = "Study all";
 "library.study_all_coming_soon"  = "Combined review mode for all sets will be available in future versions.";
 "library.empty"                  = "Your library is empty.\nAdd new sets!";
 "library.delete_deck"            = "Delete set?";
+"library.delete_folder"          = "Delete folder?";
 "library.search_empty"           = "No results for \"%@\"";
 "library.search_results"         = "Search results for \"%@\"";
 "library.deck_from_you"          = "from @you";
@@ -89,6 +96,8 @@
 "library.progress"               = "learned: %d of %d";
 
 // MARK: - Deck Detail
+"deckdetail.card_front_placeholder"  = "Question (front)";
+"deckdetail.card_back_placeholder"   = "Answer (back)";
 "deckdetail.study_remember"          = "Remember / Don't Remember";
 "deckdetail.study_type_answer"       = "Type Answer";
 "deckdetail.stat_learned"            = "Cards Learned";
@@ -104,6 +113,8 @@
 "deckdetail.edit_card"               = "Edit Card";
 "deckdetail.delete_card"             = "Delete Card?";
 "deckdetail.author_community"        = "community";
+"deckdetail.author_you"              = "you";
+"deckdetail.fill_both_fields"        = "Please fill in both card fields.";
 
 // MARK: - Study
 "study.listen"               = "listen";
@@ -129,10 +140,26 @@
 "adddeck.generating"          = "Generating cards...";
 "adddeck.generated_message"   = "Cards generated from \"%@\". Review and edit them as needed.";
 "adddeck.name_required"       = "Please enter a set name.";
+"adddeck.cards_required"      = "Please add at least one card.";
 "adddeck.service_unavailable" = "Card service is unavailable.";
 "adddeck.created_message"     = "Set \"%@\" created.";
 "adddeck.question_placeholder"= "Enter question...";
 "adddeck.answer_placeholder"  = "Enter answer...";
+
+// MARK: - AI Generation
+"aigeneration.title"       = "Generating cards...";
+"aigeneration.subtitle"    = "This may take a few minutes";
+"aigeneration.error_title" = "Generation failed";
+
+// MARK: - Quiz
+"quiz.title"            = "Quiz";
+"quiz.question_counter" = "%d / %d";
+"quiz.result_title"     = "Results";
+"quiz.correct_of"       = "%d of %d correct";
+"quiz.score_pct"        = "%.0f%%";
+"quiz.retry"            = "Try Again";
+"quiz.too_few_cards"    = "At least 4 cards are required for a quiz";
+"quiz.error_start"      = "Failed to start quiz";
 
 // MARK: - Profile
 "profile.title"                   = "Profile";

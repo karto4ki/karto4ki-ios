@@ -32,9 +32,12 @@ enum CardServiceEndpoints {
 
     static func studyAnswer(_ sessionId: String) -> String { "/api/card/v1.0/study/\(sessionId)/answer" }
 
+    static let studyAll = "/api/card/v1.0/me/study-all"
+
     static func setStats(_ setId: String) -> String { "/api/card/v1.0/sets/\(setId)/stats" }
 
     static func cloneSet(_ setId: String) -> String { "/api/card/v1.0/sets/\(setId)/clone" }
+
 
     static func search(query: String, offset: Int? = nil, limit: Int? = nil) -> String {
         var components = URLComponents()

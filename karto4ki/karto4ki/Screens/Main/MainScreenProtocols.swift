@@ -68,6 +68,7 @@ protocol MainScreenPresentationLogic: AnyObject {
     func presentData(
         friends: [MainScreenModels.Friend],
         streakDays: [MainScreenModels.StreakDay],
+        currentStreak: Int,
         deckCarousel: [MainScreenModels.DeckCarouselItem]
     )
 }

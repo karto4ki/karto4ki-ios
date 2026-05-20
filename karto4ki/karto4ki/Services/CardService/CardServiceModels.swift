@@ -122,7 +122,7 @@ struct CardsResponseAPI: Decodable {
 
 struct StudySessionAPI: Decodable {
     let id: String
-    let setId: String
+    let setId: String?
     let cards: [CardAPI]
     let sessionType: String
 

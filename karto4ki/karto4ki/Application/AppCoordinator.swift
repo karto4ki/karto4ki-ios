@@ -119,6 +119,17 @@ final class AppCoordinator {
         }
     }
 
+    // MARK: - Language reload
+
+    /// Rebuilds the entire tab stack after a language change.
+    /// All VCs are freshly created and will pick up the new L10n bundle.
+    func reloadForLanguageChange() {
+        let tabVC = TabContainerViewController(context: context)
+        UIView.transition(with: window, duration: 0.28, options: .transitionCrossDissolve) {
+            self.navigationController.setViewControllers([tabVC], animated: false)
+        }
+    }
+
     // MARK: - Sign Out
 
     func signOut() {

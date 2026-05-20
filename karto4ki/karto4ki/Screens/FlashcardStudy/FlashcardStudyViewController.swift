@@ -6,6 +6,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
     private let deck: LibraryModels.DeckSet
     private let deckTint: UIColor
     private let realSession: FlashcardStudyRealSession
+    var onFinished: (() -> Void)?
 
     private let backButton = UIButton(type: .system)
     private let settingsButton = UIButton(type: .system)
@@ -57,6 +58,22 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    init(allCardsWithService cardService: CardServiceProtocol) {
+        // Fake deck — only tint and title are used downstream, setId is ignored (global session)
+        self.deck = LibraryModels.DeckSet(
+            id: UUID(),
+            title: L10n.Library.studyAllShort,
+            learned: 0,
+            total: 0,
+            addedAt: Date(),
+            colorIndex: 0
+        )
+        self.deckTint = UIColor(red: 0.45, green: 0.40, blue: 0.90, alpha: 1)
+        self.realSession = FlashcardStudyRealSession(cardService: cardService, setId: nil)
+        super.init(nibName: nil, bundle: nil)
+        modalPresentationStyle = .fullScreen
     }
 
     override func viewDidLoad() {
@@ -344,7 +361,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
     private func configureListen() {
         var cfg = UIButton.Configuration.plain()
         cfg.image = UIImage(systemName: "speaker.wave.2.fill")
-        cfg.title = "слушать"
+        cfg.title = L10n.Study.listen
         cfg.imagePlacement = .top
         cfg.imagePadding = 6
         cfg.baseForegroundColor = UIColor.white.withAlphaComponent(0.85)
@@ -371,8 +388,8 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
         bottomButtonsRow.alignment = .fill
         bottomButtonsRow.translatesAutoresizingMaskIntoConstraints = false
 
-        styleChoiceButton(forgetButton, title: "не помню", symbol: "xmark", tint: forgetRed)
-        styleChoiceButton(rememberButton, title: "помню", symbol: "checkmark", tint: rememberGreen)
+        styleChoiceButton(forgetButton, title: L10n.Study.dontRemember, symbol: "xmark", tint: forgetRed)
+        styleChoiceButton(rememberButton, title: L10n.Study.remember, symbol: "checkmark", tint: rememberGreen)
         forgetButton.addTarget(self, action: #selector(forgetTapped), for: .touchUpInside)
         rememberButton.addTarget(self, action: #selector(rememberTapped), for: .touchUpInside)
 
@@ -441,22 +458,23 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
     private func listenTapped() {
         let a = UIAlertController(
             title: nil,
-            message: "Озвучивание карточек появится позже.\nНабор: «\(deck.title)»",
+            message: L10n.Study.ttsComingSoon(deck.title),
             preferredStyle: .alert
         )
-        a.addAction(UIAlertAction(title: "OK", style: .default))
+        a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
         present(a, animated: true)
     }
 
     @objc
     private func settingsTapped() {
-        let a = UIAlertController(title: nil, message: "Настройки режима повторения появятся позже.", preferredStyle: .alert)
-        a.addAction(UIAlertAction(title: "OK", style: .default))
+        let a = UIAlertController(title: nil, message: L10n.Study.settingsComingSoon, preferredStyle: .alert)
+        a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
         present(a, animated: true)
     }
 
     @objc
     private func backTapped() {
+        onFinished?()
         dismiss(animated: true)
     }
 
@@ -477,7 +495,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
             await MainActor.run {
                 loadingIndicator.stopAnimating()
                 setInteractionEnabled(true)
-                let a = UIAlertController(title: "Ошибка", message: error.localizedDescription, preferredStyle: .alert)
+                let a = UIAlertController(title: L10n.Common.error, message: error.localizedDescription, preferredStyle: .alert)
                 a.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in self?.dismiss(animated: true) })
                 present(a, animated: true)
             }
@@ -605,7 +623,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
             }
         } catch {
             await MainActor.run {
-                let a = UIAlertController(title: "Ошибка", message: error.localizedDescription, preferredStyle: .alert)
+                let a = UIAlertController(title: L10n.Common.error, message: error.localizedDescription, preferredStyle: .alert)
                 a.addAction(UIAlertAction(title: "OK", style: .default))
                 self.present(a, animated: true)
             }
@@ -634,7 +652,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
                 self.topCard?.transform = .identity
                 self.isBusy = false
                 self.setInteractionEnabled(true)
-                let a = UIAlertController(title: "Ошибка", message: error.localizedDescription, preferredStyle: .alert)
+                let a = UIAlertController(title: L10n.Common.error, message: error.localizedDescription, preferredStyle: .alert)
                 a.addAction(UIAlertAction(title: "OK", style: .default))
                 self.present(a, animated: true)
             }
@@ -709,8 +727,9 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
     }
 
     private func showFinished(_ message: String) {
-        let a = UIAlertController(title: "Готово", message: message, preferredStyle: .alert)
-        a.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+        onFinished?()
+        let a = UIAlertController(title: L10n.Common.done, message: message, preferredStyle: .alert)
+        a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default) { [weak self] _ in
             self?.dismiss(animated: true)
         })
         present(a, animated: true)

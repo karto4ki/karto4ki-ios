@@ -111,6 +111,8 @@ extension TestModeManager {
         AnswerResultAPI(cardId: cardId, newStatus: "learned", nextReview: ISO8601DateFormatter().string(from: Date()), streak: 1, errorCount: 0, lastRating: 1)
     }
 
+
+
     func mockCreatedSet(name: String) -> CardSetAPI {
         CardSetAPI(
             id: "mock-set-new-\(UUID().uuidString)",
@@ -135,4 +137,14 @@ extension TestModeManager {
             createdAt: ISO8601DateFormatter().string(from: Date())
         )
     }
+
+    func mockStudySessionAll() -> StudySessionAPI {
+        StudySessionAPI(
+            id: "mock-session-all",
+            setId: nil,
+            cards: mockCards(for: "mock-set-1").cards + mockCards(for: "mock-set-2").cards,
+            sessionType: "learn"
+        )
+    }
+
 }

@@ -184,6 +184,19 @@ final class CardService: CardServiceProtocol {
         )
     }
 
+    func startStudyAll(sessionType: String = "learn", limit: Int = 100) async throws -> StudySessionAPI {
+        if TestModeManager.shared.isTestMode {
+            return TestModeManager.shared.mockStudySessionAll()
+        }
+        let body = try encoder.encode(StartStudyRequestAPI(sessionType: sessionType, limit: limit))
+        return try await sender.request(
+            endpoint: CardServiceEndpoints.studyAll,
+            method: .post,
+            body: body,
+            authenticated: true
+        )
+    }
+
     func submitAnswer(sessionId: String, cardId: String, isCorrect: Bool, timeSpentMs: Int? = nil) async throws -> AnswerResultAPI {
         if TestModeManager.shared.isTestMode {
             return TestModeManager.shared.mockAnswerResult(for: cardId)
@@ -245,6 +258,7 @@ final class CardService: CardServiceProtocol {
         AppCacheStore.invalidateSets()
         return cloned
     }
+
 
     // MARK: - Private
 

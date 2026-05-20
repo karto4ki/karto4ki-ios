@@ -21,4 +21,6 @@ protocol CardServiceProtocol {
 
     func searchSets(query: String, offset: Int?, limit: Int?) async throws -> SearchSetsResponseAPI
     func cloneSet(setId: String) async throws -> CardSetAPI
+
+    func startStudyAll(sessionType: String, limit: Int) async throws -> StudySessionAPI
 }

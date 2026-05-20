@@ -23,7 +23,7 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
 
     private let studyActionsStack = UIStackView()
     private let rememberNotRememberButton = UIButton(type: .system)
-    private let typeAnswerButton = UIButton(type: .system)
+    private let quizButton = UIButton(type: .system)
     private let addToLibraryButton = UIButton(type: .system)
     private let cardsSectionTitle = UILabel()
     private let cardsStack = UIStackView()
@@ -193,7 +193,7 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
     // MARK: - Header
 
     private func configureHeader() {
-        folderIcon.image = UIImage(systemName: "folder.fill")
+        folderIcon.image = UIImage(systemName: "rectangle.on.rectangle.angled")
         folderIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 36, weight: .semibold)
         folderIcon.tintColor = deckFolderTint
         folderIcon.contentMode = .scaleAspectFit
@@ -215,15 +215,15 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         subtitleLabel.textColor = UIColor.white.withAlphaComponent(0.88)
         subtitleLabel.numberOfLines = 0
 
-        let authorName = deck.isUserOwned ? "вы" : (deck.authorName ?? "сообщество")
-        authorLabel.text = "Автор: \(authorName)"
+        let authorName = deck.isUserOwned ? L10n.DeckDetail.authorYou : (deck.authorName ?? L10n.DeckDetail.authorCommunity)
+        authorLabel.text = L10n.Common.author(authorName)
         authorLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         authorLabel.textColor = UIColor.white.withAlphaComponent(0.78)
 
         let df = DateFormatter()
-        df.locale = Locale(identifier: "ru_RU")
+        df.locale = Locale.current
         df.dateFormat = "dd.MM.yyyy"
-        createdLabel.text = "Создан: \(df.string(from: deck.addedAt))"
+        createdLabel.text = L10n.Common.created(df.string(from: deck.addedAt))
         createdLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         createdLabel.textColor = UIColor.white.withAlphaComponent(0.78)
 
@@ -258,10 +258,10 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         statsStack.spacing = 10
         statsStack.translatesAutoresizingMaskIntoConstraints = false
 
-        statsStack.addArrangedSubview(statLine(title: "Изучено карточек",  valueLabel: statLearnedLabel))
-        statsStack.addArrangedSubview(statLine(title: "Не изучено",        valueLabel: statUnlearnedLabel))
-        statsStack.addArrangedSubview(statLine(title: "Всего карточек",    valueLabel: statTotalLabel))
-        statsStack.addArrangedSubview(statLine(title: "Процент изучения",  valueLabel: statPctLabel))
+        statsStack.addArrangedSubview(statLine(title: L10n.DeckDetail.statLearned,   valueLabel: statLearnedLabel))
+        statsStack.addArrangedSubview(statLine(title: L10n.DeckDetail.statUnlearned, valueLabel: statUnlearnedLabel))
+        statsStack.addArrangedSubview(statLine(title: L10n.DeckDetail.statTotal,     valueLabel: statTotalLabel))
+        statsStack.addArrangedSubview(statLine(title: L10n.DeckDetail.statPct,       valueLabel: statPctLabel))
 
         statsContainer.addSubview(statsStack)
         NSLayoutConstraint.activate([
@@ -314,7 +314,7 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         studyActionsStack.spacing = 10
         studyActionsStack.alignment = .fill
 
-        rememberNotRememberButton.setTitle("Помню / Не помню", for: .normal)
+        rememberNotRememberButton.setTitle(L10n.DeckDetail.studyRemember, for: .normal)
         rememberNotRememberButton.setTitleColor(.white, for: .normal)
         rememberNotRememberButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         rememberNotRememberButton.backgroundColor = deckFolderTint.withAlphaComponent(0.55)
@@ -324,21 +324,21 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         rememberNotRememberButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
         rememberNotRememberButton.addTarget(self, action: #selector(rememberNotRememberStudyTapped), for: .touchUpInside)
 
-        typeAnswerButton.setTitle("Ввести ответ", for: .normal)
-        typeAnswerButton.setTitleColor(.white, for: .normal)
-        typeAnswerButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        typeAnswerButton.backgroundColor = .clear
-        typeAnswerButton.layer.cornerRadius = glassCorner
-        typeAnswerButton.layer.borderWidth = 1.5
-        typeAnswerButton.layer.borderColor = UIColor.white.withAlphaComponent(0.65).cgColor
-        typeAnswerButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
-        typeAnswerButton.addTarget(self, action: #selector(typeAnswerStudyTapped), for: .touchUpInside)
+        quizButton.setTitle(L10n.Quiz.title, for: .normal)
+        quizButton.setTitleColor(.white, for: .normal)
+        quizButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        quizButton.backgroundColor = .clear
+        quizButton.layer.cornerRadius = glassCorner
+        quizButton.layer.borderWidth = 1.5
+        quizButton.layer.borderColor = UIColor.white.withAlphaComponent(0.65).cgColor
+        quizButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
+        quizButton.addTarget(self, action: #selector(quizTapped), for: .touchUpInside)
 
         // Начально неактивны — включатся после загрузки карточек
         setStudyButtonsEnabled(false)
 
         studyActionsStack.addArrangedSubview(rememberNotRememberButton)
-        studyActionsStack.addArrangedSubview(typeAnswerButton)
+        studyActionsStack.addArrangedSubview(quizButton)
         contentStack.addArrangedSubview(studyActionsStack)
         contentStack.setCustomSpacing(12, after: statsContainer)
     }
@@ -346,16 +346,16 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
     private func setStudyButtonsEnabled(_ enabled: Bool) {
         studyButtonsEnabled = enabled
         rememberNotRememberButton.isEnabled = enabled
-        typeAnswerButton.isEnabled = enabled
+        quizButton.isEnabled = enabled
         rememberNotRememberButton.alpha = enabled ? 1 : 0.45
-        typeAnswerButton.alpha = enabled ? 1 : 0.45
+        quizButton.alpha = enabled ? 1 : 0.45
     }
 
     // MARK: - Add to library
 
     private func configureAddToLibrary() {
         addToLibraryButton.isHidden = deck.isUserOwned
-        addToLibraryButton.setTitle("Добавить в библиотеку", for: .normal)
+        addToLibraryButton.setTitle(L10n.DeckDetail.addToLibrary, for: .normal)
         addToLibraryButton.setTitleColor(.white, for: .normal)
         addToLibraryButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         addToLibraryButton.backgroundColor = profilePurple.withAlphaComponent(0.55)
@@ -370,7 +370,7 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
     // MARK: - Cards section
 
     private func configureCardsSection() {
-        cardsSectionTitle.text = "Карточки"
+        cardsSectionTitle.text = L10n.DeckDetail.cards
         cardsSectionTitle.font = UIFont.systemFont(ofSize: 18, weight: .bold)
         cardsSectionTitle.textColor = .white
         contentStack.addArrangedSubview(cardsSectionTitle)
@@ -439,7 +439,7 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
             } catch {
                 await MainActor.run {
                     loadingIndicator.stopAnimating()
-                    showError("Не удалось загрузить карточки")
+                    showError(error.localizedDescription)
                 }
             }
         }
@@ -496,14 +496,45 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         present(study, animated: true)
     }
 
-    @objc private func typeAnswerStudyTapped() {
-        let a = UIAlertController(
-            title: "Ввести ответ",
-            message: "Режим ввода ответа появится в следующих версиях.",
-            preferredStyle: .alert
-        )
-        a.addAction(UIAlertAction(title: "OK", style: .default))
-        present(a, animated: true)
+    @objc private func quizTapped() {
+        guard flashcards.count >= 4 else {
+            let a = UIAlertController(title: L10n.Quiz.title, message: L10n.Quiz.tooFewCards, preferredStyle: .alert)
+            a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
+            present(a, animated: true)
+            return
+        }
+        quizButton.isEnabled = false
+        quizButton.alpha = 0.5
+        Task {
+            do {
+                let session = try await cardService.startStudy(
+                    setId: deck.id.uuidString.lowercased(),
+                    sessionType: "quiz",
+                    limit: min(flashcards.count, 20)
+                )
+                await MainActor.run { [weak self] in
+                    guard let self else { return }
+                    quizButton.isEnabled = true
+                    quizButton.alpha = 1
+                    let quizVC = QuizViewController(deck: deck, session: session, cardService: cardService)
+                    quizVC.onFinished = { [weak self] in self?.loadCards() }
+                    present(quizVC, animated: true)
+                }
+            } catch {
+                await MainActor.run { [weak self] in
+                    guard let self else { return }
+                    quizButton.isEnabled = true
+                    quizButton.alpha = 1
+                    let a = UIAlertController(
+                        title: L10n.Quiz.errorStart,
+                        message: error.localizedDescription,
+                        preferredStyle: .alert
+                    )
+                    a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
+                    present(a, animated: true)
+                }
+            }
+        }
     }
 
     // MARK: - Add to library (clone set)
@@ -518,18 +549,18 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
                     addToLibraryButton.isEnabled = true
                     addToLibraryButton.alpha = 1
                     let a = UIAlertController(
-                        title: "Готово",
-                        message: "Набор добавлен в вашу библиотеку.",
+                        title: L10n.DeckDetail.addedTitle,
+                        message: L10n.DeckDetail.addedMessage,
                         preferredStyle: .alert
                     )
-                    a.addAction(UIAlertAction(title: "OK", style: .default))
+                    a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
                     present(a, animated: true)
                 }
             } catch {
                 await MainActor.run {
                     addToLibraryButton.isEnabled = true
                     addToLibraryButton.alpha = 1
-                    showError("Не удалось добавить набор в библиотеку")
+                    showError(error.localizedDescription)
                 }
             }
         }
@@ -538,24 +569,24 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
     // MARK: - Add card
 
     @objc private func addCardTapped() {
-        let alert = UIAlertController(title: "Новая карточка", message: nil, preferredStyle: .alert)
+        let alert = UIAlertController(title: L10n.DeckDetail.newCard, message: nil, preferredStyle: .alert)
         alert.addTextField { tf in
-            tf.placeholder = "Вопрос (лицо)"
+            tf.placeholder = L10n.DeckDetail.cardFrontPlaceholder
             tf.autocapitalizationType = .sentences
             tf.returnKeyType = .next
         }
         alert.addTextField { tf in
-            tf.placeholder = "Ответ (оборот)"
+            tf.placeholder = L10n.DeckDetail.cardBackPlaceholder
             tf.autocapitalizationType = .sentences
             tf.returnKeyType = .done
         }
-        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Добавить", style: .default) { [weak self, weak alert] _ in
+        alert.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
+        alert.addAction(UIAlertAction(title: L10n.Common.add, style: .default) { [weak self, weak alert] _ in
             guard let self else { return }
             let front = alert?.textFields?[0].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             let back  = alert?.textFields?[1].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             guard !front.isEmpty, !back.isEmpty else {
-                self.showError("Заполните оба поля карточки")
+                self.showError(L10n.DeckDetail.fillBothFields)
                 return
             }
             self.createCard(front: front, back: back)
@@ -583,7 +614,7 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
                     AppCacheStore.invalidateSets()
                 }
             } catch {
-                await MainActor.run { showError("Не удалось добавить карточку") }
+                await MainActor.run { showError(error.localizedDescription) }
             }
         }
     }
@@ -592,10 +623,10 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
 
     private func presentCardMenu(card: DeckSetDetailModels.FlashcardRow, sourceView: UIView) {
         let sheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        sheet.addAction(UIAlertAction(title: "Изменить", style: .default) { [weak self] _ in
+        sheet.addAction(UIAlertAction(title: L10n.Common.change, style: .default) { [weak self] _ in
             self?.presentEditCard(card)
         })
-        sheet.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        sheet.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
         if let pop = sheet.popoverPresentationController {
             pop.sourceView = sourceView
             pop.sourceRect = sourceView.bounds
@@ -604,24 +635,24 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
     }
 
     private func presentEditCard(_ card: DeckSetDetailModels.FlashcardRow) {
-        let alert = UIAlertController(title: "Изменить карточку", message: nil, preferredStyle: .alert)
+        let alert = UIAlertController(title: L10n.DeckDetail.editCard, message: nil, preferredStyle: .alert)
         alert.addTextField { tf in
             tf.text = card.question
-            tf.placeholder = "Вопрос (лицо)"
+            tf.placeholder = L10n.DeckDetail.cardFrontPlaceholder
             tf.autocapitalizationType = .sentences
         }
         alert.addTextField { tf in
             tf.text = card.answer
-            tf.placeholder = "Ответ (оборот)"
+            tf.placeholder = L10n.DeckDetail.cardBackPlaceholder
             tf.autocapitalizationType = .sentences
         }
-        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Сохранить", style: .default) { [weak self, weak alert] _ in
+        alert.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
+        alert.addAction(UIAlertAction(title: L10n.Common.save, style: .default) { [weak self, weak alert] _ in
             guard let self else { return }
             let front = alert?.textFields?[0].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             let back  = alert?.textFields?[1].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             guard !front.isEmpty, !back.isEmpty else {
-                self.showError("Заполните оба поля карточки")
+                self.showError(L10n.DeckDetail.fillBothFields)
                 return
             }
             self.updateCard(card, front: front, back: back)
@@ -642,7 +673,7 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
                     rebuildCardRows()
                 }
             } catch {
-                await MainActor.run { showError("Не удалось обновить карточку") }
+                await MainActor.run { showError(error.localizedDescription) }
             }
         }
     }
@@ -650,9 +681,9 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
     // MARK: - Delete card
 
     private func confirmDeleteCard(_ card: DeckSetDetailModels.FlashcardRow) {
-        let a = UIAlertController(title: "Удалить карточку?", message: card.question, preferredStyle: .alert)
-        a.addAction(UIAlertAction(title: "Отмена", style: .cancel))
-        a.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+        let a = UIAlertController(title: L10n.DeckDetail.deleteCard, message: card.question, preferredStyle: .alert)
+        a.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
+        a.addAction(UIAlertAction(title: L10n.Common.delete, style: .destructive) { [weak self] _ in
             self?.deleteCard(card)
         })
         present(a, animated: true)
@@ -679,7 +710,7 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
                     updateStats()
                     rebuildCardRows()
                     AppCacheStore.invalidateSets()
-                    showError("Не удалось удалить карточку")
+                    showError(error.localizedDescription)
                 }
             }
         }

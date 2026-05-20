@@ -1,6 +1,6 @@
 import UIKit
 
-final class LibraryDeckRowView: UIView {
+final class LibraryFolderRowView: UIView {
 
     var onTap: (() -> Void)?
     var onDeleteTap: (() -> Void)?
@@ -9,25 +9,19 @@ final class LibraryDeckRowView: UIView {
     private let rootStack = UIStackView()
     private let deleteButton = UIButton(type: .system)
     private let folderIcon = UIImageView()
-    private let textStack = UIStackView()
     private let titleLabel = UILabel()
-    private let progressCaptionLabel = UILabel()
-    private let progressView = UIProgressView(progressViewStyle: .bar)
-    private let metaLabel = UILabel()
     private let chevron = UIImageView()
 
     private var deleteWidth: NSLayoutConstraint?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        configure()
+        setup()
     }
 
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+    required init?(coder: NSCoder) { fatalError() }
 
-    private func configure() {
+    private func setup() {
         translatesAutoresizingMaskIntoConstraints = false
 
         card.backgroundColor = .white.withAlphaComponent(0.28)
@@ -59,39 +53,19 @@ final class LibraryDeckRowView: UIView {
             folderIcon.heightAnchor.constraint(equalToConstant: 40)
         ])
 
-        textStack.axis = .vertical
-        textStack.spacing = 4
-        textStack.alignment = .fill
-
         titleLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
         titleLabel.textColor = .white
-        titleLabel.numberOfLines = 2
-
-        progressCaptionLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
-        progressCaptionLabel.textColor = UIColor.white.withAlphaComponent(0.85)
-
-        progressView.trackTintColor = .white.withAlphaComponent(0.35)
-        progressView.layer.cornerRadius = 4
-        progressView.clipsToBounds = true
-        progressView.setContentCompressionResistancePriority(.required, for: .vertical)
-
-        metaLabel.font = UIFont.systemFont(ofSize: 12, weight: .regular)
-        metaLabel.textColor = UIColor.white.withAlphaComponent(0.72)
-
-        textStack.addArrangedSubview(titleLabel)
-        textStack.addArrangedSubview(progressCaptionLabel)
-        textStack.addArrangedSubview(progressView)
-        textStack.addArrangedSubview(metaLabel)
+        titleLabel.numberOfLines = 1
 
         let chevCfg = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
-        chevron.image = UIImage(systemName: "chevron.right", withConfiguration: chevCfg)
         chevron.tintColor = .white.withAlphaComponent(0.9)
         chevron.contentMode = .scaleAspectFit
         chevron.setContentHuggingPriority(.required, for: .horizontal)
+        chevron.preferredSymbolConfiguration = chevCfg
 
         rootStack.addArrangedSubview(deleteButton)
         rootStack.addArrangedSubview(folderIcon)
-        rootStack.addArrangedSubview(textStack)
+        rootStack.addArrangedSubview(titleLabel)
         rootStack.addArrangedSubview(chevron)
 
         addSubview(card)
@@ -103,39 +77,31 @@ final class LibraryDeckRowView: UIView {
             card.trailingAnchor.constraint(equalTo: trailingAnchor),
             card.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            rootStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
+            rootStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
             rootStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
             rootStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
-            rootStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12)
+            rootStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14)
         ])
 
         let tap = UITapGestureRecognizer(target: self, action: #selector(rowTapped))
         card.addGestureRecognizer(tap)
     }
 
-    func configure(deck: LibraryModels.DeckSet, createdText: String, isEditing: Bool) {
-        titleLabel.text = deck.title
-        progressCaptionLabel.text = "выучено: \(deck.learned) из \(deck.total)"
-        metaLabel.text = createdText
-        
-        let c = LibraryModels.FolderPalette.folderColor(colorIndex: deck.colorIndex)
-        folderIcon.image = UIImage(systemName: "rectangle.on.rectangle.angled")
+    func configure(folder: LibraryFolder, isEditing: Bool, isExpanded: Bool) {
+        titleLabel.text = folder.name
+        let c = LibraryModels.FolderPalette.folderColor(colorIndex: folder.colorIndex)
+        folderIcon.image = UIImage(systemName: "folder.fill")
         folderIcon.tintColor = c
-        progressView.progressTintColor = c
-        progressView.progress = Float(max(0, min(1, deck.progress)))
-        
-        deleteWidth?.constant = isEditing ? 36 : 0
+
+        let chevSymbol = isExpanded ? "chevron.down" : "chevron.right"
+        let chevCfg = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
+        chevron.image = UIImage(systemName: chevSymbol, withConfiguration: chevCfg)
         chevron.isHidden = isEditing
+
+        deleteWidth?.constant = isEditing ? 36 : 0
         deleteButton.isUserInteractionEnabled = isEditing
     }
 
-    @objc
-    private func rowTapped() {
-        onTap?()
-    }
-
-    @objc
-    private func deleteTapped() {
-        onDeleteTap?()
-    }
+    @objc private func rowTapped() { onTap?() }
+    @objc private func deleteTapped() { onDeleteTap?() }
 }
