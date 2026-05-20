@@ -18,6 +18,7 @@ final class LibraryScreenViewController: UIViewController, UIGestureRecognizerDe
 
     private let searchField = UITextField()
     private let studyAllButton = UIButton(type: .system)
+    private let quizAllButton  = UIButton(type: .system)
 
     private let decksStack = UIStackView()
     private let emptyContainer = UIView()
@@ -217,7 +218,7 @@ final class LibraryScreenViewController: UIViewController, UIGestureRecognizerDe
     }
 
     private func configureStudyAll() {
-        studyAllButton.setTitle(L10n.Library.studyAllFull, for: .normal)
+        studyAllButton.setTitle(L10n.Library.studyAllShort, for: .normal)
         studyAllButton.setTitleColor(.white, for: .normal)
         studyAllButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         studyAllButton.backgroundColor = profilePurple.withAlphaComponent(0.55)
@@ -226,8 +227,20 @@ final class LibraryScreenViewController: UIViewController, UIGestureRecognizerDe
         studyAllButton.layer.borderColor = UIColor.white.withAlphaComponent(0.45).cgColor
         studyAllButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
         studyAllButton.addTarget(self, action: #selector(studyAllTapped), for: .touchUpInside)
+
+        quizAllButton.setTitle(L10n.Quiz.title, for: .normal)
+        quizAllButton.setTitleColor(.white, for: .normal)
+        quizAllButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        quizAllButton.backgroundColor = .clear
+        quizAllButton.layer.cornerRadius = glassCorner
+        quizAllButton.layer.borderWidth = 1.5
+        quizAllButton.layer.borderColor = UIColor.white.withAlphaComponent(0.65).cgColor
+        quizAllButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
+        quizAllButton.addTarget(self, action: #selector(quizAllTapped), for: .touchUpInside)
+
         contentStack.addArrangedSubview(studyAllButton)
-        contentStack.setCustomSpacing(16, after: studyAllButton)
+        contentStack.addArrangedSubview(quizAllButton)
+        contentStack.setCustomSpacing(16, after: quizAllButton)
     }
 
     private func configureDecksStack() {
@@ -293,13 +306,50 @@ final class LibraryScreenViewController: UIViewController, UIGestureRecognizerDe
 
     @objc
     private func studyAllTapped() {
-        let a = UIAlertController(
-            title: L10n.Library.studyAllShort,
-            message: L10n.Library.studyAllComingSoon,
-            preferredStyle: .alert
-        )
-        a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
-        present(a, animated: true)
+        studyAllButton.isEnabled = false
+        studyAllButton.alpha = 0.5
+        let studyVC = FlashcardStudyViewController(allCardsWithService: cardService)
+        studyVC.onFinished = { [weak self] in
+            AppCacheStore.invalidateSets()
+            self?.interactor.reloadLibrary()
+        }
+        present(studyVC, animated: true) { [weak self] in
+            self?.studyAllButton.isEnabled = true
+            self?.studyAllButton.alpha = 1
+        }
+    }
+
+    @objc
+    private func quizAllTapped() {
+        quizAllButton.isEnabled = false
+        quizAllButton.alpha = 0.5
+        Task {
+            do {
+                let session = try await cardService.startStudyAll(sessionType: "quiz", limit: 200)
+                await MainActor.run { [weak self] in
+                    guard let self else { return }
+                    quizAllButton.isEnabled = true
+                    quizAllButton.alpha = 1
+                    let fakeDeck = LibraryModels.DeckSet(
+                        id: UUID(), title: L10n.Quiz.title,
+                        learned: 0, total: 0, addedAt: Date(), colorIndex: 0
+                    )
+                    let quizVC = QuizViewController(deck: fakeDeck, session: session, cardService: cardService)
+                    quizVC.onFinished = { [weak self] in
+                        AppCacheStore.invalidateSets()
+                        self?.interactor.reloadLibrary()
+                    }
+                    present(quizVC, animated: true)
+                }
+            } catch {
+                await MainActor.run { [weak self] in
+                    guard let self else { return }
+                    quizAllButton.isEnabled = true
+                    quizAllButton.alpha = 1
+                    displayError(error.localizedDescription)
+                }
+            }
+        }
     }
 
     @objc
@@ -775,6 +825,7 @@ final class LibraryScreenViewController: UIViewController, UIGestureRecognizerDe
         emptyContainer.isHidden = !isEmpty
         decksStack.isHidden = isEmpty
         studyAllButton.isHidden = isEmpty
+        quizAllButton.isHidden  = isEmpty
     }
 }
 

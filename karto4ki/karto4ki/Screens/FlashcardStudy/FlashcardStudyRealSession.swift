@@ -15,9 +15,9 @@ final class FlashcardStudyRealSession {
     private var remainingCards: [CardAPI] = []
     private var rememberedCount: Int = 0
 
-    init(cardService: CardServiceProtocol, setId: String) {
+    init(cardService: CardServiceProtocol, setId: String?) {
         self.cardService = cardService
-        self.setId = setId.lowercased()   // UUID.uuidString возвращает upper-case; бэкенд ожидает lower-case
+        self.setId = setId.map { $0.lowercased() } ?? ""
     }
 
     // MARK: - Bootstrap
@@ -26,7 +26,9 @@ final class FlashcardStudyRealSession {
         // "learn" возвращает все карточки набора без фильтра next_review <= NOW(),
         // что нужно для режима «листать пока все не выучены».
         // "review" фильтрует только просроченные карточки (интервальное повторение).
-        let session = try await cardService.startStudy(setId: setId, sessionType: "learn", limit: 50)
+        let session = setId.isEmpty
+            ? try await cardService.startStudyAll(sessionType: "learn", limit: 200)
+            : try await cardService.startStudy(setId: setId, sessionType: "learn", limit: 50)
         sessionId = session.id
         allCards = session.cards
         remainingCards = session.cards

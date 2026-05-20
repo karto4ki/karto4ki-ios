@@ -5,8 +5,20 @@ final class QuizViewController: UIViewController {
     // MARK: - Config
 
     private let deck: LibraryModels.DeckSet
-    private let session: QuizSessionAPI
+    private let session: StudySessionAPI
     private let cardService: CardServiceProtocol
+
+    // MARK: - Questions (built client-side from session cards)
+
+    private struct Question {
+        let cardId: String
+        let sessionId: String
+        let front: String
+        let options: [String]
+        let correctIndex: Int
+    }
+
+    private var questions: [Question] = []
 
     // MARK: - State
 
@@ -16,7 +28,7 @@ final class QuizViewController: UIViewController {
     private var correctCount = 0
     private var questionStartDate = Date()
     private var isAnswering = false
-    private var quizTask: Task<Void, Never>?
+    private var submitTask: Task<Void, Never>?
 
     // MARK: - Colors
 
@@ -47,7 +59,7 @@ final class QuizViewController: UIViewController {
 
     // MARK: - Init
 
-    init(deck: LibraryModels.DeckSet, session: QuizSessionAPI, cardService: CardServiceProtocol) {
+    init(deck: LibraryModels.DeckSet, session: StudySessionAPI, cardService: CardServiceProtocol) {
         self.deck = deck
         self.session = session
         self.cardService = cardService
@@ -62,17 +74,46 @@ final class QuizViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        questions = Self.buildQuestions(from: session.cards, sessionId: session.id)
         configureBackground()
         configureTopBar()
         configureQuestionCard()
         configureOptionsGrid()
         configureResultsView()
-        showQuestion(at: currentIndex, animated: false)
+        if questions.isEmpty {
+            dismiss(animated: true)
+        } else {
+            showQuestion(at: 0, animated: false)
+        }
     }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        quizTask?.cancel()
+        submitTask?.cancel()
+    }
+
+    // MARK: - Build questions client-side
+
+    private static func buildQuestions(from cards: [CardAPI], sessionId: String) -> [Question] {
+        guard cards.count >= 2 else { return [] }
+        let allBacks = cards.map { $0.back }
+        return cards.map { card in
+            let correct = card.back
+            let distractors = allBacks
+                .filter { $0 != correct }
+                .shuffled()
+                .prefix(3)
+            var options = [correct] + distractors
+            options.shuffle()
+            let correctIndex = options.firstIndex(of: correct) ?? 0
+            return Question(
+                cardId: card.id,
+                sessionId: sessionId,
+                front: card.front,
+                options: options,
+                correctIndex: correctIndex
+            )
+        }
     }
 
     // MARK: - Layout
@@ -193,17 +234,17 @@ final class QuizViewController: UIViewController {
     // MARK: - Quiz logic
 
     private func showQuestion(at index: Int, animated: Bool) {
-        guard index < session.questions.count else { return }
-        let q = session.questions[index]
+        guard index < questions.count else { return }
+        let q = questions[index]
 
-        let total = session.questions.count
+        let total = questions.count
         counterLabel.text = L10n.Quiz.questionCounter(index + 1, total)
         progressBar.setProgress(Float(index) / Float(total), animated: animated)
 
         questionLabel.text = q.front
 
         for (i, btn) in optionButtons.enumerated() {
-            btn.setTitle(i < q.options.count ? q.options[i].text : "", for: .normal)
+            btn.setTitle(i < q.options.count ? q.options[i] : "", for: .normal)
             btn.backgroundColor = UIColor.white.withAlphaComponent(0.18)
             btn.layer.borderColor = UIColor.white.withAlphaComponent(0.45).cgColor
             btn.isEnabled = true
@@ -228,25 +269,22 @@ final class QuizViewController: UIViewController {
         isAnswering = true
 
         let selectedIndex = sender.tag
-        let question = session.questions[currentIndex]
+        let question = questions[currentIndex]
         let correctIndex = question.correctIndex
         let isCorrect = selectedIndex == correctIndex
-
         let elapsed = Int(Date().timeIntervalSince(questionStartDate) * 1000)
 
-        // Immediate visual feedback
         applyAnswerFeedback(selectedIndex: selectedIndex, correctIndex: correctIndex)
-
         if isCorrect { correctCount += 1 }
 
-        // Submit to backend in background
-        let sessionId = session.id
-        let qIdx = currentIndex
-        quizTask = Task {
-            try? await cardService.submitQuizAnswer(
+        // Submit answer via study endpoint in background
+        let sessionId = question.sessionId
+        let cardId = question.cardId
+        submitTask = Task {
+            try? await cardService.submitAnswer(
                 sessionId: sessionId,
-                questionIndex: qIdx,
-                selectedIndex: selectedIndex,
+                cardId: cardId,
+                isCorrect: isCorrect,
                 timeSpentMs: elapsed
             )
         }
@@ -273,7 +311,7 @@ final class QuizViewController: UIViewController {
 
     private func advanceToNext() {
         currentIndex += 1
-        if currentIndex < session.questions.count {
+        if currentIndex < questions.count {
             showQuestion(at: currentIndex, animated: true)
         } else {
             finishQuiz()
@@ -282,23 +320,15 @@ final class QuizViewController: UIViewController {
 
     private func finishQuiz() {
         progressBar.setProgress(1.0, animated: true)
-        let sessionId = session.id
-        let setId = deck.id.uuidString.lowercased()
         let correct = correctCount
-        let total = session.questions.count
+        let total = questions.count
+        let pct = Float(correct) / Float(max(total, 1)) * 100
 
-        AppCacheStore.invalidateCards(setId: setId)
+        AppCacheStore.invalidateCards(setId: deck.id.uuidString.lowercased())
         AppCacheStore.invalidateSets()
         onFinished?()
 
-        Task {
-            let result = try? await cardService.finishQuiz(sessionId: sessionId)
-            await MainActor.run { [weak self] in
-                guard let self else { return }
-                let pct = result?.scorePercentage ?? (Float(correct) / Float(max(total, 1)) * 100)
-                showResults(correct: correct, total: total, pct: pct)
-            }
-        }
+        showResults(correct: correct, total: total, pct: pct)
     }
 
     // MARK: - Results
@@ -375,7 +405,7 @@ final class QuizViewController: UIViewController {
     // MARK: - Actions
 
     @objc private func backTapped() {
-        quizTask?.cancel()
+        submitTask?.cancel()
         dismiss(animated: true)
     }
 
@@ -383,6 +413,8 @@ final class QuizViewController: UIViewController {
         currentIndex = 0
         correctCount = 0
         isAnswering = false
+        // Re-shuffle questions for retry
+        questions = Self.buildQuestions(from: session.cards, sessionId: session.id)
 
         UIView.animate(withDuration: 0.25) {
             self.resultsView.alpha = 0

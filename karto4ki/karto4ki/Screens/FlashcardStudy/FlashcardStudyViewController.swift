@@ -6,6 +6,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
     private let deck: LibraryModels.DeckSet
     private let deckTint: UIColor
     private let realSession: FlashcardStudyRealSession
+    var onFinished: (() -> Void)?
 
     private let backButton = UIButton(type: .system)
     private let settingsButton = UIButton(type: .system)
@@ -57,6 +58,22 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    init(allCardsWithService cardService: CardServiceProtocol) {
+        // Fake deck — only tint and title are used downstream, setId is ignored (global session)
+        self.deck = LibraryModels.DeckSet(
+            id: UUID(),
+            title: L10n.Library.studyAllShort,
+            learned: 0,
+            total: 0,
+            addedAt: Date(),
+            colorIndex: 0
+        )
+        self.deckTint = UIColor(red: 0.45, green: 0.40, blue: 0.90, alpha: 1)
+        self.realSession = FlashcardStudyRealSession(cardService: cardService, setId: nil)
+        super.init(nibName: nil, bundle: nil)
+        modalPresentationStyle = .fullScreen
     }
 
     override func viewDidLoad() {
@@ -457,6 +474,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
 
     @objc
     private func backTapped() {
+        onFinished?()
         dismiss(animated: true)
     }
 
@@ -709,6 +727,7 @@ final class FlashcardStudyViewController: UIViewController, UIGestureRecognizerD
     }
 
     private func showFinished(_ message: String) {
+        onFinished?()
         let a = UIAlertController(title: L10n.Common.done, message: message, preferredStyle: .alert)
         a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default) { [weak self] _ in
             self?.dismiss(animated: true)

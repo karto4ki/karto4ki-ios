@@ -22,7 +22,5 @@ protocol CardServiceProtocol {
     func searchSets(query: String, offset: Int?, limit: Int?) async throws -> SearchSetsResponseAPI
     func cloneSet(setId: String) async throws -> CardSetAPI
 
-    func startQuiz(setId: String, questionCount: Int) async throws -> QuizSessionAPI
-    func submitQuizAnswer(sessionId: String, questionIndex: Int, selectedIndex: Int, timeSpentMs: Int?) async throws -> QuizAnswerResultAPI
-    func finishQuiz(sessionId: String) async throws -> QuizResultAPI
+    func startStudyAll(sessionType: String, limit: Int) async throws -> StudySessionAPI
 }

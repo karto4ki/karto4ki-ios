@@ -507,9 +507,10 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         quizButton.alpha = 0.5
         Task {
             do {
-                let session = try await cardService.startQuiz(
+                let session = try await cardService.startStudy(
                     setId: deck.id.uuidString.lowercased(),
-                    questionCount: min(flashcards.count, 20)
+                    sessionType: "quiz",
+                    limit: min(flashcards.count, 20)
                 )
                 await MainActor.run { [weak self] in
                     guard let self else { return }

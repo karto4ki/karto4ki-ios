@@ -111,43 +111,7 @@ extension TestModeManager {
         AnswerResultAPI(cardId: cardId, newStatus: "learned", nextReview: ISO8601DateFormatter().string(from: Date()), streak: 1, errorCount: 0, lastRating: 1)
     }
 
-    func mockQuizSession(for setId: String, questionCount: Int) -> QuizSessionAPI {
-        let pairs: [(String, String)] = [
-            ("диспетчеризация", "Планирование работ между потоками"),
-            ("идемпотентность", "Повторный запрос даёт тот же результат"),
-            ("декоратор", "Оборачивает объект, добавляя поведение"),
-            ("мемоизация", "Кэширование результата функции"),
-            ("race condition", "Ошибка из-за порядка доступа к данным"),
-            ("инверсия зависимостей", "Модули не зависят от деталей"),
-            ("чистая функция", "Без побочных эффектов"),
-            ("замыкание", "Функция + захваченное окружение"),
-        ]
-        let count = min(questionCount, pairs.count)
-        let allAnswers = pairs.map { $0.1 }
-        let questions: [QuizQuestionAPI] = (0..<count).map { i in
-            let correct = pairs[i]
-            var opts = [correct.1]
-            let distractors = allAnswers.filter { $0 != correct.1 }.shuffled().prefix(3)
-            opts.append(contentsOf: distractors)
-            opts.shuffle()
-            let correctIdx = opts.firstIndex(of: correct.1) ?? 0
-            return QuizQuestionAPI(
-                cardId: "mock-card-\(i)",
-                front: correct.0,
-                back: correct.1,
-                options: opts.enumerated().map { j, text in
-                    QuizOptionAPI(id: "opt-\(i)-\(j)", text: text, isCorrect: j == correctIdx)
-                },
-                correctIndex: correctIdx
-            )
-        }
-        return QuizSessionAPI(
-            id: "mock-quiz-\(setId)",
-            setId: setId,
-            questionCount: count,
-            questions: questions
-        )
-    }
+
 
     func mockCreatedSet(name: String) -> CardSetAPI {
         CardSetAPI(
@@ -173,4 +137,14 @@ extension TestModeManager {
             createdAt: ISO8601DateFormatter().string(from: Date())
         )
     }
+
+    func mockStudySessionAll() -> StudySessionAPI {
+        StudySessionAPI(
+            id: "mock-session-all",
+            setId: nil,
+            cards: mockCards(for: "mock-set-1").cards + mockCards(for: "mock-set-2").cards,
+            sessionType: "learn"
+        )
+    }
+
 }
