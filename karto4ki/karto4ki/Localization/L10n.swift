@@ -238,6 +238,17 @@ enum L10n {
         static var errorTitle: String { L("aigeneration.error_title") }
     }
 
+    enum Quiz {
+        static var title:        String { L("quiz.title") }
+        static var resultTitle:  String { L("quiz.result_title") }
+        static var retry:        String { L("quiz.retry") }
+        static var tooFewCards:  String { L("quiz.too_few_cards") }
+        static var errorStart:   String { L("quiz.error_start") }
+        static func questionCounter(_ current: Int, _ total: Int) -> String { Lf("quiz.question_counter", current, total) }
+        static func correctOf(_ correct: Int, _ total: Int) -> String { Lf("quiz.correct_of", correct, total) }
+        static func scorePct(_ pct: Float) -> String { String(format: L("quiz.score_pct"), pct) }
+    }
+
     enum Profile {
         static var title:                  String { L("profile.title") }
         static var email:                  String { L("profile.email") }

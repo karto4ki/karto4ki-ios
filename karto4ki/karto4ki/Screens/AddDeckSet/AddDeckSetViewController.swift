@@ -1,4 +1,6 @@
 import UIKit
+import PhotosUI
+import UniformTypeIdentifiers
 
 /// Экран «Добавление набора карточек»: ИИ-загрузка + ручные карточки (без переключателя «по одной / пакетом»).
 final class AddDeckSetViewController: UIViewController {
@@ -390,13 +392,46 @@ final class AddDeckSetViewController: UIViewController {
 
     @objc
     private func uploadTapped() {
-        let a = UIAlertController(
-            title: nil,
-            message: L10n.AddDeck.serviceUnavailable,
-            preferredStyle: .alert
-        )
-        a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
-        present(a, animated: true)
+        let sheet = UIAlertController(title: L10n.AddDeck.aiTitle, message: L10n.Common.chooseSource, preferredStyle: .actionSheet)
+        sheet.addAction(UIAlertAction(title: L10n.Common.files, style: .default) { [weak self] _ in
+            self?.presentDocumentPicker()
+        })
+        sheet.addAction(UIAlertAction(title: L10n.Profile.avatarLibrary, style: .default) { [weak self] _ in
+            self?.presentPhotoPicker()
+        })
+        sheet.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
+        present(sheet, animated: true)
+    }
+
+    private func presentDocumentPicker() {
+        let types: [UTType] = [
+            .pdf,
+            .plainText,
+            UTType(filenameExtension: "docx") ?? .data
+        ]
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: types)
+        picker.delegate = self
+        picker.allowsMultipleSelection = false
+        present(picker, animated: true)
+    }
+
+    private func presentPhotoPicker() {
+        var config = PHPickerConfiguration()
+        config.filter = .images
+        config.selectionLimit = 1
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+
+    private func presentAIGeneration(fileURL: URL) {
+        let genVC = AIGenerationViewController(fileURL: fileURL, cardService: cardService)
+        genVC.onComplete = { [weak self] _ in
+            self?.dismiss(animated: true) {
+                self?.onSetCreated?()
+            }
+        }
+        present(genVC, animated: true)
     }
 
     @objc
@@ -469,6 +504,70 @@ final class AddDeckSetViewController: UIViewController {
         manualCardsStack.arrangedSubviews
             .compactMap { $0 as? ManualCardEntryView }
             .compactMap { $0.cardPair }
+    }
+}
+
+// MARK: - UIDocumentPickerDelegate
+
+extension AddDeckSetViewController: UIDocumentPickerDelegate {
+
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        guard let url = urls.first else { return }
+        guard url.startAccessingSecurityScopedResource() else { return }
+        defer { url.stopAccessingSecurityScopedResource() }
+
+        let tmpURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension(url.pathExtension)
+        do {
+            try FileManager.default.copyItem(at: url, to: tmpURL)
+        } catch {
+            let a = UIAlertController(title: L10n.Common.error, message: error.localizedDescription, preferredStyle: .alert)
+            a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
+            present(a, animated: true)
+            return
+        }
+        presentAIGeneration(fileURL: tmpURL)
+    }
+}
+
+// MARK: - PHPickerViewControllerDelegate
+
+extension AddDeckSetViewController: PHPickerViewControllerDelegate {
+
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
+        guard let result = results.first else { return }
+
+        result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] object, error in
+            guard let image = object as? UIImage,
+                  let data = image.jpegData(compressionQuality: 0.85) else {
+                if error != nil {
+                    DispatchQueue.main.async {
+                        let a = UIAlertController(title: L10n.Common.error, message: error?.localizedDescription ?? L10n.Common.error, preferredStyle: .alert)
+                        a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
+                        self?.present(a, animated: true)
+                    }
+                }
+                return
+            }
+            let tmpURL = FileManager.default.temporaryDirectory
+                .appendingPathComponent(UUID().uuidString)
+                .appendingPathExtension("jpg")
+            do {
+                try data.write(to: tmpURL)
+            } catch {
+                DispatchQueue.main.async {
+                    let a = UIAlertController(title: L10n.Common.error, message: error.localizedDescription, preferredStyle: .alert)
+                    a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
+                    self?.present(a, animated: true)
+                }
+                return
+            }
+            DispatchQueue.main.async {
+                self?.presentAIGeneration(fileURL: tmpURL)
+            }
+        }
     }
 }
 

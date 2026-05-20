@@ -151,6 +151,16 @@
 "aigeneration.subtitle"    = "Это может занять несколько минут";
 "aigeneration.error_title" = "Не удалось сгенерировать";
 
+// MARK: - Quiz
+"quiz.title"            = "Тест";
+"quiz.question_counter" = "%d / %d";
+"quiz.result_title"     = "Результат";
+"quiz.correct_of"       = "%d из %d правильных";
+"quiz.score_pct"        = "%.0f%%";
+"quiz.retry"            = "Пройти снова";
+"quiz.too_few_cards"    = "Для теста нужно минимум 4 карточки";
+"quiz.error_start"      = "Не удалось начать тест";
+
 // MARK: - Profile
 "profile.title"                  = "Профиль";
 "profile.email"                  = "Почта";

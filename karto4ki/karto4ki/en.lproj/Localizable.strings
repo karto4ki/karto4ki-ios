@@ -151,6 +151,16 @@
 "aigeneration.subtitle"    = "This may take a few minutes";
 "aigeneration.error_title" = "Generation failed";
 
+// MARK: - Quiz
+"quiz.title"            = "Quiz";
+"quiz.question_counter" = "%d / %d";
+"quiz.result_title"     = "Results";
+"quiz.correct_of"       = "%d of %d correct";
+"quiz.score_pct"        = "%.0f%%";
+"quiz.retry"            = "Try Again";
+"quiz.too_few_cards"    = "At least 4 cards are required for a quiz";
+"quiz.error_start"      = "Failed to start quiz";
+
 // MARK: - Profile
 "profile.title"                   = "Profile";
 "profile.email"                   = "Email";

@@ -246,6 +246,50 @@ final class CardService: CardServiceProtocol {
         return cloned
     }
 
+    // MARK: - Quiz
+
+    func startQuiz(setId: String, questionCount: Int) async throws -> QuizSessionAPI {
+        if TestModeManager.shared.isTestMode {
+            return TestModeManager.shared.mockQuizSession(for: setId, questionCount: questionCount)
+        }
+        let body = try encoder.encode(StartQuizRequestAPI(questionCount: questionCount))
+        let session: QuizSessionAPI = try await sender.request(
+            endpoint: CardServiceEndpoints.quizStart(setId),
+            method: .post,
+            body: body,
+            authenticated: true
+        )
+        return session
+    }
+
+    func submitQuizAnswer(sessionId: String, questionIndex: Int, selectedIndex: Int, timeSpentMs: Int?) async throws -> QuizAnswerResultAPI {
+        if TestModeManager.shared.isTestMode {
+            return QuizAnswerResultAPI(questionIndex: questionIndex, isCorrect: true, correctIndex: selectedIndex, explanation: nil)
+        }
+        let body = try encoder.encode(SubmitQuizAnswerRequestAPI(
+            questionIndex: questionIndex,
+            selectedIndex: selectedIndex,
+            timeSpentMs: timeSpentMs
+        ))
+        return try await sender.request(
+            endpoint: CardServiceEndpoints.quizAnswer(sessionId),
+            method: .post,
+            body: body,
+            authenticated: true
+        )
+    }
+
+    func finishQuiz(sessionId: String) async throws -> QuizResultAPI {
+        if TestModeManager.shared.isTestMode {
+            return QuizResultAPI(sessionId: sessionId, totalQuestions: 8, correctAnswers: 8, incorrectAnswers: 0, scorePercentage: 100, timeSpentMs: nil)
+        }
+        return try await sender.request(
+            endpoint: CardServiceEndpoints.quizFinish(sessionId),
+            method: .post,
+            authenticated: true
+        )
+    }
+
     // MARK: - Private
 
     private func isNetworkError(_ error: Error) -> Bool {

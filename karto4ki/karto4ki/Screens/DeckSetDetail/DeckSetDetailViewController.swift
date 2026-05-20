@@ -23,7 +23,7 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
 
     private let studyActionsStack = UIStackView()
     private let rememberNotRememberButton = UIButton(type: .system)
-    private let typeAnswerButton = UIButton(type: .system)
+    private let quizButton = UIButton(type: .system)
     private let addToLibraryButton = UIButton(type: .system)
     private let cardsSectionTitle = UILabel()
     private let cardsStack = UIStackView()
@@ -324,21 +324,21 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         rememberNotRememberButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
         rememberNotRememberButton.addTarget(self, action: #selector(rememberNotRememberStudyTapped), for: .touchUpInside)
 
-        typeAnswerButton.setTitle(L10n.DeckDetail.studyTypeAnswer, for: .normal)
-        typeAnswerButton.setTitleColor(.white, for: .normal)
-        typeAnswerButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        typeAnswerButton.backgroundColor = .clear
-        typeAnswerButton.layer.cornerRadius = glassCorner
-        typeAnswerButton.layer.borderWidth = 1.5
-        typeAnswerButton.layer.borderColor = UIColor.white.withAlphaComponent(0.65).cgColor
-        typeAnswerButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
-        typeAnswerButton.addTarget(self, action: #selector(typeAnswerStudyTapped), for: .touchUpInside)
+        quizButton.setTitle(L10n.Quiz.title, for: .normal)
+        quizButton.setTitleColor(.white, for: .normal)
+        quizButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        quizButton.backgroundColor = .clear
+        quizButton.layer.cornerRadius = glassCorner
+        quizButton.layer.borderWidth = 1.5
+        quizButton.layer.borderColor = UIColor.white.withAlphaComponent(0.65).cgColor
+        quizButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
+        quizButton.addTarget(self, action: #selector(quizTapped), for: .touchUpInside)
 
         // Начально неактивны — включатся после загрузки карточек
         setStudyButtonsEnabled(false)
 
         studyActionsStack.addArrangedSubview(rememberNotRememberButton)
-        studyActionsStack.addArrangedSubview(typeAnswerButton)
+        studyActionsStack.addArrangedSubview(quizButton)
         contentStack.addArrangedSubview(studyActionsStack)
         contentStack.setCustomSpacing(12, after: statsContainer)
     }
@@ -346,9 +346,9 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
     private func setStudyButtonsEnabled(_ enabled: Bool) {
         studyButtonsEnabled = enabled
         rememberNotRememberButton.isEnabled = enabled
-        typeAnswerButton.isEnabled = enabled
+        quizButton.isEnabled = enabled
         rememberNotRememberButton.alpha = enabled ? 1 : 0.45
-        typeAnswerButton.alpha = enabled ? 1 : 0.45
+        quizButton.alpha = enabled ? 1 : 0.45
     }
 
     // MARK: - Add to library
@@ -496,14 +496,44 @@ final class DeckSetDetailViewController: UIViewController, UIGestureRecognizerDe
         present(study, animated: true)
     }
 
-    @objc private func typeAnswerStudyTapped() {
-        let a = UIAlertController(
-            title: L10n.DeckDetail.studyTypeAnswer,
-            message: L10n.DeckDetail.typeAnswerComingSoon,
-            preferredStyle: .alert
-        )
-        a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
-        present(a, animated: true)
+    @objc private func quizTapped() {
+        guard flashcards.count >= 4 else {
+            let a = UIAlertController(title: L10n.Quiz.title, message: L10n.Quiz.tooFewCards, preferredStyle: .alert)
+            a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
+            present(a, animated: true)
+            return
+        }
+        quizButton.isEnabled = false
+        quizButton.alpha = 0.5
+        Task {
+            do {
+                let session = try await cardService.startQuiz(
+                    setId: deck.id.uuidString.lowercased(),
+                    questionCount: min(flashcards.count, 20)
+                )
+                await MainActor.run { [weak self] in
+                    guard let self else { return }
+                    quizButton.isEnabled = true
+                    quizButton.alpha = 1
+                    let quizVC = QuizViewController(deck: deck, session: session, cardService: cardService)
+                    quizVC.onFinished = { [weak self] in self?.loadCards() }
+                    present(quizVC, animated: true)
+                }
+            } catch {
+                await MainActor.run { [weak self] in
+                    guard let self else { return }
+                    quizButton.isEnabled = true
+                    quizButton.alpha = 1
+                    let a = UIAlertController(
+                        title: L10n.Quiz.errorStart,
+                        message: error.localizedDescription,
+                        preferredStyle: .alert
+                    )
+                    a.addAction(UIAlertAction(title: L10n.Common.ok, style: .default))
+                    present(a, animated: true)
+                }
+            }
+        }
     }
 
     // MARK: - Add to library (clone set)
